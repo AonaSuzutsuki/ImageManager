@@ -134,6 +134,7 @@
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
+    <None Include="TestData\image1.db" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
