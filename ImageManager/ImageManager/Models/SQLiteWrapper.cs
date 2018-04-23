@@ -1,478 +1,170 @@
-﻿using System;
+﻿using CommonLib.Extentions;
+using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
 using System.Linq;
-using System.Web;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace ImageManager.Models
 {
     public class SQLiteWrapper : IDisposable
     {
-        private SQLiteCommand command;
         private SQLiteConnection connection;
-        
-        public string Filename
+
+        public string Filename { get; }
+
+        public SQLiteWrapper(string filename)
         {
-            get;
-        }
-        public SQLiteWrapper(string path)
-        {
-            Filename = path;
+            Filename = filename;
+            Open();
         }
 
-        public void VACUUM()
+        #region Public Methods
+        public void Vacuum()
         {
-            using (var conn = new SQLiteConnection("Data Source=" + Filename))
+            using (SQLiteCommand command = connection.CreateCommand())
             {
-                conn.Open();
-                using (SQLiteCommand command = conn.CreateCommand())
-                {
-                    command.CommandText = "VACUUM";
-                    command.ExecuteNonQuery();
-                }
-                conn.Close();
+                command.CommandText = "VACUUM;";
+                command.ExecuteNonQuery();
             }
-        }
-        public void Command(string cmd)
-        {
-            using (var conn = new SQLiteConnection("Data Source=" + Filename))
-            {
-                conn.Open();
-                using (SQLiteCommand command = conn.CreateCommand())
-                {
-                    command.CommandText = cmd;
-                    command.ExecuteNonQuery();
-
-                }
-                conn.Close();
-            }
-        }
-        public void CreateFile(string filename)
-        {
-            SQLiteConnection.CreateFile(filename);
         }
 
         public void CreateTable(string name, string arg)
         {
-            using (var conn = new SQLiteConnection("Data Source=" + Filename))
+            string cmd = "CREATE TABLE {0}({1});";
+            using (SQLiteCommand command = connection.CreateCommand())
             {
-                conn.Open();
-                using (SQLiteCommand command = conn.CreateCommand())
-                {
-                    command.CommandText = "CREATE TABLE " + name + "(" + arg + ")";
-                    command.ExecuteNonQuery();
-
-                }
-                conn.Close();
+                command.CommandText = cmd.FormatString(name, arg);
+                command.ExecuteNonQuery();
             }
         }
-
-        public bool TableExist(string tablename)
-        {
-            using (var conn = new SQLiteConnection("Data Source=" + Filename))
-            {
-                conn.Open();
-                using (SQLiteCommand command = conn.CreateCommand())
-                {
-                    command.CommandText = "SELECT name FROM sqlite_master WHERE type='table' AND name='" + tablename + "'";
-                    command.ExecuteNonQuery();
-                    using (SQLiteDataReader reader = command.ExecuteReader())
-                    {
-                        while (reader.Read())
-                        {
-                            //reader[0].ToString();
-                            return true;
-                        }
-                    }
-                }
-                conn.Close();
-
-                return false;
-            }
-        }
-
         public void DeleteTable(string name)
         {
-            using (var conn = new SQLiteConnection("Data Source=" + Filename))
+            string cmd = "DROP TABLE {0};";
+            using (SQLiteCommand command = connection.CreateCommand())
             {
-                conn.Open();
-                using (SQLiteCommand command = conn.CreateCommand())
+                command.CommandText = cmd.FormatString(name);
+                command.ExecuteNonQuery();
+            }
+        }
+        public bool TableExist(string tablename)
+        {
+            string cmd = "SELECT name FROM sqlite_master WHERE type='table' AND name='{0}';";
+            using (SQLiteCommand command = connection.CreateCommand())
+            {
+                command.CommandText = cmd.FormatString(tablename);
+                command.ExecuteNonQuery();
+                using (SQLiteDataReader reader = command.ExecuteReader())
                 {
-                    command.CommandText = "DROP TABLE " + name;
-                    command.ExecuteNonQuery();
-                    command.CommandText = "VACUUM";
-                    command.ExecuteNonQuery();
-
+                    return reader.Read();
                 }
-                conn.Close();
             }
         }
 
-        public void DeleteData(string name, string ifstr)
+        public string[][] GetValues(string tableName, string term = null)
         {
-            using (var conn = new SQLiteConnection("Data Source=" + Filename))
-            {
-                conn.Open();
-                using (SQLiteCommand command = conn.CreateCommand())
-                {
-                    command.CommandText = "DELETE FROM " + name + " WHERE " + ifstr;
-                    command.ExecuteNonQuery();
-                    command.CommandText = "VACUUM";
-                    command.ExecuteNonQuery();
+            string cmd;
+            if (!string.IsNullOrEmpty(term))
+                cmd = "select * from {0} where {1};".FormatString(tableName, term);
+            else
+                cmd = "select * from {0};".FormatString(tableName);
 
-                }
-                conn.Close();
-            }
-        }
-
-        public string Exists(string name)
-        {
-            string count = default(string);
-            try
+            using (SQLiteCommand command = connection.CreateCommand())
             {
-                using (SQLiteConnection cn = new SQLiteConnection("Data Source=" + Filename))
+                command.CommandText = cmd;
+                using (SQLiteDataReader sdr = command.ExecuteReader())
                 {
-                    cn.Open();
-                    SQLiteCommand cmd = cn.CreateCommand();
-                    cmd.CommandText = "select count(*) from " + name;
-                    using (SQLiteDataReader reader = cmd.ExecuteReader())
+                    List<string[]> tuples = new List<string[]>();
+                    for (int i = 0; sdr.Read(); i++)
                     {
-                        while (reader.Read())
+                        string[] column = new string[sdr.FieldCount];
+                        for (int j = 0; j < sdr.FieldCount; j++)
                         {
-                            count = reader.VisibleFieldCount.ToString();
+                            column[j] = sdr[j].ToString();
                         }
+                        tuples.Add(column);
                     }
-                    cn.Close();
+
+                    return tuples.ToArray();
                 }
             }
-            catch
-            {
-                count = "0";
-            }
-            return count;
         }
-        public int FieldLenght(string table, string field)
+
+        public void InsertValue(string tableName, params string[] values)
         {
-            List<string> datas = new List<string>();
-            using (SQLiteConnection cn = new SQLiteConnection("Data Source=" + Filename))
+            //INSERT INTO テーブル名 VALUES(値1, 値2, ...);
+            string cmd = "insert into {0} values({1});".FormatString(tableName, ArrayToString(values));
+
+            using (SQLiteTransaction sqlt = connection.BeginTransaction())
             {
-                cn.Open();
-                SQLiteCommand cmd = cn.CreateCommand();
-                cmd.CommandText = "select count('" + field + "') from '"+ table + "'";
-                using (SQLiteDataReader reader = cmd.ExecuteReader())
+                using (SQLiteCommand command = connection.CreateCommand())
                 {
-                    while (reader.Read())
-                    {
-                        datas.Add(reader[0].ToString());
-                    }
-                    return int.Parse(datas[0]);
+                    command.CommandText = cmd;
+                    command.ExecuteNonQuery();
                 }
+                sqlt.Commit();
             }
         }
-        public int FieldLenght(string table, string field, string terms)
+        #endregion
+
+        #region Public Static Functions
+        public static string ArrayToString(string[] array)
         {
-            //cmd.CommandText = "SELECT * FROM " + table + " where " + terms;
-            List<string> datas = new List<string>();
-            using (SQLiteConnection cn = new SQLiteConnection("Data Source=" + Filename))
+            var sb = new StringBuilder();
+            for (int i = 0; i < array.Length; i++)
             {
-                cn.Open();
-                SQLiteCommand cmd = cn.CreateCommand();
-                cmd.CommandText = "select count('" + field + "') from '" + table + "'" +" where " + terms;
-                using (SQLiteDataReader reader = cmd.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        datas.Add(reader[0].ToString());
-                    }
-                    return int.Parse(datas[0]);
-                }
+                if (i < array.Length - 1)
+                    sb.AppendFormat("'{0}', ", array[i]);
+                else
+                    sb.AppendFormat("'{0}'", array[i]);
             }
+            return sb.ToString();
         }
-        public bool Exist(string table, string field, string terms)
+        #endregion
+
+        #region Private Methods
+        private void Open()
         {
-            List<string> datas = new List<string>();
-
-            using (SQLiteConnection cn = new SQLiteConnection("Data Source=" + Filename))
-            {
-                cn.Open();
-                SQLiteCommand cmd = cn.CreateCommand();
-                cmd.CommandText = "SELECT * FROM " + table + " where " + terms;
-                using (SQLiteDataReader reader = cmd.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        datas.Add(reader[field].ToString());
-                    }
-                }
-                cn.Close();
-
-                if (datas.Count > 0)
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            connection = new SQLiteConnection("Data Source=" + Filename);
+            connection.Open();
         }
+        #endregion
 
-        /// <summary>
-        /// テーブルから値を取得します。
-        /// </summary>
-        /// <param name="table">テーブル名</param>
-        /// <param name="field">フィールド名</param>
-        /// <returns></returns>
-        public List<string> getString(string table, string field)
-        {
-            List<string> datas = new List<string>();
+        #region IDisposable Support
+        private bool disposedValue = false; // 重複する呼び出しを検出するには
 
-            using (SQLiteConnection cn = new SQLiteConnection("Data Source=" + Filename))
-            {
-                cn.Open();
-                SQLiteCommand cmd = cn.CreateCommand();
-                cmd.CommandText = "SELECT * FROM " + table;
-                using (SQLiteDataReader reader = cmd.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        datas.Add(reader[field].ToString());
-                    }
-                }
-                cn.Close();
-            }
-
-            return datas;
-        }
-
-        /// <summary>
-        /// テーブルから値を取得します。
-        /// </summary>
-        /// <param name="table">テーブル名</param>
-        /// <param name="field">フィールド名</param>
-        /// <param name="terms">条件式</param>
-        /// <returns></returns>
-        public List<string> getString(string table, string field, string terms)
-        {
-            List<string> datas = new List<string>();
-
-            using (SQLiteConnection cn = new SQLiteConnection("Data Source=" + Filename))
-            {
-                cn.Open();
-                SQLiteCommand cmd = cn.CreateCommand();
-                cmd.CommandText = "SELECT * FROM " + table + " where " + terms;
-                using (SQLiteDataReader reader = cmd.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        datas.Add(reader[field].ToString());
-                    }
-                }
-                cn.Close();
-            }
-
-            return datas;
-        }
-
-        /// <summary>
-        /// テーブルから値を取得します。
-        /// </summary>
-        /// <param name="table">テーブル名</param>
-        /// <param name="field">フィールド名</param>
-        /// <returns></returns>
-        public List<int> getInt(string table, string field)
-        {
-            List<int> datas = new List<int>();
-
-            using (SQLiteConnection cn = new SQLiteConnection("Data Source=" + Filename))
-            {
-                cn.Open();
-                SQLiteCommand cmd = cn.CreateCommand();
-                cmd.CommandText = "SELECT * FROM " + table;
-                using (SQLiteDataReader reader = cmd.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        datas.Add(int.Parse(reader[field].ToString()));
-                    }
-                }
-                cn.Close();
-            }
-
-            return datas;
-        }
-
-        /// <summary>
-        /// テーブルから値を取得します。
-        /// </summary>
-        /// <param name="table">テーブル名</param>
-        /// <param name="field">フィールド名</param>
-        /// <param name="terms">条件式</param>
-        /// <returns></returns>
-        public List<int> getInt(string table, string field, string terms)
-        {
-            List<int> datas = new List<int>();
-
-            using (SQLiteConnection cn = new SQLiteConnection("Data Source=" + Filename))
-            {
-                cn.Open();
-                SQLiteCommand cmd = cn.CreateCommand();
-                cmd.CommandText = "SELECT * FROM " + table + " where " + terms;
-                using (SQLiteDataReader reader = cmd.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        datas.Add(int.Parse(reader[field].ToString()));
-                    }
-                }
-                cn.Close();
-            }
-
-            return datas;
-        }
-
-        public void InsertString(string table, string field, List<string> arg)
-        {
-            using (var conn = new SQLiteConnection("Data Source=" + Filename))
-            {
-                conn.Open();
-                using (SQLiteTransaction sqlt = conn.BeginTransaction())
-                {
-                    using (SQLiteCommand command = conn.CreateCommand())
-                    {
-                        foreach (string m in arg)
-                        {
-                            command.CommandText = "insert into " + table + " (" + field + ") values('" + m + "')";
-                            command.ExecuteNonQuery();
-                        }
-                    }
-                    sqlt.Commit();
-                }
-                conn.Close();
-            }
-        }
-
-        public void InsertString(string table, string field, string arg)
-        {
-            using (var conn = new SQLiteConnection("Data Source=" + Filename))
-            {
-                conn.Open();
-                using (SQLiteTransaction sqlt = conn.BeginTransaction())
-                {
-                    using (SQLiteCommand command = conn.CreateCommand())
-                    {
-                        command.CommandText = "insert into " + table + " (" + field + ") values('" + arg + "')";
-                        command.ExecuteNonQuery();
-                    }
-                    sqlt.Commit();
-                }
-                conn.Close();
-            }
-        }
-
-        public void InsertInteger(string table, string field, List<int> arg)
-        {
-            using (var conn = new SQLiteConnection("Data Source=" + Filename))
-            {
-                conn.Open();
-                using (SQLiteTransaction sqlt = conn.BeginTransaction())
-                {
-                    using (SQLiteCommand command = conn.CreateCommand())
-                    {
-                        foreach (int m in arg)
-                        {
-                            command.CommandText = "insert into " + table + " (" + field + ") values('" + m.ToString() + "')";
-                            command.ExecuteNonQuery();
-                        }
-                    }
-                    sqlt.Commit();
-                }
-                conn.Close();
-            }
-        }
-
-        public void InsertInteger(string table, string field, int arg)
-        {
-            using (var conn = new SQLiteConnection("Data Source=" + Filename))
-            {
-                conn.Open();
-                using (SQLiteTransaction sqlt = conn.BeginTransaction())
-                {
-                    using (SQLiteCommand command = conn.CreateCommand())
-                    {
-                        command.CommandText = "insert into " + table + " (" + field + ") values('" + arg.ToString() + "')";
-                        command.ExecuteNonQuery();
-                    }
-                    sqlt.Commit();
-                }
-                conn.Close();
-            }
-        }
-
-
-        public void Update(string table, string field, string arg, string terms)
-        {
-            using (var conn = new SQLiteConnection("Data Source=" + Filename))
-            {
-                conn.Open();
-                using (SQLiteTransaction sqlt = conn.BeginTransaction())
-                {
-                    using (SQLiteCommand command = conn.CreateCommand())
-                    {
-                        //command.CommandText = "update " + table + " set " + field + @" = '" + arg + @"' where " + terms + "";
-                        command.CommandText = "update " + table + " set " + field + @" = @arg where " + terms + "";
-                        command.Parameters.Add(new SQLiteParameter("@arg", arg));
-                        //command.CommandText = @"update blog set BODY = '<font color=""#ff0000"">test</font>' where id = '10'";
-                        command.ExecuteNonQuery();
-                    }
-                    sqlt.Commit();
-                }
-                conn.Close();
-            }
-        }
-        public void Update(string table, string field, string arg)
-        {
-            using (var conn = new SQLiteConnection("Data Source=" + Filename))
-            {
-                conn.Open();
-                using (SQLiteTransaction sqlt = conn.BeginTransaction())
-                {
-                    using (SQLiteCommand command = conn.CreateCommand())
-                    {
-                        //command.CommandText = "update " + table + " set " + field + @" = '" + arg + @"' where " + terms + "";
-                        command.CommandText = "update " + table + " set " + field + @" = @arg";
-                        command.Parameters.Add(new SQLiteParameter("@arg", arg));
-                        //command.CommandText = @"update blog set BODY = '<font color=""#ff0000"">test</font>' where id = '10'";
-                        command.ExecuteNonQuery();
-                    }
-                    sqlt.Commit();
-                }
-                conn.Close();
-            }
-        }
-
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-        private bool _disposed = false;
         protected virtual void Dispose(bool disposing)
         {
-            // Dispose がまだ実行されていないときだけ実行
-            if (!_disposed)
+            if (!disposedValue)
             {
-                // disposing が true の場合(Dispose() が実行された場合)は
-                // マネージリソースも解放します。
                 if (disposing)
                 {
-                    command.Dispose();
                     connection.Dispose();
                 }
 
-                // アンマネージリソースの解放
+                // TODO: アンマネージ リソース (アンマネージ オブジェクト) を解放し、下のファイナライザーをオーバーライドします。
+                // TODO: 大きなフィールドを null に設定します。
 
-                _disposed = true;
+                disposedValue = true;
             }
         }
+
+        // TODO: 上の Dispose(bool disposing) にアンマネージ リソースを解放するコードが含まれる場合にのみ、ファイナライザーをオーバーライドします。
+        // ~SQLiteWrapper() {
+        //   // このコードを変更しないでください。クリーンアップ コードを上の Dispose(bool disposing) に記述します。
+        //   Dispose(false);
+        // }
+
+        // このコードは、破棄可能なパターンを正しく実装できるように追加されました。
+        public void Dispose()
+        {
+            // このコードを変更しないでください。クリーンアップ コードを上の Dispose(bool disposing) に記述します。
+            Dispose(true);
+            // TODO: 上のファイナライザーがオーバーライドされる場合は、次の行のコメントを解除してください。
+            // GC.SuppressFinalize(this);
+        }
+        #endregion
+
     }
 }
