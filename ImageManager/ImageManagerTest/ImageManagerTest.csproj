@@ -67,6 +67,7 @@
   <ItemGroup>
     <Compile Include="Models\ImageLoaderTests.cs" />
     <Compile Include="Models\PathSplitterTests.cs" />
+    <Compile Include="Models\SQLiteWrapperTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

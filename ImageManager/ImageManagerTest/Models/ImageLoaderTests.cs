@@ -31,5 +31,20 @@ namespace ImageManager.Models.Tests
 
             Assert.AreEqual(base64, ansBase64);
         }
+
+        [TestMethod()]
+        public void GetBase64Test()
+        {
+            var imageInfo = ImageLoader.FromImageFile(filename);
+            var base64 = imageInfo.Base64;
+
+            string ansBase64;
+            using (var sr = new StreamReader(base64path))
+            {
+                ansBase64 = sr.ReadToEnd();
+            }
+
+            Assert.AreEqual(base64, ansBase64);
+        }
     }
 }

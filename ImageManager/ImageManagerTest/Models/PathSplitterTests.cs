@@ -20,6 +20,10 @@ namespace ImageManager.Models.Tests
         public void GetPathTest1()
         {
             var pathItem = PathSplitter.SplitPath(pathTest1);
+
+            Assert.AreEqual(excepts[0], pathItem.GetPath(0));
+            Assert.AreEqual(string.Empty, pathItem.GetPath(-1));
+
             var array = pathItem.ToArray();
             CollectionAssert.AreEqual(excepts, array);
         }
@@ -28,6 +32,10 @@ namespace ImageManager.Models.Tests
         public void GetPathTest2()
         {
             var pathItem = PathSplitter.SplitPath(pathTest2);
+
+            Assert.AreEqual(excepts[0], pathItem.GetPath(0));
+            Assert.AreEqual(string.Empty, pathItem.GetPath(-1));
+
             var array = pathItem.ToArray();
             CollectionAssert.AreEqual(excepts, array);
         }
