@@ -23,43 +23,35 @@ namespace ImageManager.Models
         #region Public Methods
         public void Vacuum()
         {
+            var cmd = "vacuum;";
             using (SQLiteCommand command = connection.CreateCommand())
             {
-                command.CommandText = "VACUUM;";
+                command.CommandText = cmd;
                 command.ExecuteNonQuery();
             }
         }
 
         public void CreateTable(string name, string arg)
         {
-            string cmd = "CREATE TABLE {0}({1});";
-            using (SQLiteCommand command = connection.CreateCommand())
-            {
-                command.CommandText = cmd.FormatString(name, arg);
-                command.ExecuteNonQuery();
-            }
+            string cmd = "create table {0}({1});".FormatString(name, arg);
+            DoTransaction(cmd);
         }
         public void DeleteTable(string name)
         {
-            string cmd = "DROP TABLE {0};";
-            using (SQLiteCommand command = connection.CreateCommand())
-            {
-                command.CommandText = cmd.FormatString(name);
-                command.ExecuteNonQuery();
-            }
+            string cmd = "drop table {0};".FormatString(name);
+            DoTransaction(cmd);
         }
         public bool TableExist(string tablename)
         {
-            string cmd = "SELECT name FROM sqlite_master WHERE type='table' AND name='{0}';";
-            using (SQLiteCommand command = connection.CreateCommand())
+            string cmd = "SELECT name FROM sqlite_master WHERE type='table' AND name='{0}';".FormatString(tablename);
+            var result = DoTransaction(cmd, (command) =>
             {
-                command.CommandText = cmd.FormatString(tablename);
-                command.ExecuteNonQuery();
                 using (SQLiteDataReader reader = command.ExecuteReader())
                 {
                     return reader.Read();
                 }
-            }
+            });
+            return result;
         }
 
         public string[][] GetValues(string tableName, string term = null)
@@ -70,9 +62,8 @@ namespace ImageManager.Models
             else
                 cmd = "select * from {0};".FormatString(tableName);
 
-            using (SQLiteCommand command = connection.CreateCommand())
+            var result = DoTransaction<string[][]>(cmd, (command) =>
             {
-                command.CommandText = cmd;
                 using (SQLiteDataReader sdr = command.ExecuteReader())
                 {
                     List<string[]> tuples = new List<string[]>();
@@ -88,23 +79,21 @@ namespace ImageManager.Models
 
                     return tuples.ToArray();
                 }
-            }
+            });
+            return result;
         }
 
         public void InsertValue(string tableName, params string[] values)
         {
             //INSERT INTO テーブル名 VALUES(値1, 値2, ...);
             string cmd = "insert into {0} values({1});".FormatString(tableName, ArrayToString(values));
+            DoTransaction(cmd);
+        }
 
-            using (SQLiteTransaction sqlt = connection.BeginTransaction())
-            {
-                using (SQLiteCommand command = connection.CreateCommand())
-                {
-                    command.CommandText = cmd;
-                    command.ExecuteNonQuery();
-                }
-                sqlt.Commit();
-            }
+        public void Update(string tableName, string fiels, string value, string term)
+        {
+            var cmd = "update {0} set {1} = '{2}' where {3};".FormatString(tableName, fiels, value, term);
+            DoTransaction(cmd);
         }
         #endregion
 
@@ -124,6 +113,31 @@ namespace ImageManager.Models
         #endregion
 
         #region Private Methods
+        private void DoTransaction(string cmd)
+        {
+            using (SQLiteTransaction sqlt = connection.BeginTransaction())
+            {
+                using (SQLiteCommand command = connection.CreateCommand())
+                {
+                    command.CommandText = cmd;
+                    command.ExecuteNonQuery();
+                }
+                sqlt.Commit();
+            }
+        }
+
+        private T DoTransaction<T>(string cmd, Func<SQLiteCommand, T> func)
+        {
+            //using (SQLiteTransaction sqlt = connection.BeginTransaction())
+            //{
+            using (SQLiteCommand command = connection.CreateCommand())
+            {
+                command.CommandText = cmd;
+                return func(command);
+            }
+            //}
+        }
+
         private void Open()
         {
             connection = new SQLiteConnection("Data Source=" + Filename);

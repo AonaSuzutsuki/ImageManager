@@ -73,5 +73,30 @@ namespace ImageManager.Models.Tests
                 }
             }
         }
+
+        [TestMethod()]
+        public void UpdateTest()
+        {
+            using (var sqlite = new SQLiteWrapper(":memory:"))
+            {
+                string[][] excepted = { new string[] { "1", "test1" } };
+                string[][] excepted2 = { new string[] { "1", "test2" } };
+
+                sqlite.CreateTable("Test", "Id integer primary key, Name text");
+                sqlite.InsertValue("Test", "1", "test1");
+                var values = sqlite.GetValues("Test", "id = 1");
+                for (int i = 0; i < values.Length; i++)
+                {
+                    CollectionAssert.AreEqual(excepted[i], values[i]);
+                }
+
+                sqlite.Update("Test", "Name", "test2", "id = 1");
+                values = sqlite.GetValues("Test", "id = 1");
+                for (int i = 0; i < values.Length; i++)
+                {
+                    CollectionAssert.AreEqual(excepted2[i], values[i]);
+                }
+            }
+        }
     }
 }
