@@ -121,9 +121,10 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Models\ImageLoader.cs" />
-    <Compile Include="Models\ImageManager.cs" />
-    <Compile Include="Models\PathSplitter.cs" />
+    <Compile Include="Models\Image\ImageLoader.cs" />
+    <Compile Include="Models\Image\ImageManager.cs" />
+    <Compile Include="Models\Path\PathItem.cs" />
+    <Compile Include="Models\Path\PathSplitter.cs" />
     <Compile Include="Models\SQLiteWrapper.cs" />
     <Compile Include="Models\SQLiteWrapper2.cs" />
     <Compile Include="Views\MainWindow.xaml.cs">

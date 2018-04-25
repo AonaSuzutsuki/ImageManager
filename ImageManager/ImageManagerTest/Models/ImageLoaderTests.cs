@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.IO;
+using ImageManager.Models.Image;
 
 namespace ImageManager.Models.Tests
 {

@@ -4,29 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ImageManager.Models
+namespace ImageManager.Models.Path
 {
-    public class PathItem
-    {
-        private List<string> pathList = new List<string>();
-
-        public void AddPath(string path)
-        {
-            pathList.Add(path);
-        }
-
-        public string GetPath(int index)
-        {
-            if (index < 0)
-                return string.Empty;
-
-            string path = pathList[index];
-            return path;
-        }
-
-        public string[] ToArray() => pathList.ToArray();
-    }
-
     public class PathSplitter
     {
         public static PathItem SplitPath(string pathArg)

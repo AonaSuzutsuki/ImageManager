@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ImageManager.Models.Path;
 
 namespace ImageManager.Models.Tests
 {
@@ -23,6 +24,9 @@ namespace ImageManager.Models.Tests
 
             Assert.AreEqual(excepts[0], pathItem.GetPath(0));
             Assert.AreEqual(string.Empty, pathItem.GetPath(-1));
+            Assert.AreEqual(excepts[2], pathItem.GetLast());
+            
+            Assert.AreEqual(pathTest1, pathItem.ToString());
 
             var array = pathItem.ToArray();
             CollectionAssert.AreEqual(excepts, array);
@@ -35,6 +39,9 @@ namespace ImageManager.Models.Tests
 
             Assert.AreEqual(excepts[0], pathItem.GetPath(0));
             Assert.AreEqual(string.Empty, pathItem.GetPath(-1));
+            Assert.AreEqual(excepts[2], pathItem.GetLast());
+
+            Assert.AreEqual(pathTest1, pathItem.ToString());
 
             var array = pathItem.ToArray();
             CollectionAssert.AreEqual(excepts, array);
