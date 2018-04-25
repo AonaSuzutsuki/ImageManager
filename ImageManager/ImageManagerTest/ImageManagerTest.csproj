@@ -66,6 +66,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Models\ImageLoaderTests.cs" />
+    <Compile Include="Models\Image\ImageManagerTests.cs" />
     <Compile Include="Models\PathSplitterTests.cs" />
     <Compile Include="Models\SQLiteWrapperTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -86,6 +87,9 @@
     <Content Include="Images\20180415_082736812_iOS_s.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Models\Path\" />
   </ItemGroup>
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
