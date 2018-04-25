@@ -66,7 +66,7 @@ namespace ImageManager.Models
             {
                 using (SQLiteDataReader sdr = command.ExecuteReader())
                 {
-                    List<string[]> tuples = new List<string[]>();
+                    var tuples = new List<string[]>();
                     for (int i = 0; sdr.Read(); i++)
                     {
                         string[] column = new string[sdr.FieldCount];
