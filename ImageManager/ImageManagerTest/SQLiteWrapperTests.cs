@@ -1,12 +1,12 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using ImageManager.Models;
+using ImageManagerLib;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ImageManager.Models.Tests
+namespace ImageManagerLib.Tests
 {
     [TestClass()]
     public class SQLiteWrapperTests

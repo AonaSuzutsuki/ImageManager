@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ImageManager.Models.Image
+namespace ImageManagerLib.Image
 {
     public enum TextType
     {

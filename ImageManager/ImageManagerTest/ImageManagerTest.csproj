@@ -65,20 +65,14 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Models\ImageLoaderTests.cs" />
-    <Compile Include="Models\Image\ImageManagerTests.cs" />
-    <Compile Include="Models\PathSplitterTests.cs" />
-    <Compile Include="Models\SQLiteWrapperTests.cs" />
+    <Compile Include="ImageLoaderTests.cs" />
+    <Compile Include="Image\ImageManagerTests.cs" />
+    <Compile Include="PathSplitterTests.cs" />
+    <Compile Include="SQLiteWrapperTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\ImageManager\ImageManager.csproj">
-      <Project>{8f55be6d-dc01-45c7-ba99-0f4994019d40}</Project>
-      <Name>ImageManager</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Content Include="Images\20180415_082736812_iOS_s.jpg">
@@ -88,8 +82,12 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
-    <Folder Include="Models\Path\" />
+    <ProjectReference Include="..\ImageManagerLib\ImageManagerLib.csproj">
+      <Project>{73b4fe35-d16c-4894-bb7c-b2fae2cca140}</Project>
+      <Name>ImageManagerLib</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

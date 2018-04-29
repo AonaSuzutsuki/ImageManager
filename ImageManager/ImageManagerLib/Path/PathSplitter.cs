@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ImageManager.Models.Path
+namespace ImageManagerLib.Path
 {
     public class PathSplitter
     {

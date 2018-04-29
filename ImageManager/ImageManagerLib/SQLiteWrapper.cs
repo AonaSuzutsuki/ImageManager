@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ImageManager.Models
+namespace ImageManagerLib
 {
     public class SQLiteWrapper : IDisposable
     {
