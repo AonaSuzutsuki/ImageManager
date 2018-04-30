@@ -1,56 +1,11 @@
 ﻿using CommonExtentionLib.Extentions;
+using ImageManagerLib.Extentions.SQLite;
 using System.Collections;
 using System.Collections.Generic;
+using System.Text;
 
 namespace ImageManagerLib.SQLite
 {
-    public class TableFieldInfo
-    {
-        public string Name { get; private set; }
-
-        public TableFieldType TypeField { get; private set; }
-
-        public bool NotNull { get; private set; }
-
-        public bool Primarykey { get; private set; }
-
-        public bool Unique { get; private set; }
-
-        public TableFieldInfo(string name, TableFieldType type, params TableFieldAttribute[] attributes)
-        {
-            Name = name;
-            TypeField = type;
-
-            foreach (var attribute in attributes)
-            {
-                switch (attribute)
-                {
-                    case TableFieldAttribute.NotNull:
-                        NotNull = true;
-                        break;
-                    case TableFieldAttribute.PrimaryKey:
-                        Primarykey = true;
-                        break;
-                    case TableFieldAttribute.Unique:
-                        Unique = true;
-                        break;
-                }
-            }
-        }
-
-        public string GetField()
-        {
-            string str = "'{0}' {1} ";
-            return str.FormatString(Name, );
-        }
-
-        public override string ToString()
-        {
-            string str = "[\n\tName = {0},\n\tNotNull = {1},\n\tPrimaryKey = {2}\n\tUnique = {3}\n]";
-            return str.FormatString();
-        }
-    }
-
     public class TableFieldList : IEnumerable<TableFieldInfo>
     {
         private List<TableFieldInfo> fieldList = new List<TableFieldInfo>();
@@ -63,6 +18,47 @@ namespace ImageManagerLib.SQLite
         public void Add(TableFieldInfo fieldInfo)
         {
             fieldList.Add(fieldInfo);
+        }
+
+        public override string ToString()
+        {
+            var primaryKeys = new List<string>();
+            var sb = new StringBuilder();
+            for (int i = 0; i < fieldList.Count; i++)
+            {
+                var field = fieldList[i];
+                if (i >= fieldList.Count - 1)
+                {
+                    sb.AppendFormat("{0}", field.GetField());
+                    if (field.Primarykey)
+                        primaryKeys.Add(field.Name);
+                }
+                else
+                {
+                    sb.AppendFormat("{0}, ", field.GetField());
+                    if (field.Primarykey)
+                        primaryKeys.Add(field.Name);
+                }
+            }
+
+            if (primaryKeys.Count > 0)
+            {
+                var primaryKeysSb = new StringBuilder();
+                for (int i = 0; i < primaryKeys.Count; i++)
+                {
+                    var primaryKey = primaryKeys[i];
+                    if (i >= primaryKeys.Count - 1)
+                    {
+                        primaryKeysSb.AppendFormat("'{0}'", primaryKey);
+                    }
+                    else
+                    {
+                        primaryKeysSb.AppendFormat("'{0}', ", primaryKey);
+                    }
+                }
+                sb.AppendFormat(", primary key({0})", primaryKeysSb.ToString());
+            }
+            return sb.ToString();
         }
 
         public IEnumerator<TableFieldInfo> GetEnumerator() => fieldList.GetEnumerator();

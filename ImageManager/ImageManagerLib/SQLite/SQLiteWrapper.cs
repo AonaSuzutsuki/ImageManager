@@ -34,6 +34,12 @@ namespace ImageManagerLib.SQLite
             string cmd = "create table {0}({1});".FormatString(name, arg);
             DoTransaction(cmd);
         }
+        public void CreateTable(string name, TableFieldList fields)
+        {
+            string arg = fields.ToString();
+            CreateTable(name, arg);
+        }
+
         public void DeleteTable(string name)
         {
             string cmd = "drop table {0};".FormatString(name);

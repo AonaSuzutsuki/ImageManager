@@ -6,84 +6,50 @@ using System.Collections.Generic;
 
 namespace ImageManagerLib.Imager
 {
-    public enum DataFileType
-    {
-        Other,
-        Image,
-        Dir
-    }
-
-    public class DataFileInfo
-    {
-        public int Id { get; }
-
-        public int Parent { get; }
-
-        public string Filename { get; }
-
-        public DataFileType Type { get; }
-
-        public byte[] Image { get; set; }
-
-        public byte[] Thumbnail { get; set; }
-
-        public DataFileInfo(int id, int parent, string filename, DataFileType type)
-        {
-            Id = id;
-            Parent = parent;
-            Filename = filename;
-            Type = type;
-        }
-
-        public override int GetHashCode()
-        {
-            return base.GetHashCode();
-        }
-
-        public override bool Equals(object obj)
-        {
-            if (obj == null || GetType() != obj.GetType())
-            {
-                return false;
-            }
-            else if (base.Equals(obj))
-            {
-                return true;
-            }
-            else if (obj is DataFileInfo dataFileInfo)
-            {
-                return dataFileInfo.Id == Id
-                    && dataFileInfo.Parent == Parent
-                    && Filename.Equals(dataFileInfo.Filename)
-                    && dataFileInfo.Type == Type;
-                    //&& dataFileInfo.Image.SequenceEqual(Image)
-                    //&& dataFileInfo.Thumbnail.SequenceEqual(Thumbnail);
-            }
-
-            return false;
-        }
-    }
-
     public class ImageManager : IDisposable
     {
         private SQLiteWrapper sqlite;
+
         #if DEBUG
-        public SQLiteWrapper Sqlite { get => sqlite; }
+        public SQLiteWrapper Sqlite { get => sqlite; } // For Test
         #endif
 
+        /// <summary>
+        /// Manage database for images.
+        /// </summary>
+        /// <param name="filename">Database path</param>
         public ImageManager(string filename)
         {
             sqlite = new SQLiteWrapper(filename);
         }
 
+        /// <summary>
+        /// Initialize.
+        /// Create default table.
+        /// </summary>
         public void CreateTable()
         {
-            string dirField = "'Id'	INTEGER NOT NULL UNIQUE, 'Parent' INTEGER NOT NULL, 'Name' TEXT NOT NULL, PRIMARY KEY('Id')";
-            string imageField = "'Id' INTEGER NOT NULL UNIQUE, 'Parent' INTEGER NOT NULL, 'Filename' TEXT NOT NULL, 'Data' TEXT NOT NULL, 'Thumbnail' TEXT NOT NULL, PRIMARY KEY('Id')";
-            string ThumbField = "'Id' INTEGER NOT NULL UNIQUE, 'Data' TEXT NOT NULL, PRIMARY KEY('Id')";
-            var tList = new TableFieldList()
+            //string dirField = "'Id'	INTEGER NOT NULL UNIQUE, 'Parent' INTEGER NOT NULL, 'Name' TEXT NOT NULL, PRIMARY KEY('Id')";
+            //string imageField = "'Id' INTEGER NOT NULL UNIQUE, 'Parent' INTEGER NOT NULL, 'Filename' TEXT NOT NULL, 'Data' TEXT NOT NULL, 'Thumbnail' TEXT NOT NULL, PRIMARY KEY('Id')";
+            //string ThumbField = "'Id' INTEGER NOT NULL UNIQUE, 'Data' TEXT NOT NULL, PRIMARY KEY('Id')";
+            var dirField = new TableFieldList()
             {
-                new TableFieldInfo("")
+                new TableFieldInfo("Id", TableFieldType.Integer, TableFieldAttribute.NotNull, TableFieldAttribute.Unique, TableFieldAttribute.PrimaryKey),
+                new TableFieldInfo("Parent", TableFieldType.Integer, TableFieldAttribute.NotNull),
+                new TableFieldInfo("Name", TableFieldType.Text, TableFieldAttribute.NotNull)
+            };
+            var imageField = new TableFieldList()
+            {
+                new TableFieldInfo("Id", TableFieldType.Integer, TableFieldAttribute.NotNull, TableFieldAttribute.Unique, TableFieldAttribute.PrimaryKey),
+                new TableFieldInfo("Parent", TableFieldType.Integer, TableFieldAttribute.NotNull),
+                new TableFieldInfo("Filename", TableFieldType.Text, TableFieldAttribute.NotNull),
+                new TableFieldInfo("Data", TableFieldType.Text, TableFieldAttribute.NotNull),
+                new TableFieldInfo("Thumbnail", TableFieldType.Text, TableFieldAttribute.NotNull)
+            };
+            var ThumbField = new TableFieldList()
+            {
+                new TableFieldInfo("Id", TableFieldType.Integer, TableFieldAttribute.NotNull, TableFieldAttribute.Unique, TableFieldAttribute.PrimaryKey),
+                new TableFieldInfo("Data", TableFieldType.Text, TableFieldAttribute.NotNull)
             };
 
             sqlite.CreateTable("Directories", dirField);
@@ -91,6 +57,11 @@ namespace ImageManagerLib.Imager
             sqlite.CreateTable("Thumbnails", ThumbField);
         }
 
+        /// <summary>
+        /// Get directories.
+        /// </summary>
+        /// <param name="did">Directory Id.</param>
+        /// <returns>Directories of directory id.</returns>
         public DataFileInfo[] GetDirectories(int did = 0)
         {
             var sList = sqlite.GetValues("Directories", "Parent = {0}".FormatString(did));
@@ -109,11 +80,21 @@ namespace ImageManagerLib.Imager
             return dataFileInfoList.ToArray();
         }
 
+        /// <summary>
+        /// Get directories.
+        /// </summary>
+        /// <param name="dataFileInfo">DataFileInfo of directory.</param>
+        /// <returns>Directories of directory id.</returns>
         public DataFileInfo[] GetDirectories(DataFileInfo dataFileInfo)
         {
             return GetDirectories(dataFileInfo.Id);
         }
 
+        /// <summary>
+        /// Get files.
+        /// </summary>
+        /// <param name="did">Directory Id.</param>
+        /// <returns>Files of directory id.</returns>
         public DataFileInfo[] GetFiles(int did = 0)
         {
             var sList = sqlite.GetValues("Images", "Parent = {0}".FormatString(did));
@@ -137,11 +118,21 @@ namespace ImageManagerLib.Imager
             return dataFileInfoList.ToArray();
         }
 
+        /// <summary>
+        /// Get Files.
+        /// </summary>
+        /// <param name="dataFileInfo">DataFileInfo of directory.</param>
+        /// <returns>Directories of directory id.</returns>
         public DataFileInfo[] GetFiles(DataFileInfo dataFileInfo)
         {
             return GetFiles(dataFileInfo.Id);
         }
 
+        /// <summary>
+        /// Create directory to database.
+        /// </summary>
+        /// <param name="dirName">Directory name</param>
+        /// <param name="parent">Parent directory path</param>
         public void CreateDirectory(string dirName, string parent)
         {
             var pathItem = Path.PathSplitter.SplitPath(parent);
@@ -159,6 +150,13 @@ namespace ImageManagerLib.Imager
             sqlite.InsertValue("Directories", dirCount.ToString(), dirId.ToString(), dirName);
         }
 
+        /// <summary>
+        /// Create image data to database.
+        /// </summary>
+        /// <param name="fileName">Filename</param>
+        /// <param name="parent">Parent directory path</param>
+        /// <param name="data">Byte array of Image data</param>
+        /// <param name="thumbnail">Byte array of Thumbnail data</param>
         public void CreateImage(string fileName, string parent, byte[] data, byte[] thumbnail)
         {
             var pathItem = Path.PathSplitter.SplitPath(parent);
@@ -180,6 +178,12 @@ namespace ImageManagerLib.Imager
             sqlite.InsertValue("Images", dirCount.ToString(), dirId.ToString(), fileName, text, thumbText);
         }
 
+        /// <summary>
+        /// Create image data to database.
+        /// </summary>
+        /// <param name="fileName">Filename</param>
+        /// <param name="parent">Parent directory path</param>
+        /// <param name="data">Byte array of Image data</param>
         public void CreateImage(string fileName, string parent, byte[] data)
         {
             var img = data.ByteArrayToImage();

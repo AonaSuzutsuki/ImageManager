@@ -73,6 +73,8 @@
   <ItemGroup>
     <Compile Include="Extentions\Imager\ImageExtention.cs" />
     <Compile Include="Extentions\SQLite\TableFieldExtentions.cs" />
+    <Compile Include="Imager\DataFileInfo.cs" />
+    <Compile Include="Imager\DataFileType.cs" />
     <Compile Include="Imager\ImageLoader.cs" />
     <Compile Include="Imager\ImageManager.cs" />
     <Compile Include="Path\PathItem.cs" />
@@ -80,6 +82,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SQLite\SQLiteWrapper.cs" />
     <Compile Include="SQLite\TableFieldAttribute.cs" />
+    <Compile Include="SQLite\TableFieldInfo.cs" />
     <Compile Include="SQLite\TableFieldList.cs" />
     <Compile Include="SQLite\TableFieldType.cs" />
   </ItemGroup>

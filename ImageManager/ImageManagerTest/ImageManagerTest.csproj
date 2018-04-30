@@ -71,6 +71,7 @@
     <Compile Include="PathSplitterTests.cs" />
     <Compile Include="SQLite\SQLiteWrapperTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SQLite\TableFieldListTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
