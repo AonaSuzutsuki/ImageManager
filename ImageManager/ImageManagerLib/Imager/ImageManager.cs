@@ -1,11 +1,10 @@
-﻿using CommonLib.Extentions;
+﻿using CommonExtentionLib.Extentions;
+using ImageManagerLib.Extentions.Imager;
+using ImageManagerLib.SQLite;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace ImageManagerLib.Image
+namespace ImageManagerLib.Imager
 {
     public enum DataFileType
     {
@@ -65,7 +64,7 @@ namespace ImageManagerLib.Image
         }
     }
 
-    public class ImageManager
+    public class ImageManager : IDisposable
     {
         private SQLiteWrapper sqlite;
         #if DEBUG
@@ -82,6 +81,10 @@ namespace ImageManagerLib.Image
             string dirField = "'Id'	INTEGER NOT NULL UNIQUE, 'Parent' INTEGER NOT NULL, 'Name' TEXT NOT NULL, PRIMARY KEY('Id')";
             string imageField = "'Id' INTEGER NOT NULL UNIQUE, 'Parent' INTEGER NOT NULL, 'Filename' TEXT NOT NULL, 'Data' TEXT NOT NULL, 'Thumbnail' TEXT NOT NULL, PRIMARY KEY('Id')";
             string ThumbField = "'Id' INTEGER NOT NULL UNIQUE, 'Data' TEXT NOT NULL, PRIMARY KEY('Id')";
+            var tList = new TableFieldList()
+            {
+                new TableFieldInfo("")
+            };
 
             sqlite.CreateTable("Directories", dirField);
             sqlite.CreateTable("Images", imageField);
@@ -156,7 +159,7 @@ namespace ImageManagerLib.Image
             sqlite.InsertValue("Directories", dirCount.ToString(), dirId.ToString(), dirName);
         }
 
-        public void CreateImage(string fileName, string parent, byte[] data)
+        public void CreateImage(string fileName, string parent, byte[] data, byte[] thumbnail)
         {
             var pathItem = Path.PathSplitter.SplitPath(parent);
             int dirCount = sqlite.GetValues("Images").Length + 1;
@@ -172,8 +175,23 @@ namespace ImageManagerLib.Image
             }
 
             var text = Convert.ToBase64String(data);
+            var thumbText = Convert.ToBase64String(thumbnail);
+            
+            sqlite.InsertValue("Images", dirCount.ToString(), dirId.ToString(), fileName, text, thumbText);
+        }
 
-            sqlite.InsertValue("Images", dirCount.ToString(), dirId.ToString(), fileName, text, text);
+        public void CreateImage(string fileName, string parent, byte[] data)
+        {
+            var img = data.ByteArrayToImage();
+            var thumb = img.GetThumbnailImage(120, 120, () => false, IntPtr.Zero);
+            byte[] thumbnail = thumb.ImageToByteArray();
+
+            CreateImage(fileName, parent, data, thumbnail);
+        }
+
+        public void Dispose()
+        {
+            ((IDisposable)sqlite).Dispose();
         }
     }
 }

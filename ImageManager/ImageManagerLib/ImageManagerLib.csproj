@@ -50,14 +50,19 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="CommonLib">
-      <HintPath>..\..\Lib\CommonLib.dll</HintPath>
+    <Reference Include="CommonExtentionLib">
+      <HintPath>..\..\Lib\CommonExtentionLib.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.Expression.Drawing, Version=4.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Expression.Drawing.3.0.0\lib\net45\Microsoft.Expression.Drawing.dll</HintPath>
+    </Reference>
+    <Reference Include="PresentationCore" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data.SQLite, Version=1.0.108.0, Culture=neutral, PublicKeyToken=db937bc2d44ff139, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Data.SQLite.Core.1.0.108.0\lib\net46\System.Data.SQLite.dll</HintPath>
     </Reference>
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -66,12 +71,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Image\ImageLoader.cs" />
-    <Compile Include="Image\ImageManager.cs" />
+    <Compile Include="Extentions\Imager\ImageExtention.cs" />
+    <Compile Include="Extentions\SQLite\TableFieldExtentions.cs" />
+    <Compile Include="Imager\ImageLoader.cs" />
+    <Compile Include="Imager\ImageManager.cs" />
     <Compile Include="Path\PathItem.cs" />
     <Compile Include="Path\PathSplitter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SQLiteWrapper.cs" />
+    <Compile Include="SQLite\SQLiteWrapper.cs" />
+    <Compile Include="SQLite\TableFieldAttribute.cs" />
+    <Compile Include="SQLite\TableFieldList.cs" />
+    <Compile Include="SQLite\TableFieldType.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

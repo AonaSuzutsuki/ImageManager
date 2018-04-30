@@ -7,25 +7,23 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.IO;
-using ImageManagerLib.Image;
+using ImageManagerLib.Imager;
+using ImageManagerTest;
 
 namespace ImageManagerLib.Tests
 {
     [TestClass()]
     public class ImageLoaderTests
     {
-        private string filename = "Images/20180415_082736812_iOS_s.jpg";
-        private string base64path = "Images/20180415_082736812_iOS_s.txt";
-
         [TestMethod()]
         public void GetBytesTest()
         {
-            var imageInfo = ImageLoader.FromImageFile(filename);
+            var imageInfo = ImageLoader.FromImageFile(Constants.filename);
             var bytes = imageInfo.Data;
             var base64 = Convert.ToBase64String(bytes);
 
             string ansBase64;
-            using (var sr = new StreamReader(base64path))
+            using (var sr = new StreamReader(Constants.base64path))
             {
                 ansBase64 = sr.ReadToEnd();
             }
@@ -36,11 +34,11 @@ namespace ImageManagerLib.Tests
         [TestMethod()]
         public void GetBase64Test()
         {
-            var imageInfo = ImageLoader.FromImageFile(filename);
+            var imageInfo = ImageLoader.FromImageFile(Constants.filename);
             var base64 = imageInfo.Base64;
 
             string ansBase64;
-            using (var sr = new StreamReader(base64path))
+            using (var sr = new StreamReader(Constants.base64path))
             {
                 ansBase64 = sr.ReadToEnd();
             }

@@ -1,12 +1,10 @@
-﻿using CommonLib.Extentions;
+﻿using CommonExtentionLib.Extentions;
 using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
-namespace ImageManagerLib
+namespace ImageManagerLib.SQLite
 {
     public class SQLiteWrapper : IDisposable
     {

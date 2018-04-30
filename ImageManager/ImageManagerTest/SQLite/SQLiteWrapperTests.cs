@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ImageManagerLib.Tests
+namespace ImageManagerLib.SQLite.Tests
 {
     [TestClass()]
     public class SQLiteWrapperTests

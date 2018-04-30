@@ -1,12 +1,14 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using ImageManagerLib.Image;
+using ImageManagerLib.Imager;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.IO;
+using ImageManagerTest;
 
-namespace ImageManagerLib.Image.Tests
+namespace ImageManagerLib.Imager.Tests
 {
     [TestClass()]
     public class ImageManagerTests
@@ -22,9 +24,10 @@ namespace ImageManagerLib.Image.Tests
             imageManager.CreateDirectory("subdir2", "/dir/subdir/");
             imageManager.CreateDirectory("subdir3", "/dir");
 
-            imageManager.CreateImage("test1.jpg", "/", new byte[] { 1, 2, 3 });
-            imageManager.CreateImage("test2.jpg", "/", new byte[] { 1, 2, 3 });
-            imageManager.CreateImage("test3.jpg", "/dir", new byte[] { 1, 2, 3 });
+            var data = ImageLoader.FromImageFile(Constants.filename).Data;
+            imageManager.CreateImage("test1.jpg", "/", data);
+            imageManager.CreateImage("test2.jpg", "/", data);
+            imageManager.CreateImage("test3.jpg", "/dir", data);
 
             return imageManager;
         }
@@ -52,10 +55,13 @@ namespace ImageManagerLib.Image.Tests
         [TestMethod()]
         public void CreateImageTest()
         {
+            string ansBase64 = ReadToEnd(Constants.base64path);
+            string thumbAns = ReadToEnd(Constants.thumbBase64path);
+
             string[][] excepted = {
-                new string[] { "1", "0", "test1.jpg", Convert.ToBase64String(new byte[] { 1, 2, 3 }), Convert.ToBase64String(new byte[] { 1, 2, 3 }) },
-                new string[] { "2", "0", "test2.jpg", Convert.ToBase64String(new byte[] { 1, 2, 3 }), Convert.ToBase64String(new byte[] { 1, 2, 3 }) },
-                new string[] { "3", "1", "test3.jpg", Convert.ToBase64String(new byte[] { 1, 2, 3 }), Convert.ToBase64String(new byte[] { 1, 2, 3 }) },
+                new string[] { "1", "0", "test1.jpg", ansBase64, thumbAns },
+                new string[] { "2", "0", "test2.jpg", ansBase64, thumbAns },
+                new string[] { "3", "1", "test3.jpg", ansBase64, thumbAns },
             };
 
             var imageManager = CreateImagaManager();
@@ -66,6 +72,14 @@ namespace ImageManagerLib.Image.Tests
             {
                 CollectionAssert.AreEqual(excepted[i], values[i]);
             }
+        }
+
+        public string ReadToEnd(string path)
+        {
+            string ans = string.Empty; 
+            using (var sr = new StreamReader(path))
+                ans = sr.ReadToEnd();
+            return ans;
         }
 
         [TestMethod()]
