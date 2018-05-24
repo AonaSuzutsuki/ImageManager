@@ -9,7 +9,7 @@ namespace ImageManagerLib.Imager
     public enum DataFileType
     {
         Other,
-        Image,
+        File,
         Dir
     }
 }

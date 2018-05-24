@@ -80,6 +80,8 @@
     <Compile Include="Path\PathItem.cs" />
     <Compile Include="Path\PathSplitter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SQLite\IDatabase.cs" />
+    <Compile Include="SQLite\IVacuumable.cs" />
     <Compile Include="SQLite\SQLiteWrapper.cs" />
     <Compile Include="SQLite\TableFieldAttribute.cs" />
     <Compile Include="SQLite\TableFieldInfo.cs" />

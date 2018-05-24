@@ -8,10 +8,10 @@ namespace ImageManagerLib.Imager
 {
     public class ImageManager : IDisposable
     {
-        private SQLiteWrapper sqlite;
+        private IDatabase sqlite;
 
         #if DEBUG
-        public SQLiteWrapper Sqlite { get => sqlite; } // For Test
+        public IDatabase Sqlite { get => sqlite; } // For Test
         #endif
 
         /// <summary>
@@ -44,7 +44,7 @@ namespace ImageManagerLib.Imager
                 new TableFieldInfo("Parent", TableFieldType.Integer, TableFieldAttribute.NotNull),
                 new TableFieldInfo("Filename", TableFieldType.Text, TableFieldAttribute.NotNull),
                 new TableFieldInfo("Data", TableFieldType.Text, TableFieldAttribute.NotNull),
-                new TableFieldInfo("Thumbnail", TableFieldType.Text, TableFieldAttribute.NotNull)
+                new TableFieldInfo("Type", TableFieldType.Text, TableFieldAttribute.NotNull)
             };
             var ThumbField = new TableFieldList()
             {
@@ -53,7 +53,7 @@ namespace ImageManagerLib.Imager
             };
 
             sqlite.CreateTable("Directories", dirField);
-            sqlite.CreateTable("Images", imageField);
+            sqlite.CreateTable("Files", imageField);
             sqlite.CreateTable("Thumbnails", ThumbField);
         }
 
@@ -97,14 +97,14 @@ namespace ImageManagerLib.Imager
         /// <returns>Files of directory id.</returns>
         public DataFileInfo[] GetFiles(int did = 0)
         {
-            var sList = sqlite.GetValues("Images", "Parent = {0}".FormatString(did));
+            var sList = sqlite.GetValues("Files", "Parent = {0}".FormatString(did));
             var dataFileInfoList = new List<DataFileInfo>(sList.Length);
             foreach (var list in sList)
             {
                 int id = list[0].ToInt();
                 int parent = list[1].ToInt();
                 string filename = list[2];
-                var type = DataFileType.Image;
+                var type = DataFileType.File;
 
                 var dataFileInfo = new DataFileInfo(id, parent, filename, type)
                 {
@@ -157,10 +157,10 @@ namespace ImageManagerLib.Imager
         /// <param name="parent">Parent directory path</param>
         /// <param name="data">Byte array of Image data</param>
         /// <param name="thumbnail">Byte array of Thumbnail data</param>
-        public void CreateImage(string fileName, string parent, byte[] data, byte[] thumbnail)
+        public void CreateImage(string fileName, string parent, byte[] data, string mimeType)
         {
             var pathItem = Path.PathSplitter.SplitPath(parent);
-            int dirCount = sqlite.GetValues("Images").Length + 1;
+            int dirCount = sqlite.GetValues("Files").Length + 1;
 
             int dirId = 0;
             foreach (var path in pathItem.ToArray())
@@ -173,9 +173,8 @@ namespace ImageManagerLib.Imager
             }
 
             var text = Convert.ToBase64String(data);
-            var thumbText = Convert.ToBase64String(thumbnail);
             
-            sqlite.InsertValue("Images", dirCount.ToString(), dirId.ToString(), fileName, text, thumbText);
+            sqlite.InsertValue("Files", dirCount.ToString(), dirId.ToString(), fileName, text, mimeType);
         }
 
         /// <summary>
@@ -190,7 +189,7 @@ namespace ImageManagerLib.Imager
             var thumb = img.GetThumbnailImage(120, 120, () => false, IntPtr.Zero);
             byte[] thumbnail = thumb.ImageToByteArray();
 
-            CreateImage(fileName, parent, data, thumbnail);
+            CreateImage(fileName, parent, data, "");
         }
 
         public void Dispose()

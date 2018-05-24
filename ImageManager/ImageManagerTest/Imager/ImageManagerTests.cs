@@ -59,15 +59,15 @@ namespace ImageManagerLib.Imager.Tests
             string thumbAns = ReadToEnd(Constants.thumbBase64path);
 
             string[][] excepted = {
-                new string[] { "1", "0", "test1.jpg", ansBase64, thumbAns },
-                new string[] { "2", "0", "test2.jpg", ansBase64, thumbAns },
-                new string[] { "3", "1", "test3.jpg", ansBase64, thumbAns },
+                new string[] { "1", "0", "test1.jpg", ansBase64, "" },
+                new string[] { "2", "0", "test2.jpg", ansBase64, "" },
+                new string[] { "3", "1", "test3.jpg", ansBase64, "" },
             };
 
             var imageManager = CreateImagaManager();
             var sqlite = imageManager.Sqlite;
 
-            var values = sqlite.GetValues("Images");
+            var values = sqlite.GetValues("Files");
             for (int i = 0; i < values.Length; i++)
             {
                 CollectionAssert.AreEqual(excepted[i], values[i]);
@@ -119,12 +119,12 @@ namespace ImageManagerLib.Imager.Tests
         {
             var root = new DataFileInfo(0, 0, "", DataFileType.Dir);
             DataFileInfo[] excepted = {
-                new DataFileInfo(1, 0, "test1.jpg", DataFileType.Image)
+                new DataFileInfo(1, 0, "test1.jpg", DataFileType.File)
                 {
                     Image = new byte[] { 1, 2, 3 },
                     Thumbnail = new byte[] { 1, 2, 3 },
                 },
-                new DataFileInfo(2, 0, "test2.jpg", DataFileType.Image)
+                new DataFileInfo(2, 0, "test2.jpg", DataFileType.File)
                 {
                     Image = new byte[] { 1, 2, 3 },
                     Thumbnail = new byte[] { 1, 2, 3 },

@@ -6,7 +6,7 @@ using System.Text;
 
 namespace ImageManagerLib.SQLite
 {
-    public class SQLiteWrapper : IDisposable
+    public class SQLiteWrapper : IDisposable, IDatabase, IVacuumable
     {
         private SQLiteConnection connection;
 
