@@ -13,9 +13,11 @@ namespace ImageManagerLib.Imager.Tests
     [TestClass()]
     public class ImageManagerTests
     {
+        private const string outfile = ":memory:";
+
         public ImageManager CreateImagaManager()
         {
-            var imageManager = new ImageManager(":memory:");
+            var imageManager = new ImageManager(outfile);
 
             imageManager.CreateTable();
 

@@ -3,6 +3,7 @@ using ImageManagerLib.Extentions.Imager;
 using ImageManagerLib.SQLite;
 using System;
 using System.Collections.Generic;
+using System.IO;
 
 namespace ImageManagerLib.Imager
 {
@@ -18,8 +19,14 @@ namespace ImageManagerLib.Imager
         /// Manage database for images.
         /// </summary>
         /// <param name="filename">Database path</param>
-        public ImageManager(string filename)
+        public ImageManager(string filename, bool newFile = false)
         {
+            if (newFile)
+            {
+                if (File.Exists(filename))
+                    File.Delete(filename);
+            }
+
             sqlite = new SQLiteWrapper(filename);
         }
 
