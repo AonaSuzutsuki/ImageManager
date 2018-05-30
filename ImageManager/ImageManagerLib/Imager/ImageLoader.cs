@@ -39,6 +39,9 @@ namespace ImageManagerLib.Imager
         #region PrivateMethods
         public static ImageInfo FromImageFile(string filename)
         {
+            if (!File.Exists(filename))
+                return null;
+
             byte[] data;
             using (var fs = new FileStream(filename, FileMode.Open, FileAccess.Read))
             {

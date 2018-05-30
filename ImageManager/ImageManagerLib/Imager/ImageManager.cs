@@ -4,6 +4,7 @@ using ImageManagerLib.SQLite;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 
 namespace ImageManagerLib.Imager
 {
@@ -11,9 +12,9 @@ namespace ImageManagerLib.Imager
     {
         private IDatabase sqlite;
 
-        #if DEBUG
+#if DEBUG
         public IDatabase Sqlite { get => sqlite; } // For Test
-        #endif
+#endif
 
         /// <summary>
         /// Manage database for images.
@@ -49,7 +50,7 @@ namespace ImageManagerLib.Imager
             {
                 new TableFieldInfo("Id", TableFieldType.Integer, TableFieldAttribute.NotNull, TableFieldAttribute.Unique, TableFieldAttribute.PrimaryKey),
                 new TableFieldInfo("Parent", TableFieldType.Integer, TableFieldAttribute.NotNull),
-                new TableFieldInfo("Filename", TableFieldType.Text, TableFieldAttribute.NotNull),
+                new TableFieldInfo("Name", TableFieldType.Text, TableFieldAttribute.NotNull),
                 new TableFieldInfo("Data", TableFieldType.Text, TableFieldAttribute.NotNull),
                 new TableFieldInfo("Type", TableFieldType.Text, TableFieldAttribute.NotNull)
             };
@@ -97,6 +98,29 @@ namespace ImageManagerLib.Imager
             return GetDirectories(dataFileInfo.Id);
         }
 
+        public int GetDirectoryId(string dirName, int rootId)
+        {
+            if (string.IsNullOrEmpty(dirName) && rootId == 0)
+                return 0;
+
+            int dirId = 0;
+            var list = sqlite.GetValues("Directories", "Parent = {0} and Name = '{1}'".FormatString(rootId, dirName));
+            if (list.Length > 0)
+                dirId = list[0][0].ToInt();
+            else
+                dirId = -1;
+
+            return dirId;
+        }
+        public int GetDirectoryId(Path.PathItem pathItem)
+        {
+            int dirId = 0;
+            foreach (var path in pathItem.ToArray())
+                dirId = GetDirectoryId(path, dirId);
+
+            return dirId;
+        }
+
         /// <summary>
         /// Get files.
         /// </summary>
@@ -115,8 +139,7 @@ namespace ImageManagerLib.Imager
 
                 var dataFileInfo = new DataFileInfo(id, parent, filename, type)
                 {
-                    Image = Convert.FromBase64String(list[3]),
-                    Thumbnail = Convert.FromBase64String(list[3])
+                    Image = Convert.FromBase64String(list[3])
                 };
 
                 dataFileInfoList.Add(dataFileInfo);
@@ -140,21 +163,21 @@ namespace ImageManagerLib.Imager
         /// </summary>
         /// <param name="dirName">Directory name</param>
         /// <param name="parent">Parent directory path</param>
-        public void CreateDirectory(string dirName, string parent)
+        public (bool, string) CreateDirectory(string dirName, string parent)
         {
             var pathItem = Path.PathSplitter.SplitPath(parent);
-            int dirCount = sqlite.GetValues("Directories").Length + 1;
+            var dirArray = sqlite.GetValues("Directories");
+            int dirCount = dirArray.Length > 0 ? dirArray[dirArray.Length - 1][0].ToInt() + 1 : 1;
 
-            int dirId = 0;
-            foreach (var path in pathItem.ToArray())
-            {
-                var list = sqlite.GetValues("Directories", "Parent = {0} and Name = '{1}'".FormatString(dirId, path));
-                if (list.Length > 0)
-                {
-                    dirId = list[0][0].ToInt();
-                }
-            }
-            sqlite.InsertValue("Directories", dirCount.ToString(), dirId.ToString(), dirName);
+            int parentRootId = GetDirectoryId(pathItem);
+            var dirs = sqlite.GetValues("Directories", "Parent = {0} and Name = '{1}'".FormatString(parentRootId, dirName));
+            if (dirs.Length > 0)
+                return (false, "Existed {0} on {1}".FormatString(dirName, parent));
+            else if (parentRootId < 0)
+                return (false, "Not found {0}".FormatString(parent));
+
+            sqlite.InsertValue("Directories", dirCount.ToString(), parentRootId.ToString(), dirName);
+            return (true, string.Empty);
         }
 
         /// <summary>
@@ -164,24 +187,23 @@ namespace ImageManagerLib.Imager
         /// <param name="parent">Parent directory path</param>
         /// <param name="data">Byte array of Image data</param>
         /// <param name="thumbnail">Byte array of Thumbnail data</param>
-        public void CreateImage(string fileName, string parent, byte[] data, string mimeType)
+        public (bool, string) CreateImage(string fileName, string parent, byte[] data, string mimeType)
         {
             var pathItem = Path.PathSplitter.SplitPath(parent);
-            int dirCount = sqlite.GetValues("Files").Length + 1;
+            var fileArray = sqlite.GetValues("Files");
+            int dirCount = fileArray.Length > 0 ? fileArray[fileArray.Length - 1][0].ToInt() + 1 : 1;
 
-            int dirId = 0;
-            foreach (var path in pathItem.ToArray())
-            {
-                var list = sqlite.GetValues("Directories", "Parent = {0} and Name = '{1}'".FormatString(dirId, path));
-                if (list.Length > 0)
-                {
-                    dirId = list[0][0].ToInt();
-                }
-            }
+            int parentRootId = GetDirectoryId(pathItem);
+            var dirs = sqlite.GetValues("Files", "Parent = {0} and Name = '{1}'".FormatString(parentRootId, fileName));
+            if (dirs.Length > 0)
+                return (false, "Existed {0} on {1}".FormatString(fileName, parent));
+            else if (parentRootId < 0)
+                return (false, "Not found {0}".FormatString(parent));
 
             var text = Convert.ToBase64String(data);
-            
-            sqlite.InsertValue("Files", dirCount.ToString(), dirId.ToString(), fileName, text, mimeType);
+
+            sqlite.InsertValue("Files", dirCount.ToString(), parentRootId.ToString(), fileName, text, mimeType);
+            return (true, string.Empty);
         }
 
         /// <summary>
@@ -192,11 +214,84 @@ namespace ImageManagerLib.Imager
         /// <param name="data">Byte array of Image data</param>
         public void CreateImage(string fileName, string parent, byte[] data)
         {
-            var img = data.ByteArrayToImage();
-            var thumb = img.GetThumbnailImage(120, 120, () => false, IntPtr.Zero);
-            byte[] thumbnail = thumb.ImageToByteArray();
+            //var img = data.ByteArrayToImage();
+            //var thumb = img.GetThumbnailImage(120, 120, () => false, IntPtr.Zero);
+            //byte[] thumbnail = thumb.ImageToByteArray();
 
             CreateImage(fileName, parent, data, "");
+        }
+
+        public void CreateImage(string fileName, string parent, string inFilepath)
+        {
+            var data = ImageLoader.FromImageFile(inFilepath).Data;
+            //var img = data.ByteArrayToImage();
+            //var thumb = img.GetThumbnailImage(120, 120, () => false, IntPtr.Zero);
+            //byte[] thumbnail = thumb.ImageToByteArray();
+            if (data != null)
+                CreateImage(fileName, parent, data);
+        }
+
+
+        public void DeleteDirectory(string dirName, string parent)
+        {
+            var pathItem = Path.PathSplitter.SplitPath(parent);
+            int dirCount = sqlite.GetValues("Directories").Length + 1;
+
+            int rootId = GetDirectoryId(pathItem);
+            int dirId = GetDirectoryId(dirName, rootId);
+
+            sqlite.DeleteValue("Directories", "Id = {0} and Name = '{1}'".FormatString(dirId, dirName));
+
+            sqlite.DeleteValue("Directories", "Parent = {0}".FormatString(dirId));
+            sqlite.DeleteValue("Files", "Parent = {0}".FormatString(dirId));
+
+            sqlite.Vacuum();
+        }
+
+        public void DeleteFile(string fileName, string parent)
+        {
+            var pathItem = Path.PathSplitter.SplitPath(parent);
+            int dirCount = sqlite.GetValues("Directories").Length + 1;
+
+            int rootId = GetDirectoryId(pathItem);
+
+            sqlite.DeleteValue("Files", "Parent = {0} and Name = '{1}'".FormatString(rootId, fileName));
+
+            sqlite.Vacuum();
+        }
+
+
+        public override string ToString()
+        {
+            var dArray = sqlite.GetValues("Directories");
+            var fArray = sqlite.GetValues("Files");
+
+            var sb = new StringBuilder();
+            sb.AppendFormat("Directories [\n");
+            foreach (var dItem in dArray)
+            {
+                sb.AppendFormat("\t[\n");
+                sb.AppendFormat("\t\tId:\t {0}\n", dItem[0]);
+                sb.AppendFormat("\t\tParent:\t {0}\n", dItem[1]);
+                sb.AppendFormat("\t\tName:\t {0}\n", dItem[2]);
+                sb.AppendFormat("\t]\n");
+            }
+            sb.AppendFormat("]\n");
+
+            sb.AppendFormat("Files [\n");
+            foreach (var fItem in fArray)
+            {
+                sb.AppendFormat("\t[\n");
+                sb.AppendFormat("\t\tId:\t {0}\n", fItem[0]);
+                sb.AppendFormat("\t\tParent:\t {0}\n", fItem[1]);
+                sb.AppendFormat("\t\tName:\t {0}\n", fItem[2]);
+                sb.AppendFormat("\t\tData:\t {0}\n", fItem[3].Substring(0, 20));
+                sb.AppendFormat("\t\tType:\t {0}\n", fItem[4]);
+                sb.AppendFormat("\t]\n");
+            }
+            sb.AppendFormat("]\n");
+
+            return sb.ToString();
         }
 
         public void Dispose()

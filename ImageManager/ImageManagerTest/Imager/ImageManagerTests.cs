@@ -26,10 +26,13 @@ namespace ImageManagerLib.Imager.Tests
             imageManager.CreateDirectory("subdir2", "/dir/subdir/");
             imageManager.CreateDirectory("subdir3", "/dir");
 
-            var data = ImageLoader.FromImageFile(Constants.filename).Data;
-            imageManager.CreateImage("test1.jpg", "/", data);
-            imageManager.CreateImage("test2.jpg", "/", data);
-            imageManager.CreateImage("test3.jpg", "/dir", data);
+            // For Failed
+            imageManager.CreateDirectory("subdir3", "/dir");
+            imageManager.CreateDirectory("subdir3", "/dir2");
+
+            imageManager.CreateImage("test1.jpg", "/", Constants.filename);
+            imageManager.CreateImage("test2.jpg", "/", Constants.filename);
+            imageManager.CreateImage("test3.jpg", "/dir", Constants.filename);
 
             return imageManager;
         }

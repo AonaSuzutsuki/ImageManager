@@ -12,13 +12,20 @@ namespace ImageManagerLib.Path
         {
             var pathItem = new PathItem();
 
-            pathArg = pathArg.Replace("\\", "/");
-            string[] pathArray = pathArg.Split('/');
-
-            foreach (var path in pathArray)
+            if (pathArg.Equals("/"))
             {
-                if (!string.IsNullOrEmpty(path))
-                    pathItem.AddPath(path);
+                pathItem.AddPath("");
+            }
+            else
+            {
+                pathArg = pathArg.Replace("\\", "/");
+                string[] pathArray = pathArg.Split('/');
+
+                foreach (var path in pathArray)
+                {
+                    if (!string.IsNullOrEmpty(path))
+                        pathItem.AddPath(path);
+                }
             }
 
             return pathItem;
