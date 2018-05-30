@@ -6,7 +6,7 @@ using System.Text;
 
 namespace ImageManagerLib.SQLite
 {
-    public class SQLiteWrapper : IDisposable, IDatabase, IVacuumable
+    public class SQLiteWrapper : IDisposable, IDatabase
     {
         private SQLiteConnection connection;
 
@@ -68,21 +68,24 @@ namespace ImageManagerLib.SQLite
 
             var result = DoTransaction<string[][]>(cmd, (command) =>
             {
-                using (SQLiteDataReader sdr = command.ExecuteReader())
+                var tuples = new List<string[]>();
+                try
                 {
-                    var tuples = new List<string[]>();
-                    for (int i = 0; sdr.Read(); i++)
+                    using (SQLiteDataReader sdr = command.ExecuteReader())
                     {
-                        string[] column = new string[sdr.FieldCount];
-                        for (int j = 0; j < sdr.FieldCount; j++)
+                        for (int i = 0; sdr.Read(); i++)
                         {
-                            column[j] = sdr[j].ToString();
+                            string[] column = new string[sdr.FieldCount];
+                            for (int j = 0; j < sdr.FieldCount; j++)
+                            {
+                                column[j] = sdr[j].ToString();
+                            }
+                            tuples.Add(column);
                         }
-                        tuples.Add(column);
                     }
-
-                    return tuples.ToArray();
                 }
+                catch (SQLiteException) { };
+                return tuples.ToArray();
             });
             return result;
         }
@@ -91,6 +94,12 @@ namespace ImageManagerLib.SQLite
         {
             //INSERT INTO テーブル名 VALUES(値1, 値2, ...);
             string cmd = "insert into {0} values({1});".FormatString(tableName, ArrayToString(values));
+            DoTransaction(cmd);
+        }
+
+        public void DeleteValue(string tableName, string term)
+        {
+            string cmd = "delete from {0} where {1};".FormatString(tableName, term);
             DoTransaction(cmd);
         }
 
