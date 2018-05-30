@@ -16,6 +16,7 @@ namespace ImageManagerCUI
 
             while (true)
             {
+                Console.Write("> ");
                 string cmd = Console.ReadLine();
                 if (!program.Parse(cmd))
                     break;
@@ -30,13 +31,31 @@ namespace ImageManagerCUI
         public bool Parse(string cmd)
         {
             var parser = new CmdParser(cmd);
-            Console.WriteLine(parser);
+            //Console.WriteLine(parser);
             switch (parser.Command)
             {
                 case "exit":
                     return false;
                 case "make":
                     MakeDatabase(parser);
+                    break;
+                case "load":
+                    LoadDatabase(parser);
+                    break;
+                case "mkdir":
+                    CreateDirectory(parser);
+                    break;
+                case "deldir":
+                    DeleteDirectory(parser);
+                    break;
+                case "addfile":
+                    AddFile(parser);
+                    break;
+                case "delfile":
+                    DeleteFile(parser);
+                    break;
+                case "trace":
+                    Trace(parser);
                     break;
             }
             return true;
@@ -45,12 +64,56 @@ namespace ImageManagerCUI
         public void MakeDatabase(CmdParser parser)
         {
             dbFilename = parser.GetAttribute("file");
-            imageManager = new ImageManager(dbFilename);
+            imageManager = new ImageManager(dbFilename, true);
+            imageManager.CreateTable();
         }
 
         public void LoadDatabase(CmdParser parser)
         {
             dbFilename = parser.GetAttribute("file");
+            imageManager = new ImageManager(dbFilename, false);
+        }
+
+        public void CreateDirectory(CmdParser parser)
+        {
+            var dirName = parser.GetAttribute("name");
+            var parent = parser.GetAttribute("parent") ?? "/";
+
+            var succ = imageManager.CreateDirectory(dirName, parent);
+            if (succ.Item1)
+                Console.WriteLine("Success to mkdir {0} on {1}.", dirName, parent);
+            else
+                Console.WriteLine("Failed to mkdir: {0}.", succ.Item2);
+        }
+
+        public void DeleteDirectory(CmdParser parser)
+        {
+            var dirName = parser.GetAttribute("name");
+            var parent = parser.GetAttribute("parent") ?? "/";
+
+            imageManager.DeleteDirectory(dirName, parent);
+        }
+
+        public void AddFile(CmdParser parser)
+        {
+            var fileName = parser.GetAttribute("name");
+            var filePath = parser.GetAttribute("file");
+            var parent = parser.GetAttribute("parent") ?? "/";
+
+            imageManager.CreateImage(fileName, parent, filePath);
+        }
+
+        public void DeleteFile(CmdParser parser)
+        {
+            var fileName = parser.GetAttribute("name");
+            var parent = parser.GetAttribute("parent") ?? "/";
+
+            imageManager.DeleteFile(fileName, parent);
+        }
+
+        public void Trace(CmdParser parser)
+        {
+            Console.WriteLine(imageManager);
         }
     }
 }
