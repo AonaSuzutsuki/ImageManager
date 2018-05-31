@@ -8,6 +8,9 @@ namespace ImageManagerCUI.Parser
 {
     public class CmdParser
     {
+        /// <summary>
+        /// Command
+        /// </summary>
         public string Command { get; private set; }
 
         private Dictionary<string, string> attributes = new Dictionary<string, string>();

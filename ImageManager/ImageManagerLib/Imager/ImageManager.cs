@@ -12,9 +12,9 @@ namespace ImageManagerLib.Imager
     {
         private IDatabase sqlite;
 
-#if DEBUG
+        #if DEBUG
         public IDatabase Sqlite { get => sqlite; } // For Test
-#endif
+        #endif
 
         /// <summary>
         /// Manage database for images.
@@ -98,6 +98,12 @@ namespace ImageManagerLib.Imager
             return GetDirectories(dataFileInfo.Id);
         }
 
+        /// <summary>
+        /// Get directory Id.
+        /// </summary>
+        /// <param name="dirName">name of directory</param>
+        /// <param name="rootId">id of root directory</param>
+        /// <returns></returns>
         public int GetDirectoryId(string dirName, int rootId)
         {
             if (string.IsNullOrEmpty(dirName) && rootId == 0)
@@ -112,6 +118,12 @@ namespace ImageManagerLib.Imager
 
             return dirId;
         }
+
+        /// <summary>
+        /// Get last directory Id.
+        /// </summary>
+        /// <param name="pathItem">pathitem of directory</param>
+        /// <returns></returns>
         public int GetDirectoryId(Path.PathItem pathItem)
         {
             int dirId = 0;
@@ -221,6 +233,12 @@ namespace ImageManagerLib.Imager
             CreateImage(fileName, parent, data, "");
         }
 
+        /// <summary>
+        /// Create image data to database.
+        /// </summary>
+        /// <param name="fileName">Filename</param>
+        /// <param name="parent">Parent directory path</param>
+        /// <param name="inFilepath">Filepath</param>
         public void CreateImage(string fileName, string parent, string inFilepath)
         {
             var data = ImageLoader.FromImageFile(inFilepath).Data;
@@ -232,6 +250,11 @@ namespace ImageManagerLib.Imager
         }
 
 
+        /// <summary>
+        /// Delete a directory.
+        /// </summary>
+        /// <param name="dirName">Directory name</param>
+        /// <param name="parent">Parent directory path</param>
         public void DeleteDirectory(string dirName, string parent)
         {
             var pathItem = Path.PathSplitter.SplitPath(parent);
@@ -248,6 +271,11 @@ namespace ImageManagerLib.Imager
             sqlite.Vacuum();
         }
 
+        /// <summary>
+        /// Delete a file.
+        /// </summary>
+        /// <param name="fileName">File name</param>
+        /// <param name="parent">Parent directory path</param>
         public void DeleteFile(string fileName, string parent)
         {
             var pathItem = Path.PathSplitter.SplitPath(parent);
