@@ -1,10 +1,7 @@
-﻿using ImageManagerCUI.Parser;
-using ImageManagerLib.Imager;
+﻿using CommonExtentionLib.Extentions;
+using ImageManagerCUI.Parser;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using FileManagerLib.Filer;
 
 namespace ImageManagerCUI
 {
@@ -18,6 +15,16 @@ namespace ImageManagerCUI
             {
                 Console.Write("> ");
                 string cmd = Console.ReadLine();
+                //try
+                //{
+                //    if (!program.Parse(cmd))
+                //        break;
+                //}
+                //catch (Exception e)
+                //{
+                //    Console.WriteLine(e.Message);
+                //    Console.WriteLine(e.StackTrace);
+                //}
                 if (!program.Parse(cmd))
                     break;
             }
@@ -25,7 +32,7 @@ namespace ImageManagerCUI
 
 
         private string dbFilename;
-        private ImageManager imageManager;
+        private FileManager imageManager;
 
 
         public bool Parse(string cmd)
@@ -35,7 +42,11 @@ namespace ImageManagerCUI
             switch (parser.Command)
             {
                 case "exit":
+                    Close(parser);
                     return false;
+                case "close":
+                    Close(parser);
+                    break;
                 case "make":
                     MakeDatabase(parser);
                     break;
@@ -54,6 +65,9 @@ namespace ImageManagerCUI
                 case "delfile":
                     DeleteFile(parser);
                     break;
+                case "writeto":
+                    WriteTo(parser);
+                    break;
                 case "trace":
                     Trace(parser);
                     break;
@@ -61,23 +75,28 @@ namespace ImageManagerCUI
             return true;
         }
 
+        public void Close(CmdParser parser)
+        {
+            imageManager.Dispose();
+        }
+
         public void MakeDatabase(CmdParser parser)
         {
-            dbFilename = parser.GetAttribute("file");
-            imageManager = new ImageManager(dbFilename, true);
+            dbFilename = parser.GetAttribute("file") ?? parser.GetAttribute(0);
+            imageManager = new FileManager(dbFilename, true);
             imageManager.CreateTable();
         }
 
         public void LoadDatabase(CmdParser parser)
         {
-            dbFilename = parser.GetAttribute("file");
-            imageManager = new ImageManager(dbFilename, false);
+            dbFilename = parser.GetAttribute("file") ?? parser.GetAttribute(0);
+            imageManager = new FileManager(dbFilename, false);
         }
 
         public void CreateDirectory(CmdParser parser)
         {
-            var dirName = parser.GetAttribute("name");
-            var parent = parser.GetAttribute("parent") ?? "/";
+            var dirName = parser.GetAttribute("name") ?? parser.GetAttribute(0);
+            var parent = parser.GetAttribute("parent") ?? parser.GetAttribute(1) ?? "/";
 
             var succ = imageManager.CreateDirectory(dirName, parent);
             if (succ.Item1)
@@ -88,32 +107,79 @@ namespace ImageManagerCUI
 
         public void DeleteDirectory(CmdParser parser)
         {
-            var dirName = parser.GetAttribute("name");
-            var parent = parser.GetAttribute("parent") ?? "/";
+            var dirName = parser.GetAttribute("name") ?? parser.GetAttribute(0);
+            var parent = parser.GetAttribute("parent") ?? parser.GetAttribute(1) ?? "/";
 
-            imageManager.DeleteDirectory(dirName, parent);
+            if (dirName.Substring(0, 1).Equals(":"))
+            {
+                var id = dirName.TrimStart(':').ToInt();
+                imageManager.DeleteDirectory(id);
+            }
+            else
+            {
+                imageManager.DeleteDirectory(dirName, parent);
+            }
         }
 
         public void AddFile(CmdParser parser)
         {
-            var fileName = parser.GetAttribute("name");
-            var filePath = parser.GetAttribute("file");
-            var parent = parser.GetAttribute("parent") ?? "/";
+            var fileName = parser.GetAttribute("name") ?? parser.GetAttribute(0);
+            var filePath = parser.GetAttribute("file") ?? parser.GetAttribute(1);
+            var parent = parser.GetAttribute("parent") ?? parser.GetAttribute(2) ?? "/";
 
             imageManager.CreateImage(fileName, parent, filePath);
         }
 
         public void DeleteFile(CmdParser parser)
         {
-            var fileName = parser.GetAttribute("name");
-            var parent = parser.GetAttribute("parent") ?? "/";
+            var fileName = parser.GetAttribute("name") ?? parser.GetAttribute(0);
+            var parent = parser.GetAttribute("parent") ?? parser.GetAttribute(1) ?? "/";
 
-            imageManager.DeleteFile(fileName, parent);
+
+            if (fileName.Substring(0, 1).Equals(":"))
+            {
+                var id = fileName.TrimStart(':').ToInt();
+                imageManager.DeleteFile(id);
+            }
+            else
+            {
+                imageManager.DeleteFile(fileName, parent);
+            }
+        }
+
+        public void WriteTo(CmdParser parser)
+        {
+            var fileName = parser.GetAttribute("name") ?? parser.GetAttribute(0);
+            var outFilePath = parser.GetAttribute("out") ?? parser.GetAttribute(1);
+            var parent = parser.GetAttribute("parent") ?? parser.GetAttribute(2) ?? "/";
+
+            if (fileName.Substring(0, 1).Equals(":"))
+            {
+                var id = fileName.TrimStart(':').ToInt();
+                imageManager.WriteToFile(id, outFilePath);
+            }
+            else
+            {
+                imageManager.WriteToFile(fileName, parent, outFilePath);
+            }
         }
 
         public void Trace(CmdParser parser)
         {
-            Console.WriteLine(imageManager);
+            var type = parser.GetAttribute("type") ?? parser.GetAttribute(0);
+
+            switch (type)
+            {
+                case "d":
+                    Console.WriteLine(imageManager.TraceDirs());
+                    break;
+                case "f":
+                    Console.WriteLine(imageManager.TraceFiles());
+                    break;
+                default:
+                    Console.WriteLine(imageManager);
+                    break;
+            }
         }
     }
 }
