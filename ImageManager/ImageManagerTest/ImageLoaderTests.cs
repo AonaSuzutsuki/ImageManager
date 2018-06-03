@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.IO;
-using ImageManagerLib.Imager;
+using FileManagerLib.Filer;
 using ImageManagerTest;
 
 namespace ImageManagerLib.Tests

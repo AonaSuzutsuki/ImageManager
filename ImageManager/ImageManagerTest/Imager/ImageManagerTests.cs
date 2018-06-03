@@ -1,5 +1,5 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using ImageManagerLib.Imager;
+using FileManagerLib.Filer;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,9 +15,9 @@ namespace ImageManagerLib.Imager.Tests
     {
         private const string outfile = ":memory:";
 
-        public ImageManager CreateImagaManager()
+        public FileManager CreateImagaManager()
         {
-            var imageManager = new ImageManager(outfile);
+            var imageManager = new FileManager(outfile);
 
             imageManager.CreateTable();
 
@@ -64,9 +64,9 @@ namespace ImageManagerLib.Imager.Tests
             string thumbAns = ReadToEnd(Constants.thumbBase64path);
 
             string[][] excepted = {
-                new string[] { "1", "0", "test1.jpg", ansBase64, "" },
-                new string[] { "2", "0", "test2.jpg", ansBase64, "" },
-                new string[] { "3", "1", "test3.jpg", ansBase64, "" },
+                new string[] { "1", "0", "test1.jpg", ansBase64, "image/jpeg" },
+                new string[] { "2", "0", "test2.jpg", ansBase64, "image/jpeg" },
+                new string[] { "3", "1", "test3.jpg", ansBase64, "image/jpeg" },
             };
 
             var imageManager = CreateImagaManager();

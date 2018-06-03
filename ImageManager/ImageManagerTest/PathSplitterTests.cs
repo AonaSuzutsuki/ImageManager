@@ -1,11 +1,11 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using ImageManagerLib;
+using FileManagerLib;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ImageManagerLib.Path;
+using FileManagerLib.Path;
 
 namespace ImageManagerLib.Tests
 {
