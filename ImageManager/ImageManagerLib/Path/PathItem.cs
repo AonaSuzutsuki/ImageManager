@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ImageManagerLib.Path
+namespace FileManagerLib.Path
 {
     public class PathItem
     {

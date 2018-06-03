@@ -1,10 +1,10 @@
 ﻿using CommonExtentionLib.Extentions;
-using ImageManagerLib.Extentions.SQLite;
+using FileManagerLib.Extentions.SQLite;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 
-namespace ImageManagerLib.SQLite
+namespace FileManagerLib.SQLite
 {
     public class TableFieldList : IEnumerable<TableFieldInfo>
     {

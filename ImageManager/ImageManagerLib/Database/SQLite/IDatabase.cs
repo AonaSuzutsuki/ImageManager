@@ -1,4 +1,4 @@
-﻿namespace ImageManagerLib.SQLite
+﻿namespace FileManagerLib.SQLite
 {
     public interface IDatabase : IVacuumable
     {

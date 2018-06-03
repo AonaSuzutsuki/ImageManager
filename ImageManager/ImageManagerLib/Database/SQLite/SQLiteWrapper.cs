@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Data.SQLite;
 using System.Text;
 
-namespace ImageManagerLib.SQLite
+namespace FileManagerLib.SQLite
 {
     public class SQLiteWrapper : IDisposable, IDatabase
     {

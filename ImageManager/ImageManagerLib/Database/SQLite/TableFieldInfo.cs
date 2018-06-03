@@ -1,12 +1,12 @@
 ﻿using CommonExtentionLib.Extentions;
-using ImageManagerLib.Extentions.SQLite;
+using FileManagerLib.Extentions.SQLite;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ImageManagerLib.SQLite
+namespace FileManagerLib.SQLite
 {
     public class TableFieldInfo
     {

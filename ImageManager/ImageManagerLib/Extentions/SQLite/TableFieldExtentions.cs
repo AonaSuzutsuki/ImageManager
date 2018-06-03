@@ -1,11 +1,11 @@
-﻿using ImageManagerLib.SQLite;
+﻿using FileManagerLib.SQLite;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ImageManagerLib.Extentions.SQLite
+namespace FileManagerLib.Extentions.SQLite
 {
     public static class TableFieldExtentions
     {

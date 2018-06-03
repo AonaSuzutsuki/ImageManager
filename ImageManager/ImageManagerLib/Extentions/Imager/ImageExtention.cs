@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ImageManagerLib.Extentions.Imager
+namespace FileManagerLib.Extentions.Imager
 {
     public static class ImageExtention
     {

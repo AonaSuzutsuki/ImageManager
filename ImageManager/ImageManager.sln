@@ -7,7 +7,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImageManager", "ImageManage
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImageManagerTest", "ImageManagerTest\ImageManagerTest.csproj", "{0EED8D99-597F-4221-8C5B-677E0A5330E9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImageManagerLib", "ImageManagerLib\ImageManagerLib.csproj", "{73B4FE35-D16C-4894-BB7C-B2FAE2CCA140}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileManagerLib", "ImageManagerLib\FileManagerLib.csproj", "{73B4FE35-D16C-4894-BB7C-B2FAE2CCA140}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImageManagerCUI", "ImageManagerCUI\ImageManagerCUI.csproj", "{C3F2415C-FD5D-425A-9D40-9D2E81235F97}"
 EndProject

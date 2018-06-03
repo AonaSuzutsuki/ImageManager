@@ -74,9 +74,9 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ImageManagerLib\ImageManagerLib.csproj">
+    <ProjectReference Include="..\ImageManagerLib\FileManagerLib.csproj">
       <Project>{73b4fe35-d16c-4894-bb7c-b2fae2cca140}</Project>
-      <Name>ImageManagerLib</Name>
+      <Name>FileManagerLib</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
