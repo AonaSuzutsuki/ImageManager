@@ -65,8 +65,7 @@ namespace ImageManagerCUI.Parser
 
             return sb.ToString();
         }
-
-
+        
         #region Static Function
         public static List<string> SplitWithoutDoubleQuote(string text)
         {

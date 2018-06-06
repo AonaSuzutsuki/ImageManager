@@ -2,6 +2,8 @@
 using ImageManagerCUI.Parser;
 using System;
 using FileManagerLib.Filer;
+using System.IO;
+using System.Linq;
 
 namespace ImageManagerCUI
 {
@@ -38,12 +40,14 @@ namespace ImageManagerCUI
         public bool Parse(string cmd)
         {
             var parser = new CmdParser(cmd);
-            //Console.WriteLine(parser);
             switch (parser.Command)
             {
                 case "exit":
                     Close(parser);
                     return false;
+                case "gc":
+                    GC.Collect();
+                    break;
                 case "close":
                     Close(parser);
                     break;
@@ -62,6 +66,9 @@ namespace ImageManagerCUI
                 case "addfile":
                     AddFile(parser);
                     break;
+                case "addfiles":
+                    AddFiles(parser);
+                    break;
                 case "delfile":
                     DeleteFile(parser);
                     break;
@@ -74,7 +81,7 @@ namespace ImageManagerCUI
             }
             return true;
         }
-
+        
         public void Close(CmdParser parser)
         {
             imageManager.Dispose();
@@ -128,6 +135,15 @@ namespace ImageManagerCUI
             var parent = parser.GetAttribute("parent") ?? parser.GetAttribute(2) ?? "/";
 
             imageManager.CreateImage(fileName, parent, filePath);
+        }
+
+        public void AddFiles(CmdParser parser)
+        {
+            var dirPath = parser.GetAttribute("dir") ?? parser.GetAttribute(0);
+            var parent = parser.GetAttribute("parent") ?? parser.GetAttribute(1) ?? "/";
+
+            var files = Directory.GetFiles(dirPath);
+            imageManager.CreateImages(parent, files);
         }
 
         public void DeleteFile(CmdParser parser)

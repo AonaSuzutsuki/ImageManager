@@ -4,6 +4,7 @@ using FileManagerLib.SQLite;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 
 namespace FileManagerLib.Filer
@@ -273,6 +274,18 @@ namespace FileManagerLib.Filer
             //byte[] thumbnail = thumb.ImageToByteArray();
             if (data != null)
                 CreateImage(fileName, parent, data, mimetype);
+        }
+
+        public void CreateImages(string parent, string[] filePathArray)
+        {
+            sqlite.StartTransaction();
+            foreach (var file in filePathArray.Select((v, i) => new { v, i }))
+            {
+                Console.WriteLine("{0}/{1}".FormatString(file.i + 1, filePathArray.Length));
+                CreateImage(System.IO.Path.GetFileName(file.v), parent, file.v);
+            }
+            sqlite.DoCommit();
+            sqlite.EndTransaction();
         }
         
         /// <summary>

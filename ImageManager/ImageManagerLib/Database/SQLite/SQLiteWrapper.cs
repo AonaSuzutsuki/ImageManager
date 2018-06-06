@@ -9,6 +9,8 @@ namespace FileManagerLib.SQLite
     public class SQLiteWrapper : IDisposable, IDatabase
     {
         private SQLiteConnection connection;
+        private SQLiteTransaction sqlt;
+        private SQLiteCommand command;
 
         public string Filename { get; }
 
@@ -32,7 +34,7 @@ namespace FileManagerLib.SQLite
         public void CreateTable(string name, string arg)
         {
             string cmd = "create table {0}({1});".FormatString(name, arg);
-            DoTransaction(cmd);
+            DoCommand(cmd);
         }
         public void CreateTable(string name, TableFieldList fields)
         {
@@ -43,7 +45,7 @@ namespace FileManagerLib.SQLite
         public void DeleteTable(string name)
         {
             string cmd = "drop table {0};".FormatString(name);
-            DoTransaction(cmd);
+            DoCommand(cmd);
         }
         public bool TableExist(string tablename)
         {
@@ -94,19 +96,34 @@ namespace FileManagerLib.SQLite
         {
             //INSERT INTO テーブル名 VALUES(値1, 値2, ...);
             string cmd = "insert into {0} values({1});".FormatString(tableName, ArrayToString(values));
-            DoTransaction(cmd);
+            DoCommand(cmd);
         }
 
         public void DeleteValue(string tableName, string term)
         {
             string cmd = "delete from {0} where {1};".FormatString(tableName, term);
-            DoTransaction(cmd);
+            DoCommand(cmd);
         }
 
         public void Update(string tableName, string fiels, string value, string term)
         {
             var cmd = "update {0} set {1} = '{2}' where {3};".FormatString(tableName, fiels, value, term);
-            DoTransaction(cmd);
+            DoCommand(cmd);
+        }
+
+
+        public void StartTransaction()
+        {
+            sqlt = connection.BeginTransaction();
+        }
+        public void EndTransaction()
+        {
+            sqlt.Dispose();
+            sqlt = null;
+        }
+        public void DoCommit()
+        {
+            sqlt.Commit();
         }
         #endregion
 
@@ -126,17 +143,31 @@ namespace FileManagerLib.SQLite
         #endregion
 
         #region Private Methods
-        private void DoTransaction(string cmd)
+        private void DoCommand(string cmd)
         {
-            using (SQLiteTransaction sqlt = connection.BeginTransaction())
-            {
-                using (SQLiteCommand command = connection.CreateCommand())
+            //using (SQLiteTransaction sqlt = connection.BeginTransaction())
+            //{
+            var act = new Action<string>(arg => {
+                using (var command = new SQLiteCommand(connection))
                 {
+                    command.Transaction = sqlt;
                     command.CommandText = cmd;
                     command.ExecuteNonQuery();
                 }
-                sqlt.Commit();
+            });
+
+            if (sqlt == null)
+            {
+                StartTransaction();
+                act(cmd);
+                DoCommit();
+                EndTransaction();
             }
+            else
+            {
+                act(cmd);
+            }
+            //}
         }
 
         private T DoTransaction<T>(string cmd, Func<SQLiteCommand, T> func)
@@ -153,7 +184,17 @@ namespace FileManagerLib.SQLite
 
         private void Open()
         {
-            connection = new SQLiteConnection("Data Source=" + Filename);
+            var builder = new SQLiteConnectionStringBuilder()
+            {
+                DataSource = Filename,
+                Version = 3,
+                LegacyFormat = false,
+                PageSize = 8192,
+                SyncMode = SynchronizationModes.Normal,
+                JournalMode = SQLiteJournalModeEnum.Wal,
+            };
+
+            connection = new SQLiteConnection(builder.ToString()); //"Data Source=" + Filename
             connection.Open();
         }
         #endregion

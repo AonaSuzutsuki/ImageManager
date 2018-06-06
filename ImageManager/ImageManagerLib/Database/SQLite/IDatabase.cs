@@ -13,5 +13,8 @@
         void DeleteValue(string tableName, string term);
         bool TableExist(string tablename);
         void Update(string tableName, string fiels, string value, string term);
+        void StartTransaction();
+        void EndTransaction();
+        void DoCommit();
     }
 }
