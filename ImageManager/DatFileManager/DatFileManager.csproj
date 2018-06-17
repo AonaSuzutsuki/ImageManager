@@ -45,8 +45,8 @@
     <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="CommonExtentionLib">
-      <HintPath>..\..\Lib\CommonExtentionLib.dll</HintPath>
+    <Reference Include="CommonExtensionLib">
+      <HintPath>..\..\Lib\CommonExtensionLib.dll</HintPath>
     </Reference>
     <Reference Include="System" />
   </ItemGroup>
