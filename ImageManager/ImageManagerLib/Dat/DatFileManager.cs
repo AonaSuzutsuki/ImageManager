@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace DatFileManager
+namespace Dat
 {
 	public class DatFileManager : IDisposable
     {
@@ -10,17 +10,24 @@ namespace DatFileManager
 		private const int LEN = 4;
 
 		#region Fields
-		private string filePath;
 		private FileStream fileStream;
-		#endregion
+        #endregion
 
-		public DatFileManager(string filePath)
+        #region Properties
+        public string FilePath
         {
-			this.filePath = filePath;
+            get;
+            private set;
+        }
+        #endregion
+
+        public DatFileManager(string filePath)
+        {
+			FilePath = filePath;
 			fileStream = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
         }
 
-		public byte[] GetBytes(int start)
+		public byte[] GetBytes(long start)
 		{
 			byte[] data = null;
 
@@ -36,20 +43,39 @@ namespace DatFileManager
 			return data;
 		}
 
+        public (long, byte[]) GetPartialBytes(long start, long length)
+        {
+            long len = 0;
+            byte[] data = null;
+
+            if (fileStream != null)
+            {
+                len = GetIntAndSeek(fileStream, start, LEN);
+
+                data = new byte[length];
+                fileStream.Read(data, 0, data.Length);
+            }
+
+            return (len, data);
+        }
+
 		public void Dispose()
 		{
 			((IDisposable)fileStream).Dispose();
 		}
 
-        public void Write(byte[] data)
+        public long Write(byte[] data)
         {
             var len = data.Length;
             var lenArray = BitConverter.GetBytes(len);
-
+            
+            var pos = fileStream.Position;
             fileStream.Seek(0, SeekOrigin.End);
             fileStream.Write(lenArray, 0, lenArray.Length);
             fileStream.Write(data, 0, data.Length);
             fileStream.Flush();
+
+            return pos;
         }
 
 		private static int GetIntAndSeek(Stream stream, long start, long length)

@@ -1,4 +1,5 @@
 ﻿using CommonExtensionLib.Extensions;
+using Dat;
 using FileManagerLib.Extentions.Imager;
 using FileManagerLib.SQLite;
 using System;
@@ -11,6 +12,7 @@ namespace FileManagerLib.Filer
 {
     public class FileManager : IDisposable
     {
+        private DatFileManager fManager;
         private IDatabase sqlite;
 
         #if DEBUG
@@ -23,12 +25,17 @@ namespace FileManagerLib.Filer
         /// <param name="filename">Database path</param>
         public FileManager(string filename, bool newFile = false)
         {
+            var datName = "{0}.dat".FormatString(System.IO.Path.GetFileNameWithoutExtension(filename));
+
             if (newFile)
             {
                 if (File.Exists(filename))
                     File.Delete(filename);
+                if (File.Exists(datName))
+                    File.Delete(datName);
             }
 
+            fManager = new DatFileManager(datName);
             sqlite = new SQLiteWrapper(filename);
         }
 
@@ -52,18 +59,17 @@ namespace FileManagerLib.Filer
                 new TableFieldInfo("Id", TableFieldType.Integer, TableFieldAttribute.NotNull, TableFieldAttribute.Unique, TableFieldAttribute.PrimaryKey),
                 new TableFieldInfo("Parent", TableFieldType.Integer, TableFieldAttribute.NotNull),
                 new TableFieldInfo("Name", TableFieldType.Text, TableFieldAttribute.NotNull),
-                new TableFieldInfo("Data", TableFieldType.Text, TableFieldAttribute.NotNull),
+                new TableFieldInfo("Location", TableFieldType.Text, TableFieldAttribute.NotNull),
                 new TableFieldInfo("Type", TableFieldType.Text, TableFieldAttribute.NotNull)
             };
-            var ThumbField = new TableFieldList()
+            var trashField = new TableFieldList()
             {
-                new TableFieldInfo("Id", TableFieldType.Integer, TableFieldAttribute.NotNull, TableFieldAttribute.Unique, TableFieldAttribute.PrimaryKey),
-                new TableFieldInfo("Data", TableFieldType.Text, TableFieldAttribute.NotNull)
+                new TableFieldInfo("Location", TableFieldType.Text, TableFieldAttribute.NotNull)
             };
 
             sqlite.CreateTable("Directories", dirField);
             sqlite.CreateTable("Files", imageField);
-            sqlite.CreateTable("Thumbnails", ThumbField);
+            sqlite.CreateTable("Trash", trashField);
         }
 
 
@@ -104,6 +110,7 @@ namespace FileManagerLib.Filer
                 int id = list[0].ToInt();
                 int parent = list[1].ToInt();
                 string filename = list[2];
+                var location = list[3].ToInt64();
                 var type = DataFileType.Dir;
 
                 var dataFileInfo = new DataFileInfo(id, parent, filename, type);
@@ -174,6 +181,11 @@ namespace FileManagerLib.Filer
             sqlite.DeleteValue("Directories", "Id = {0} and Name = '{1}'".FormatString(dirId, dirName));
 
             sqlite.DeleteValue("Directories", "Parent = {0}".FormatString(dirId));
+            //var prefiles = sqlite.GetValues("Files", "Parent = {0}".FormatString(dirId));
+            //foreach (var files in prefiles)
+            //{
+            //    sqlite.InsertValue("Trash", files[3]);
+            //}
             sqlite.DeleteValue("Files", "Parent = {0}".FormatString(dirId));
 
             sqlite.Vacuum();
@@ -238,9 +250,9 @@ namespace FileManagerLib.Filer
             else if (parentRootId < 0)
                 return (false, "Not found {0}".FormatString(parent));
 
-            var text = Convert.ToBase64String(data);
+            var start = fManager.Write(data);
 
-            sqlite.InsertValue("Files", dirCount.ToString(), parentRootId.ToString(), fileName, text, mimeType);
+            sqlite.InsertValue("Files", dirCount.ToString(), parentRootId.ToString(), fileName, start.ToString(), mimeType);
             return (true, string.Empty);
         }
 
@@ -282,7 +294,7 @@ namespace FileManagerLib.Filer
             foreach (var file in filePathArray.Select((v, i) => new { v, i }))
             {
                 Console.WriteLine("{0}/{1}".FormatString(file.i + 1, filePathArray.Length));
-                CreateImage(System.IO.Path.GetFileName(file.v), parent, new byte[] { 0 });
+                CreateImage(System.IO.Path.GetFileName(file.v), parent, file.v);
             }
             sqlite.DoCommit();
             sqlite.EndTransaction();
@@ -300,6 +312,12 @@ namespace FileManagerLib.Filer
 
             int rootId = GetDirectoryId(pathItem);
 
+            //var _files = sqlite.GetValues("Files", "Parent = {0} and Name = '{1}'".FormatString(rootId, fileName));
+            //var files = _files.Length > 0 ? _files[0] : null;
+            //if (files != null)
+            //{
+            //    sqlite.InsertValue("Trash", files);
+            //}
             sqlite.DeleteValue("Files", "Parent = {0} and Name = '{1}'".FormatString(rootId, fileName));
 
             sqlite.Vacuum();
@@ -325,7 +343,8 @@ namespace FileManagerLib.Filer
             var values = GetFiles(rootId);
             if (values.Length > 0)
             {
-                var data = values[0].Image;
+                var loc = values[0].Location;
+                var data = fManager.GetBytes(loc);
                 using (var fs = new FileStream(outFilePath, FileMode.Create, FileAccess.Write, FileShare.None))
                 {
                     fs.Write(data, 0, data.Length);
@@ -338,7 +357,8 @@ namespace FileManagerLib.Filer
             var values = ConvertDataFileInfo(sqlite.GetValues("Files", "Id = {0}".FormatString(id)));
             if (values.Length > 0)
             {
-                var data = values[0].Image;
+                var loc = values[0].Location;
+                var data = fManager.GetBytes(loc);
                 using (var fs = new FileStream(outFilePath, FileMode.Create, FileAccess.Write, FileShare.None))
                 {
                     fs.Write(data, 0, data.Length);
@@ -374,8 +394,9 @@ namespace FileManagerLib.Filer
         public string GetFilePath(int id)
         {
             var item = sqlite.GetValues("Files", "Id = {0}".FormatString(id));
-            var fileName = item[0][2];
-            var parent = item[0][1].ToInt();
+            var dataFileInfo = ConvertDataFileInfo(item);
+            var fileName = dataFileInfo[0].Filename;
+            var parent = dataFileInfo[0].Parent;
 
             string dirPath = GetDirectoryPath(parent);
             return "{0}/{1}".FormatString(dirPath, fileName);
@@ -406,24 +427,27 @@ namespace FileManagerLib.Filer
         public string TraceFiles()
         {
             var fArray = sqlite.GetValues("Files");
+            var dataFileInfos = ConvertDataFileInfo(fArray);
 
             var sb = new StringBuilder();
             sb.AppendFormat("Files [\n");
-            foreach (var fItem in fArray)
+            foreach (var fItem in dataFileInfos)
             {
-                int id = fItem[0].ToInt();
-                var data = fItem[3];
-                if (data.Length > 40)
-                    data = data.Substring(0, 40);
+                var id = fItem.Id;
+                var location = fItem.Location;
+
+                var tuple = fManager.GetPartialBytes(location, 40);
+                var data = tuple.Item2;
+                var len = tuple.Item1;
 
                 sb.AppendFormat("\t[\n");
                 sb.AppendFormat("\t\tId:\t {0}\n", id);
-                sb.AppendFormat("\t\tParent:\t {0}\n", fItem[1]);
+                sb.AppendFormat("\t\tParent:\t {0}\n", fItem.Parent);
                 sb.AppendFormat("\t\tPath:\t {0}\n", GetFilePath(id));
-                sb.AppendFormat("\t\tName:\t {0}\n", fItem[2]);
-                sb.AppendFormat("\t\tData:\t {0}\n", data);
-                sb.AppendFormat("\t\tLength:\t {0}kb\n", Convert.FromBase64String(fItem[3]).Length / 1024);
-                sb.AppendFormat("\t\tType:\t {0}\n", fItem[4]);
+                sb.AppendFormat("\t\tName:\t {0}\n", fItem.Filename);
+                sb.AppendFormat("\t\tData:\t {0}\n", Convert.ToBase64String(data));
+                sb.AppendFormat("\t\tLength:\t {0}kb\n", len / 1024);
+                sb.AppendFormat("\t\tType:\t {0}\n", fItem.MimeType);
                 sb.AppendFormat("\t]\n");
             }
             sb.AppendFormat("]\n");
@@ -439,6 +463,17 @@ namespace FileManagerLib.Filer
             
             return sb.ToString();
         }
+
+        public void DataVacuum()
+        {
+            var fManager = new DatFileManager("{0}.temp".FormatString(this.fManager.FilePath));
+
+            var files = sqlite.GetValues("Files");
+            foreach (var file in files)
+            {
+                var loc = file[3];
+            }
+        }
         #endregion
 
 
@@ -451,11 +486,14 @@ namespace FileManagerLib.Filer
                 int id = list[0].ToInt();
                 int parent = list[1].ToInt();
                 string filename = list[2];
+                var loc = list[3].ToInt64();
+                var mime = list[4];
                 var type = DataFileType.File;
 
                 var dataFileInfo = new DataFileInfo(id, parent, filename, type)
                 {
-                    Image = Convert.FromBase64String(list[3])
+                    Location = loc,
+                    MimeType = mime
                 };
 
                 dataFileInfoList.Add(dataFileInfo);
@@ -467,6 +505,7 @@ namespace FileManagerLib.Filer
 
         public void Dispose()
         {
+            fManager.Dispose();
             ((IDisposable)sqlite).Dispose();
         }
     }

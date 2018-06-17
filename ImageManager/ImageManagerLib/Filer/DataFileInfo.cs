@@ -16,9 +16,9 @@ namespace FileManagerLib.Filer
 
         public DataFileType Type { get; }
 
-        public byte[] Image { get; set; }
+        public long Location { get; set; }
 
-        public byte[] Thumbnail { get; set; }
+        public string MimeType { get; set; }
 
         public DataFileInfo(int id, int parent, string filename, DataFileType type)
         {
@@ -49,8 +49,6 @@ namespace FileManagerLib.Filer
                     && dataFileInfo.Parent == Parent
                     && Filename.Equals(dataFileInfo.Filename)
                     && dataFileInfo.Type == Type;
-                //&& dataFileInfo.Image.SequenceEqual(Image)
-                //&& dataFileInfo.Thumbnail.SequenceEqual(Thumbnail);
             }
 
             return false;

@@ -71,6 +71,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Dat\DatFileManager.cs" />
     <Compile Include="Extentions\Imager\ImageExtention.cs" />
     <Compile Include="Extentions\SQLite\TableFieldExtentions.cs" />
     <Compile Include="Filer\DataFileInfo.cs" />

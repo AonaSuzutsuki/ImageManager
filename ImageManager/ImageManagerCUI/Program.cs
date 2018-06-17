@@ -54,7 +54,7 @@ namespace ImageManagerCUI
                 case "make":
                     MakeDatabase(parser);
                     break;
-                case "load":
+                case "open":
                     LoadDatabase(parser);
                     break;
                 case "mkdir":
@@ -84,7 +84,7 @@ namespace ImageManagerCUI
         
         public void Close(CmdParser parser)
         {
-            imageManager.Dispose();
+            imageManager?.Dispose();
         }
 
         public void MakeDatabase(CmdParser parser)
