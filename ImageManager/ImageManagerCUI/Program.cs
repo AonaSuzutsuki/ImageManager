@@ -1,4 +1,4 @@
-﻿using CommonExtentionLib.Extentions;
+﻿using CommonExtensionLib.Extensions;
 using ImageManagerCUI.Parser;
 using System;
 using FileManagerLib.Filer;

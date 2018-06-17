@@ -1,4 +1,4 @@
-﻿using CommonExtentionLib.Extentions;
+﻿using CommonExtensionLib.Extensions;
 using FileManagerLib.Extentions.Imager;
 using FileManagerLib.SQLite;
 using System;
