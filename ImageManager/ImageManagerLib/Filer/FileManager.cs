@@ -282,7 +282,7 @@ namespace FileManagerLib.Filer
             foreach (var file in filePathArray.Select((v, i) => new { v, i }))
             {
                 Console.WriteLine("{0}/{1}".FormatString(file.i + 1, filePathArray.Length));
-                CreateImage(System.IO.Path.GetFileName(file.v), parent, file.v);
+                CreateImage(System.IO.Path.GetFileName(file.v), parent, new byte[] { 0 });
             }
             sqlite.DoCommit();
             sqlite.EndTransaction();
