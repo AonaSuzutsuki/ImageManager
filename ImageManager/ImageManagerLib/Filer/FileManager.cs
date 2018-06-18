@@ -52,7 +52,7 @@ namespace FileManagerLib.Filer
                 new TableFieldInfo("Id", TableFieldType.Integer, TableFieldAttribute.NotNull, TableFieldAttribute.Unique, TableFieldAttribute.PrimaryKey),
                 new TableFieldInfo("Parent", TableFieldType.Integer, TableFieldAttribute.NotNull),
                 new TableFieldInfo("Name", TableFieldType.Text, TableFieldAttribute.NotNull),
-                new TableFieldInfo("Data", TableFieldType.Text, TableFieldAttribute.NotNull),
+                new TableFieldInfo("Data", TableFieldType.Blob, TableFieldAttribute.NotNull),
                 new TableFieldInfo("Type", TableFieldType.Text, TableFieldAttribute.NotNull)
             };
             var ThumbField = new TableFieldList()
@@ -237,10 +237,8 @@ namespace FileManagerLib.Filer
                 return (false, "Existed {0} on {1}".FormatString(fileName, parent));
             else if (parentRootId < 0)
                 return (false, "Not found {0}".FormatString(parent));
-
-            var text = Convert.ToBase64String(data);
-
-            sqlite.InsertValue("Files", dirCount.ToString(), parentRootId.ToString(), fileName, text, mimeType);
+            
+            sqlite.InsertValue("Files", dirCount.ToString(), parentRootId.ToString(), fileName, data, mimeType);
             return (true, string.Empty);
         }
 

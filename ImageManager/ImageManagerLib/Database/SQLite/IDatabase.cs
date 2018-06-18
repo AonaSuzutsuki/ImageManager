@@ -10,6 +10,7 @@
         void Dispose();
         string[][] GetValues(string tableName, string term = null);
         void InsertValue(string tableName, params string[] values);
+        void InsertValue(string tableName, params object[] values);
         void DeleteValue(string tableName, string term);
         bool TableExist(string tablename);
         void Update(string tableName, string fiels, string value, string term);

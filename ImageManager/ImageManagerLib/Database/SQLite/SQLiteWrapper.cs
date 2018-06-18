@@ -99,6 +99,38 @@ namespace FileManagerLib.SQLite
             DoCommand(cmd);
         }
 
+        public void InsertValue(string tableName, params object[] values)
+        {
+            var datObj = (byte[])values[3];
+            var cmd = "{0}, {1}, '{2}', @0, '{4}'".FormatString(values[0], values[1], values[2], datObj, values[4]);
+
+            var act = new Action<string, byte[]>((arg, data) => {
+                using (var command = new SQLiteCommand(connection))
+                {
+                    command.Transaction = sqlt;
+                    command.CommandText = "INSERT INTO {0} VALUES ({1});".FormatString(tableName, arg);
+                    var param = new SQLiteParameter("@0", System.Data.DbType.Binary)
+                    {
+                        Value = data
+                    };
+                    command.Parameters.Add(param);
+                    command.ExecuteNonQuery();
+                }
+            });
+
+            if (sqlt == null)
+            {
+                StartTransaction();
+                act(cmd, datObj);
+                DoCommit();
+                EndTransaction();
+            }
+            else
+            {
+                act(cmd, datObj);
+            }
+        }
+
         public void DeleteValue(string tableName, string term)
         {
             string cmd = "delete from {0} where {1};".FormatString(tableName, term);
