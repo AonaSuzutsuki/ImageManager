@@ -69,14 +69,9 @@ namespace FileManagerLib.Filer
                 new TableFieldInfo("Location", TableFieldType.Text, TableFieldAttribute.NotNull),
                 new TableFieldInfo("Type", TableFieldType.Text, TableFieldAttribute.NotNull)
             };
-            var trashField = new TableFieldList()
-            {
-                new TableFieldInfo("Location", TableFieldType.Text, TableFieldAttribute.NotNull)
-            };
 
-            sqlite.CreateTable("Directories", dirField);
-            sqlite.CreateTable("Files", imageField);
-            sqlite.CreateTable("Trash", trashField);
+            sqlite.CreateTable(TABLE_DIRECTORIES, dirField);
+            sqlite.CreateTable(TABLE_FILES, imageField);
         }
 
 
@@ -89,17 +84,17 @@ namespace FileManagerLib.Filer
         public (bool, string) CreateDirectory(string dirName, string parent)
         {
             var pathItem = Path.PathSplitter.SplitPath(parent);
-            var dirArray = sqlite.GetValues("Directories");
+            var dirArray = sqlite.GetValues(TABLE_DIRECTORIES);
             int dirCount = dirArray.Length > 0 ? dirArray[dirArray.Length - 1][0].ToInt() + 1 : 1;
 
             int parentRootId = GetDirectoryId(pathItem);
-            var dirs = sqlite.GetValues("Directories", "Parent = {0} and Name = '{1}'".FormatString(parentRootId, dirName));
+            var dirs = sqlite.GetValues(TABLE_DIRECTORIES, "Parent = {0} and Name = '{1}'".FormatString(parentRootId, dirName));
             if (dirs.Length > 0)
                 return (false, "Existed {0} on {1}".FormatString(dirName, parent));
             else if (parentRootId < 0)
                 return (false, "Not found {0}".FormatString(parent));
 
-            sqlite.InsertValue("Directories", dirCount.ToString(), parentRootId.ToString(), dirName);
+            sqlite.InsertValue(TABLE_DIRECTORIES, dirCount.ToString(), parentRootId.ToString(), dirName);
             return (true, string.Empty);
         }
 
@@ -110,7 +105,7 @@ namespace FileManagerLib.Filer
         /// <returns>Directories of directory id.</returns>
         public DataFileInfo[] GetDirectories(int did = 0)
         {
-            var sList = sqlite.GetValues("Directories", "Parent = {0}".FormatString(did));
+            var sList = sqlite.GetValues(TABLE_DIRECTORIES, "Parent = {0}".FormatString(did));
             var dataFileInfoList = new List<DataFileInfo>(sList.Length);
             foreach (var list in sList)
             {
@@ -149,7 +144,7 @@ namespace FileManagerLib.Filer
                 return 0;
 
             int dirId = 0;
-            var list = sqlite.GetValues("Directories", "Parent = {0} and Name = '{1}'".FormatString(rootId, dirName));
+            var list = sqlite.GetValues(TABLE_DIRECTORIES, "Parent = {0} and Name = '{1}'".FormatString(rootId, dirName));
             if (list.Length > 0)
                 dirId = list[0][0].ToInt();
             else
@@ -180,22 +175,20 @@ namespace FileManagerLib.Filer
         public void DeleteDirectory(string dirName, string parent)
         {
             var pathItem = Path.PathSplitter.SplitPath(parent);
-            int dirCount = sqlite.GetValues("Directories").Length + 1;
+            int dirCount = sqlite.GetValues(TABLE_DIRECTORIES).Length + 1;
 
             int rootId = GetDirectoryId(pathItem);
             int dirId = GetDirectoryId(dirName, rootId);
 
-            sqlite.DeleteValue("Directories", "Id = {0} and Name = '{1}'".FormatString(dirId, dirName));
+            sqlite.DeleteValue(TABLE_DIRECTORIES, "Id = {0} and Name = '{1}'".FormatString(dirId, dirName));
 
-            sqlite.DeleteValue("Directories", "Parent = {0}".FormatString(dirId));
-            //var prefiles = sqlite.GetValues("Files", "Parent = {0}".FormatString(dirId));
+            sqlite.DeleteValue(TABLE_DIRECTORIES, "Parent = {0}".FormatString(dirId));
+            //var prefiles = sqlite.GetValues(TABLE_FILES, "Parent = {0}".FormatString(dirId));
             //foreach (var files in prefiles)
             //{
             //    sqlite.InsertValue("Trash", files[3]);
             //}
-            sqlite.DeleteValue("Files", "Parent = {0}".FormatString(dirId));
-
-            sqlite.Vacuum();
+            sqlite.DeleteValue(TABLE_FILES, "Parent = {0}".FormatString(dirId));
         }
 
         /// <summary>
@@ -204,12 +197,10 @@ namespace FileManagerLib.Filer
         /// <param name="id">Directory id</param>
         public void DeleteDirectory(int id)
         {
-            sqlite.DeleteValue("Directories", "Id = {0}".FormatString(id));
+            sqlite.DeleteValue(TABLE_DIRECTORIES, "Id = {0}".FormatString(id));
 
-            sqlite.DeleteValue("Directories", "Parent = {0}".FormatString(id));
-            sqlite.DeleteValue("Files", "Parent = {0}".FormatString(id));
-
-            sqlite.Vacuum();
+            sqlite.DeleteValue(TABLE_DIRECTORIES, "Parent = {0}".FormatString(id));
+            sqlite.DeleteValue(TABLE_FILES, "Parent = {0}".FormatString(id));
         }
         #endregion
 
@@ -222,7 +213,7 @@ namespace FileManagerLib.Filer
         /// <returns>Files of directory id.</returns>
         public DataFileInfo[] GetFiles(int did = 0)
         {
-            var sList = sqlite.GetValues("Files", "Parent = {0}".FormatString(did));
+            var sList = sqlite.GetValues(TABLE_FILES, "Parent = {0}".FormatString(did));
             
             return ConvertDataFileInfo(sList);
         }
@@ -247,11 +238,11 @@ namespace FileManagerLib.Filer
         public (bool, string) CreateImage(string fileName, string parent, byte[] data, string mimeType)
         {
             var pathItem = Path.PathSplitter.SplitPath(parent);
-            var fileArray = sqlite.GetValues("Files");
+            var fileArray = sqlite.GetValues(TABLE_FILES);
             int dirCount = fileArray.Length > 0 ? fileArray[fileArray.Length - 1][0].ToInt() + 1 : 1;
 
             int parentRootId = GetDirectoryId(pathItem);
-            var dirs = sqlite.GetValues("Files", "Parent = {0} and Name = '{1}'".FormatString(parentRootId, fileName));
+            var dirs = sqlite.GetValues(TABLE_FILES, "Parent = {0} and Name = '{1}'".FormatString(parentRootId, fileName));
             if (dirs.Length > 0)
                 return (false, "Existed {0} on {1}".FormatString(fileName, parent));
             else if (parentRootId < 0)
@@ -259,7 +250,7 @@ namespace FileManagerLib.Filer
 
             var start = fManager.Write(data);
 
-            sqlite.InsertValue("Files", dirCount.ToString(), parentRootId.ToString(), fileName, start.ToString(), mimeType);
+            sqlite.InsertValue(TABLE_FILES, dirCount.ToString(), parentRootId.ToString(), fileName, start.ToString(), mimeType);
             return (true, string.Empty);
         }
 
@@ -315,19 +306,17 @@ namespace FileManagerLib.Filer
         public void DeleteFile(string fileName, string parent)
         {
             var pathItem = Path.PathSplitter.SplitPath(parent);
-            int dirCount = sqlite.GetValues("Directories").Length + 1;
+            int dirCount = sqlite.GetValues(TABLE_DIRECTORIES).Length + 1;
 
             int rootId = GetDirectoryId(pathItem);
 
-            //var _files = sqlite.GetValues("Files", "Parent = {0} and Name = '{1}'".FormatString(rootId, fileName));
+            //var _files = sqlite.GetValues(TABLE_FILES, "Parent = {0} and Name = '{1}'".FormatString(rootId, fileName));
             //var files = _files.Length > 0 ? _files[0] : null;
             //if (files != null)
             //{
             //    sqlite.InsertValue("Trash", files);
             //}
-            sqlite.DeleteValue("Files", "Parent = {0} and Name = '{1}'".FormatString(rootId, fileName));
-
-            sqlite.Vacuum();
+            sqlite.DeleteValue(TABLE_FILES, "Parent = {0} and Name = '{1}'".FormatString(rootId, fileName));
         }
 
         /// <summary>
@@ -336,17 +325,16 @@ namespace FileManagerLib.Filer
         /// <param name="id">File Id</param>
         public void DeleteFile(int id)
         {
-            sqlite.DeleteValue("Files", "Id = '{0}'".FormatString(id));
-            sqlite.Vacuum();
+            sqlite.DeleteValue(TABLE_FILES, "Id = '{0}'".FormatString(id));
         }
 
         public void WriteToFile(string fileName, string parent, string outFilePath)
         {
             var pathItem = Path.PathSplitter.SplitPath(parent);
-            int dirCount = sqlite.GetValues("Directories").Length + 1;
+            int dirCount = sqlite.GetValues(TABLE_DIRECTORIES).Length + 1;
 
             int rootId = GetDirectoryId(pathItem);
-
+            
             var values = GetFiles(rootId);
             if (values.Length > 0)
             {
@@ -361,7 +349,7 @@ namespace FileManagerLib.Filer
 
         public void WriteToFile(int id, string outFilePath)
         {
-            var values = ConvertDataFileInfo(sqlite.GetValues("Files", "Id = {0}".FormatString(id)));
+            var values = ConvertDataFileInfo(sqlite.GetValues(TABLE_FILES, "Id = {0}".FormatString(id)));
             if (values.Length > 0)
             {
                 var loc = values[0].Location;
@@ -383,7 +371,7 @@ namespace FileManagerLib.Filer
             int did = id;
             while (did > 0)
             {
-                var item = sqlite.GetValues("Directories", "Id = {0}".FormatString(did));
+                var item = sqlite.GetValues(TABLE_DIRECTORIES, "Id = {0}".FormatString(did));
 
                 pathList.Add(item[0][2]);
                 var parent = item[0][1].ToInt();
@@ -400,7 +388,7 @@ namespace FileManagerLib.Filer
         }
         public string GetFilePath(int id)
         {
-            var item = sqlite.GetValues("Files", "Id = {0}".FormatString(id));
+            var item = sqlite.GetValues(TABLE_FILES, "Id = {0}".FormatString(id));
             var dataFileInfo = ConvertDataFileInfo(item);
             var fileName = dataFileInfo[0].Filename;
             var parent = dataFileInfo[0].Parent;
@@ -411,7 +399,7 @@ namespace FileManagerLib.Filer
 
         public string TraceDirs()
         {
-            var dArray = sqlite.GetValues("Directories");
+            var dArray = sqlite.GetValues(TABLE_DIRECTORIES);
 
             var sb = new StringBuilder();
             sb.AppendFormat("Directories [\n");
@@ -433,7 +421,7 @@ namespace FileManagerLib.Filer
 
         public string TraceFiles()
         {
-            var fArray = sqlite.GetValues("Files");
+            var fArray = sqlite.GetValues(TABLE_FILES);
             var dataFileInfos = ConvertDataFileInfo(fArray);
 
             var sb = new StringBuilder();
