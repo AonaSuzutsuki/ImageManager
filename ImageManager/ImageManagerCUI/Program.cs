@@ -105,39 +105,39 @@ namespace ImageManagerCUI
 
         public void CreateDirectory(CmdParser parser)
         {
-            var dirName = parser.GetAttribute("name") ?? parser.GetAttribute(0);
-            var parent = parser.GetAttribute("parent") ?? parser.GetAttribute(1) ?? "/";
+            var fullPath = parser.GetAttribute("name") ?? parser.GetAttribute(0);
+            //var parent = parser.GetAttribute("parent") ?? parser.GetAttribute(1) ?? "/";
 
-            var succ = imageManager.CreateDirectory(dirName, parent);
+            var succ = imageManager.CreateDirectory(fullPath);
             if (succ.Item1)
-                Console.WriteLine("Success to mkdir {0} on {1}.", dirName, parent);
+                Console.WriteLine("Success to mkdir {0} on {1}.", fullPath, succ.Item2);
             else
                 Console.WriteLine("Failed to mkdir: {0}.", succ.Item2);
         }
 
         public void DeleteDirectory(CmdParser parser)
         {
-            var dirName = parser.GetAttribute("name") ?? parser.GetAttribute(0);
-            var parent = parser.GetAttribute("parent") ?? parser.GetAttribute(1) ?? "/";
+            var fullPath = parser.GetAttribute("name") ?? parser.GetAttribute(0);
+            //var parent = parser.GetAttribute("parent") ?? parser.GetAttribute(1) ?? "/";
 
-            if (dirName.Substring(0, 1).Equals(":"))
+            if (fullPath.Substring(0, 1).Equals(":"))
             {
-                var id = dirName.TrimStart(':').ToInt();
+                var id = fullPath.TrimStart(':').ToInt();
                 imageManager.DeleteDirectory(id);
             }
             else
             {
-                imageManager.DeleteDirectory(dirName, parent);
+                imageManager.DeleteDirectory(fullPath);
             }
         }
 
         public void AddFile(CmdParser parser)
         {
-            var fileName = parser.GetAttribute("name") ?? parser.GetAttribute(0);
+            var fullPath = parser.GetAttribute("name") ?? parser.GetAttribute(0);
             var filePath = parser.GetAttribute("file") ?? parser.GetAttribute(1);
-            var parent = parser.GetAttribute("parent") ?? parser.GetAttribute(2) ?? "/";
+            //var parent = parser.GetAttribute("parent") ?? parser.GetAttribute(2) ?? "/";
 
-            imageManager.CreateImage(fileName, parent, filePath);
+            imageManager.CreateImage(fullPath, filePath);
         }
 
         public void AddFiles(CmdParser parser)
@@ -151,35 +151,34 @@ namespace ImageManagerCUI
 
         public void DeleteFile(CmdParser parser)
         {
-            var fileName = parser.GetAttribute("name") ?? parser.GetAttribute(0);
-            var parent = parser.GetAttribute("parent") ?? parser.GetAttribute(1) ?? "/";
-
-
-            if (fileName.Substring(0, 1).Equals(":"))
+            var fullPath = parser.GetAttribute("name") ?? parser.GetAttribute(0);
+            //var parent = parser.GetAttribute("parent") ?? parser.GetAttribute(1) ?? "/";
+            
+            if (fullPath.Substring(0, 1).Equals(":"))
             {
-                var id = fileName.TrimStart(':').ToInt();
+                var id = fullPath.TrimStart(':').ToInt();
                 imageManager.DeleteFile(id);
             }
             else
             {
-                imageManager.DeleteFile(fileName, parent);
+                imageManager.DeleteFile(fullPath);
             }
         }
 
         public void WriteTo(CmdParser parser)
         {
-            var fileName = parser.GetAttribute("name") ?? parser.GetAttribute(0);
+            var fullPath = parser.GetAttribute("name") ?? parser.GetAttribute(0);
             var outFilePath = parser.GetAttribute("out") ?? parser.GetAttribute(1);
-            var parent = parser.GetAttribute("parent") ?? parser.GetAttribute(2) ?? "/";
+            //var parent = parser.GetAttribute("parent") ?? parser.GetAttribute(2) ?? "/";
 
-            if (fileName.Substring(0, 1).Equals(":"))
+            if (fullPath.Substring(0, 1).Equals(":"))
             {
-                var id = fileName.TrimStart(':').ToInt();
+                var id = fullPath.TrimStart(':').ToInt();
                 imageManager.WriteToFile(id, outFilePath);
             }
             else
             {
-                imageManager.WriteToFile(fileName, parent, outFilePath);
+                imageManager.WriteToFile(fullPath, outFilePath);
             }
         }
 
