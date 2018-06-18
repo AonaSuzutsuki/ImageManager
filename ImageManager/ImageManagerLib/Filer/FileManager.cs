@@ -1,6 +1,7 @@
 ﻿using CommonExtensionLib.Extensions;
 using Dat;
 using FileManagerLib.Extentions.Imager;
+using FileManagerLib.Extentions.Path;
 using FileManagerLib.SQLite;
 using System;
 using System.Collections.Generic;
@@ -326,6 +327,13 @@ namespace FileManagerLib.Filer
         public void DeleteFile(int id)
         {
             sqlite.DeleteValue(TABLE_FILES, "Id = '{0}'".FormatString(id));
+        }
+
+
+        public void WriteToFile(string filePath, string outFilePath)
+        {
+            var (parent, fileName) = filePath.GetFilenameAndParent();
+            WriteToFile(fileName, parent.ToString(), outFilePath);
         }
 
         public void WriteToFile(string fileName, string parent, string outFilePath)

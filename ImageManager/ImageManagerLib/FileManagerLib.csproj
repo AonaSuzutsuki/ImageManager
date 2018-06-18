@@ -73,6 +73,7 @@
   <ItemGroup>
     <Compile Include="Dat\DatFileManager.cs" />
     <Compile Include="Extentions\Imager\ImageExtention.cs" />
+    <Compile Include="Extentions\Path\PathItemExtensions.cs" />
     <Compile Include="Extentions\SQLite\TableFieldExtentions.cs" />
     <Compile Include="Filer\DataFileInfo.cs" />
     <Compile Include="Filer\DataFileType.cs" />

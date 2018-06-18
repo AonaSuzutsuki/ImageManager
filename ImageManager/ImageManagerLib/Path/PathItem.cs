@@ -10,6 +10,15 @@ namespace FileManagerLib.Path
     {
         private List<string> pathList = new List<string>();
 
+        public PathItem() { }
+        public PathItem(string[] array)
+        {
+            foreach (var path in array)
+            {
+                pathList.Add(path);
+            }
+        }
+
         public void AddPath(string path)
         {
             pathList.Add(path);
@@ -28,10 +37,18 @@ namespace FileManagerLib.Path
 
         public string[] ToArray() => pathList.ToArray();
 
+        public string[] ToArray(int end)
+        {
+            var list = new List<string>(pathList);
+            list.RemoveAt(list.Count - end);
+            return list.ToArray();
+        }
+
         public override string ToString()
         {
             var array = pathList.ToArray();
             var sb = new StringBuilder();
+            sb.Append("/");
             for (int i = 0; i < array.Length; i++)
             {
                 if (i < array.Length - 1)
