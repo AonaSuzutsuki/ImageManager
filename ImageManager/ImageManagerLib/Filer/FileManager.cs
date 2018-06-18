@@ -12,8 +12,15 @@ namespace FileManagerLib.Filer
 {
     public class FileManager : IDisposable
     {
+        #region Constants
+        private const string TABLE_DIRECTORIES = "Directories";
+        private const string TABLE_FILES = "Files";
+        #endregion
+
+        #region Fields
         private DatFileManager fManager;
         private IDatabase sqlite;
+        #endregion
 
         #if DEBUG
         public IDatabase Sqlite { get => sqlite; } // For Test
@@ -466,13 +473,33 @@ namespace FileManagerLib.Filer
 
         public void DataVacuum()
         {
-            var fManager = new DatFileManager("{0}.temp".FormatString(this.fManager.FilePath));
+            DatFileManager makeDatFileManager(string f) => new DatFileManager(f);
 
-            var files = sqlite.GetValues("Files");
-            foreach (var file in files)
+            var tempFilePath = "{0}.temp".FormatString(this.fManager.FilePath);
+            using (var tempfManager = makeDatFileManager(tempFilePath))
             {
-                var loc = file[3];
+                var files = sqlite.GetValues(TABLE_FILES);
+                var dataFileInfos = ConvertDataFileInfo(files);
+                foreach (var dataFileInfo in dataFileInfos.Select((v, i) => new { v, i }))
+                {
+                    var id = dataFileInfo.v.Id;
+                    var loc = dataFileInfo.v.Location;
+                    var nloc = this.fManager.WriteToTemp(loc, tempfManager);
+
+                    sqlite.Update(TABLE_FILES, ("Location", nloc.ToString()), "Id = {0}".FormatString(id));
+
+                    Console.WriteLine("{0}/{1}".FormatString(dataFileInfo.i + 1, dataFileInfos.Length));
+                }
             }
+
+            var filePath = this.fManager.FilePath;
+            this.fManager.Dispose();
+            File.Delete(filePath);
+            File.Move(tempFilePath, filePath);
+            var fManager = makeDatFileManager(filePath);
+            sqlite.Vacuum();
+
+            this.fManager = fManager;
         }
         #endregion
 
@@ -483,20 +510,23 @@ namespace FileManagerLib.Filer
             var dataFileInfoList = new List<DataFileInfo>(arg.Length);
             foreach (var list in arg)
             {
-                int id = list[0].ToInt();
-                int parent = list[1].ToInt();
-                string filename = list[2];
-                var loc = list[3].ToInt64();
-                var mime = list[4];
-                var type = DataFileType.File;
-
-                var dataFileInfo = new DataFileInfo(id, parent, filename, type)
+                if (list.Length >= 5)
                 {
-                    Location = loc,
-                    MimeType = mime
-                };
+                    int id = list[0].ToInt();
+                    int parent = list[1].ToInt();
+                    string filename = list[2];
+                    var loc = list[3].ToInt64();
+                    var mime = list[4];
+                    var type = DataFileType.File;
 
-                dataFileInfoList.Add(dataFileInfo);
+                    var dataFileInfo = new DataFileInfo(id, parent, filename, type)
+                    {
+                        Location = loc,
+                        MimeType = mime
+                    };
+
+                    dataFileInfoList.Add(dataFileInfo);
+                }
             }
             return dataFileInfoList.ToArray();
         }

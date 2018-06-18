@@ -75,6 +75,9 @@ namespace ImageManagerCUI
                 case "writeto":
                     WriteTo(parser);
                     break;
+                case "vacuum":
+                    imageManager.DataVacuum();
+                    break;
                 case "trace":
                     Trace(parser);
                     break;

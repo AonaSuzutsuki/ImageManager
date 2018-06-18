@@ -12,7 +12,8 @@
         void InsertValue(string tableName, params string[] values);
         void DeleteValue(string tableName, string term);
         bool TableExist(string tablename);
-        void Update(string tableName, string fiels, string value, string term);
+        void Update(string tableName, (string field, string value)[] tuples, string term);
+        void Update(string tableName, (string field, string value) tuple, string term);
         void StartTransaction();
         void EndTransaction();
         void DoCommit();

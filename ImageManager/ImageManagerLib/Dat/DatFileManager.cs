@@ -5,8 +5,7 @@ namespace Dat
 {
 	public class DatFileManager : IDisposable
     {
-
-		private const int ID_LEN = 4;
+        
 		private const int LEN = 4;
 
 		#region Fields
@@ -88,5 +87,40 @@ namespace Dat
 
 			return idLength;
 		}
+
+        public long WriteToTemp(long loc, DatFileManager dest)
+        {
+            var srcStream = this.fileStream;
+            var destStream = dest.fileStream;
+
+            srcStream.Seek(loc, SeekOrigin.Begin);
+            int length = GetIntAndSeek(srcStream, loc, LEN);
+
+            var data = new byte[length];
+            srcStream.Read(data, 0, data.Length);
+
+            long retloc = destStream.Position;
+            destStream.Write(BitConverter.GetBytes(length), 0, LEN);
+            destStream.Write(data, 0, data.Length);
+            return retloc;
+
+
+            //var srcStream = this.fileStream;
+            //var destStream = dest.fileStream;
+            //int length = GetIntAndSeek(srcStream, loc, LEN);
+            //srcStream.Seek(loc, SeekOrigin.Begin);
+
+            //var lengthArray = BitConverter.GetBytes(length);
+            //destStream.Write(lengthArray, 0, LEN);
+            //byte[] bs = new byte[4096];
+            //while (true)
+            //{
+            //    int readSize = srcStream.Read(bs, 0, bs.Length);
+            //    if (readSize == 0)
+            //        break;
+
+            //    destStream.Write(bs, 0, readSize);
+            //}
+        }
     }
 }

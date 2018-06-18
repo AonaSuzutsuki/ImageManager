@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
+using System.Linq;
 using System.Text;
 
 namespace FileManagerLib.SQLite
@@ -105,10 +106,25 @@ namespace FileManagerLib.SQLite
             DoCommand(cmd);
         }
 
-        public void Update(string tableName, string fiels, string value, string term)
+        public void Update(string tableName, (string field, string value)[] tuples, string term)
         {
-            var cmd = "update {0} set {1} = '{2}' where {3};".FormatString(tableName, fiels, value, term);
+            var sb = new StringBuilder();
+            foreach (var value in tuples.Select((v, i) => new { v, i }))
+            {
+                var tuple = value.v;
+                if (value.i < tuples.Length - 1)
+                    sb.AppendFormat("{0} = '{1}', ", tuple.field, tuple.value);
+                else
+                    sb.AppendFormat("{0} = '{1}'", tuple.field, tuple.value);
+            }
+
+            var cmd = "update {0} set {1} where {2};".FormatString(tableName, sb.ToString(), term);
             DoCommand(cmd);
+        }
+
+        public void Update(string tableName, (string field, string value) tuple, string term)
+        {
+            Update(tableName, new(string field, string value)[1] { tuple }, term);
         }
 
 
