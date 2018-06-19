@@ -4,6 +4,7 @@ using System;
 using FileManagerLib.Filer;
 using System.IO;
 using System.Linq;
+using System.Diagnostics;
 
 namespace ImageManagerCUI
 {
@@ -27,8 +28,13 @@ namespace ImageManagerCUI
                 //    Console.WriteLine(e.Message);
                 //    Console.WriteLine(e.StackTrace);
                 //}
+                var sw = new Stopwatch();
+                sw.Start();
                 if (!program.Parse(cmd))
                     break;
+                sw.Stop();
+                var msec = sw.ElapsedMilliseconds;
+                Console.WriteLine("{0}ms".FormatString(msec));
             }
         }
 
