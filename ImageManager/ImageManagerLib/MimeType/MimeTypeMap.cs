@@ -583,6 +583,7 @@ namespace FileManagerLib.MimeType
         public static string GetMimeTypeFromExtension(string extension)
         {
             var table = InitializeTable();
+            extension = extension.ToLower();
             if (table.ContainsKey(extension))
                 return table[extension];
             return NoneType;
