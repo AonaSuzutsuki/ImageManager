@@ -51,7 +51,7 @@ namespace FileManagerLib.SQLite
         public bool TableExist(string tablename)
         {
             string cmd = "SELECT name FROM sqlite_master WHERE type='table' AND name='{0}';".FormatString(tablename);
-            var result = DoTransaction(cmd, (command) =>
+            var result = DoCommand(cmd, (command) =>
             {
                 using (SQLiteDataReader reader = command.ExecuteReader())
                 {
@@ -69,7 +69,7 @@ namespace FileManagerLib.SQLite
             else
                 cmd = "select * from {0};".FormatString(tableName);
 
-            var result = DoTransaction<string[][]>(cmd, (command) =>
+            var result = DoCommand<string[][]>(cmd, (command) =>
             {
                 var tuples = new List<string[]>();
                 try
@@ -186,16 +186,33 @@ namespace FileManagerLib.SQLite
             //}
         }
 
-        private T DoTransaction<T>(string cmd, Func<SQLiteCommand, T> func)
+        private T DoCommand<T>(string cmd, Func<SQLiteCommand, T> func)
         {
-            //using (SQLiteTransaction sqlt = connection.BeginTransaction())
-            //{
-            using (SQLiteCommand command = connection.CreateCommand())
+            var infunc = new Func<string, T>(arg => {
+                T _value;
+                using (var command = connection.CreateCommand())
+                {
+                    command.Transaction = sqlt;
+                    command.CommandText = cmd;
+                    _value = func(command);
+                }
+                return _value;
+            });
+
+            T value;
+            if (sqlt == null)
             {
-                command.CommandText = cmd;
-                return func(command);
+                StartTransaction();
+                value = infunc(cmd);
+                DoCommit();
+                EndTransaction();
             }
-            //}
+            else
+            {
+                value = infunc(cmd);
+            }
+
+            return value;
         }
 
         private void Open()
