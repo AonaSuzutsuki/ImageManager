@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FileManagerLib.Extentions.Path
+namespace FileManagerLib.Extensions.Path
 {
     public static class PathItemExtensions
     {
