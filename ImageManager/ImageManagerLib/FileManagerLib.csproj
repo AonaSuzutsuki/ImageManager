@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -69,12 +69,15 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\packages\Newtonsoft.Json.11.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Dat\DatFileManager.cs" />
-    <Compile Include="Extentions\Imager\ImageExtention.cs" />
-    <Compile Include="Extentions\Path\PathItemExtensions.cs" />
-    <Compile Include="Extentions\SQLite\TableFieldExtentions.cs" />
+    <Compile Include="Extensions\Imager\ImageExtension.cs" />
+    <Compile Include="Extensions\Path\PathItemExtensions.cs" />
+    <Compile Include="Extensions\SQLite\TableFieldExtensions.cs" />
     <Compile Include="Filer\DataFileInfo.cs" />
     <Compile Include="Filer\DataFileType.cs" />
     <Compile Include="Filer\ImageLoader.cs" />
@@ -90,6 +93,13 @@
     <Compile Include="Database\SQLite\TableFieldInfo.cs" />
     <Compile Include="Database\SQLite\TableFieldList.cs" />
     <Compile Include="Database\SQLite\TableFieldType.cs" />
+    <Compile Include="Filer\IFileManager.cs" />
+    <Compile Include="Database\Json\JsonSerializer.cs" />
+    <Compile Include="Filer\Json\JsonFileManager.cs" />
+    <Compile Include="Filer\Json\JsonStructureManager.cs" />
+    <Compile Include="Filer\Json\Structures.cs" />
+    <Compile Include="Extensions\Collections\DictionaryExtension.cs" />
+    <Compile Include="Extensions\Collections\ArrayExtension.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -99,6 +109,12 @@
     <Content Include="SQLite.Interop.dll" />
   </ItemGroup>
   <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Database\Json\" />
+    <Folder Include="Filer\SQLite\" />
+    <Folder Include="Filer\Json\" />
+    <Folder Include="Extensions\Collections\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\System.Data.SQLite.Core.1.0.108.0\build\net46\System.Data.SQLite.Core.targets" Condition="Exists('..\packages\System.Data.SQLite.Core.1.0.108.0\build\net46\System.Data.SQLite.Core.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
