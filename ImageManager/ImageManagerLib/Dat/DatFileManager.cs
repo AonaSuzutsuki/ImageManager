@@ -42,6 +42,13 @@ namespace Dat
 			return data;
 		}
 
+		public byte[] GetBytesFromEnd(long start)
+		{
+			byte[] data = null;
+
+            return data;
+		}
+
         public (long, byte[]) GetPartialBytes(long start, long length)
         {
             long len = 0;
