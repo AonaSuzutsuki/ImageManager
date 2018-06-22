@@ -11,8 +11,8 @@ using System.Text;
 
 namespace FileManagerLib.Filer
 {
-    public class FileManager : IDisposable
-    {
+    public class FileManager : IDisposable, IFileManager
+	{
         #region Constants
         private const string TABLE_DIRECTORIES = "Directories";
         private const string TABLE_FILES = "Files";
