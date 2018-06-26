@@ -468,10 +468,9 @@ namespace FileManagerLib.Filer
             this.fManager.Dispose();
             File.Delete(filePath);
             File.Move(tempFilePath, filePath);
-            var fManager = makeDatFileManager(filePath);
             sqlite.Vacuum();
 
-            this.fManager = fManager;
+            this.fManager = makeDatFileManager(filePath);
         }
         #endregion
 
