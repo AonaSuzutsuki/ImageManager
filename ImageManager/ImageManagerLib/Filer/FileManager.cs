@@ -1,7 +1,7 @@
 ﻿using CommonExtensionLib.Extensions;
 using Dat;
-using FileManagerLib.Extentions.Imager;
-using FileManagerLib.Extentions.Path;
+using FileManagerLib.Extensions.Imager;
+using FileManagerLib.Extensions.Path;
 using FileManagerLib.SQLite;
 using System;
 using System.Collections.Generic;
