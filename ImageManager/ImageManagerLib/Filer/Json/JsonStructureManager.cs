@@ -1,19 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using FileManagerLib.Extensions.Collections;
 
 namespace FileManagerLib.Filer.Json
 {
 	public class JsonStructureManager
 	{
-		private readonly Dictionary<long, DirectoryStructure> directories = new Dictionary<long, DirectoryStructure>();
-		private readonly Dictionary<long, FileStructure> files = new Dictionary<long, FileStructure>();
+		private readonly Dictionary<int, DirectoryStructure> directories = new Dictionary<int, DirectoryStructure>();
+		private readonly Dictionary<int, FileStructure> files = new Dictionary<int, FileStructure>();
 
 		public JsonStructureManager(string text)
-		{         
+		{
 			var table = Database.Json.JsonSerializer.ToObject<TableStructure>(text);
-			table.Directory.ForEach((obj) => directories.Add(obj.Id, obj));
-			table.File.ForEach((obj) => files.Add(obj.Id, obj));
+			table?.Directory?.ForEach((obj) => directories.Add(obj.Id, obj));
+			table?.File?.ForEach((obj) => files.Add(obj.Id, obj));
 		}
 
 
@@ -23,7 +24,7 @@ namespace FileManagerLib.Filer.Json
 			directories.Add(directoryStructure.Id, directoryStructure);
 		}
 
-		public void CreateDirectory(long id, long parent, string name)
+		public void CreateDirectory(int id, int parent, string name)
 		{
 			var directoryStructure = new DirectoryStructure
 			{
@@ -34,14 +35,29 @@ namespace FileManagerLib.Filer.Json
 			CreateDirectory(directoryStructure);
 		}
 
-		public DirectoryStructure GetDirectoryStructure(long id)
+		public DirectoryStructure GetDirectoryStructure(int id)
 		{
 			if (directories.ContainsKey(id))
 				return directories[id];
 			return null;
 		}
 
-		public void ChangeDirectory(long id, DirectoryStructure directoryStructure)
+		public DirectoryStructure[] GetDirectoryStructureFromParent(int parentId)
+		{
+			var dList = new List<DirectoryStructure>();
+			foreach (var dir in directories.Values)
+				if (dir.Parent == parentId)
+					dList.Add(dir);
+			return dList.ToArray();
+		}
+
+		public DirectoryStructure[] GetDirectoryStructures()
+		{
+			var array = directories.Values.ToArray();
+			return array;
+		}
+
+		public void ChangeDirectory(int id, DirectoryStructure directoryStructure)
 		{
 			if (GetDirectoryStructure(id) == null)
 				return;
@@ -49,7 +65,7 @@ namespace FileManagerLib.Filer.Json
 			directories[id] = directoryStructure;
 		}
 
-		public void DeleteDirectory(long id)
+		public void DeleteDirectory(int id)
 		{
 			directories.Remove(id);
 		}
@@ -62,7 +78,7 @@ namespace FileManagerLib.Filer.Json
 			files.Add(fileStructure.Id, fileStructure);
 		}
 
-		public void CreateFile(long id, long parent, string name, long location, string mtype)
+		public void CreateFile(int id, int parent, string name, int location, string mtype)
 		{
 			var fileStructure = new FileStructure
 			{
@@ -75,14 +91,20 @@ namespace FileManagerLib.Filer.Json
 			CreateFile(fileStructure);
 		}
 
-		public FileStructure GetFileStructure(long id)
+		public FileStructure GetFileStructure(int id)
 		{
 			if (files.ContainsKey(id))
 				return files[id];
 			return null;
 		}
 
-		public void ChangeFile(long id, FileStructure fileStructure)
+		public FileStructure[] GetFileStructures()
+        {
+            var array = files.Values.ToArray();
+            return array;
+        }
+
+		public void ChangeFile(int id, FileStructure fileStructure)
 		{
 			if (GetFileStructure(id) == null)
 				return;
@@ -90,10 +112,34 @@ namespace FileManagerLib.Filer.Json
 			files[id] = fileStructure;
 		}
 
-		public void DeleteFile(long id)
+		public void DeleteFile(int id)
 		{
 			files.Remove(id);
 		}
 		#endregion
+
+
+		#region Common
+		public override string ToString()
+		{
+			var tableStructure = new TableStructure
+			{
+				Directory = directories.Values.ToArray(),
+				File = files.Values.ToArray()
+			};
+			var json = Database.Json.JsonSerializer.ToJson(tableStructure);
+			return json;
+		}
+
+		public void WriteToFile(string filePath)
+		{
+			using (var fs = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None))
+			    using (var sw = new StreamWriter(fs))
+				    sw.Write(ToString());
+		}
+		#endregion
+
+
+        
 	}
 }

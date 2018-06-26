@@ -17,9 +17,9 @@ namespace FileManagerLib.Filer.Json
     public class DirectoryStructure
     {
         [JsonProperty("id")]
-        public long Id { get; set; }
+        public int Id { get; set; }
         [JsonProperty("parent")]
-		public long Parent { get; set; }
+		public int Parent { get; set; }
         [JsonProperty("name")]
         public string Name { get; set; }
 
@@ -35,9 +35,9 @@ namespace FileManagerLib.Filer.Json
     public class FileStructure
     {
         [JsonProperty("id")]
-		public long Id { get; set; }
+		public int Id { get; set; }
         [JsonProperty("parent")]
-		public long Parent { get; set; }
+		public int Parent { get; set; }
         [JsonProperty("name")]
         public string Name { get; set; }
         [JsonProperty("location")]
