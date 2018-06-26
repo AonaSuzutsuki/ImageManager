@@ -5,6 +5,7 @@ using FileManagerLib.Filer;
 using System.IO;
 using System.Linq;
 using System.Diagnostics;
+using FileManagerLib.Filer.Json;
 
 namespace ImageManagerCUI
 {
@@ -12,7 +13,12 @@ namespace ImageManagerCUI
     {
         public static void Main(string[] args)
         {
-            var program = new Program();
+			IProgram program;
+			if (args[0].Equals("-j"))
+				program = new JsonProgram();
+			else
+				program = new SQLiteProgram();
+				
 
             while (true)
             {
@@ -37,10 +43,114 @@ namespace ImageManagerCUI
                 Console.WriteLine("{0}ms".FormatString(msec));
             }
         }
+    }
 
 
-        private string dbFilename;
-        private FileManager imageManager;
+	public interface IProgram
+	{
+		bool Parse(string cmd);
+	}
+
+	public class JsonProgram : IProgram
+	{
+		JsonFileManager fileManager;
+
+		public bool Parse(string cmd)
+		{
+			var parser = new CmdParser(cmd);
+            switch (parser.Command)
+            {
+				case "exit":
+					fileManager?.Dispose();
+                    return false;
+                case "gc":
+                    GC.Collect();
+                    break;
+                case "close":
+					fileManager?.Dispose();
+                    break;
+                case "make":
+                    MakeDatabase(parser);
+                    break;
+                case "open":
+                    LoadDatabase(parser);
+                    break;
+                case "mkdir":
+                    CreateDirectory(parser);
+                    break;
+                case "deldir":
+                    //DeleteDirectory(parser);
+                    break;
+                case "addfile":
+                    //AddFile(parser);
+                    break;
+                case "addfiles":
+                    //AddFiles(parser);
+                    break;
+                case "delfile":
+                    //DeleteFile(parser);
+                    break;
+                case "writeto":
+                    //WriteTo(parser);
+                    break;
+                case "vacuum":
+                    //imageManager.DataVacuum();
+                    break;
+                case "trace":
+                    Trace(parser);
+                    break;
+            }
+            return true;
+		}
+
+
+
+		public void MakeDatabase(CmdParser parser)
+        {
+            var dbFilename = parser.GetAttribute("file") ?? parser.GetAttribute(0);
+			fileManager = new JsonFileManager(dbFilename, true);
+        }
+
+		public void LoadDatabase(CmdParser parser)
+        {
+            var dbFilename = parser.GetAttribute("file") ?? parser.GetAttribute(0);
+			fileManager= new JsonFileManager(dbFilename, false);
+        }
+
+		public void CreateDirectory(CmdParser parser)
+        {
+            var fullPath = parser.GetAttribute("name") ?? parser.GetAttribute(0);
+
+			var succ = fileManager.CreateDirectory(fullPath);
+            if (succ.Item1)
+                Console.WriteLine("Success to mkdir {0} on {1}.", fullPath, succ.Item2);
+            else
+                Console.WriteLine("Failed to mkdir: {0}.", succ.Item2);
+        }
+
+		public void Trace(CmdParser parser)
+        {
+            var type = parser.GetAttribute("type") ?? parser.GetAttribute(0);
+
+            switch (type)
+            {
+                case "d":
+					Console.WriteLine(fileManager.TraceDirs());
+                    break;
+                case "f":
+					Console.WriteLine(fileManager.TraceFiles());
+                    break;
+                default:
+					Console.WriteLine(fileManager);
+                    break;
+            }
+        }
+	}
+
+	public class SQLiteProgram : IProgram
+	{
+		private string dbFilename;
+        private IFileManager imageManager;
 
 
         public bool Parse(string cmd)
@@ -90,7 +200,7 @@ namespace ImageManagerCUI
             }
             return true;
         }
-        
+
         public void Close(CmdParser parser)
         {
             imageManager?.Dispose();
@@ -159,7 +269,7 @@ namespace ImageManagerCUI
         {
             var fullPath = parser.GetAttribute("name") ?? parser.GetAttribute(0);
             //var parent = parser.GetAttribute("parent") ?? parser.GetAttribute(1) ?? "/";
-            
+
             if (fullPath.Substring(0, 1).Equals(":"))
             {
                 var id = fullPath.TrimStart(':').ToInt();
@@ -205,5 +315,5 @@ namespace ImageManagerCUI
                     break;
             }
         }
-    }
+	}
 }
