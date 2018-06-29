@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using CommonExtensionLib.Extensions;
 using Dat;
@@ -41,7 +42,7 @@ namespace FileManagerLib.Filer.Json
 		{
 			var (parent, dirName) = fullPath.GetFilenameAndParent();
 			var dirArray = jsonStructureManager.GetDirectoryStructures();
-			int dirCount = dirArray.Length > 0 ? dirArray[dirArray.Length - 1].Id + 1 : 1;
+			int dirCount = jsonStructureManager.NextDirectoryId;//dirArray.Length > 0 ? dirArray[dirArray.Length - 1].Id + 1 : 1;
 
             int parentRootId = GetDirectoryId(parent);
 			var dirs = jsonStructureManager.GetDirectoryStructures();
@@ -62,22 +63,46 @@ namespace FileManagerLib.Filer.Json
 
 		public (bool, string) CreateImage(string fileName, string parent, byte[] data, string mimeType)
 		{
-			throw new NotImplementedException();
+			var pathItem = Path.PathSplitter.SplitPath(parent);
+			var fileArray = jsonStructureManager.GetFileStructures();
+			int dirCount = jsonStructureManager.NextFileId;//fileArray.Length > 0 ? fileArray[fileArray.Length - 1].Id + 1 : 1;
+
+            int parentRootId = GetDirectoryId(pathItem);
+			var dirs = jsonStructureManager.GetFileStructureFromParent(parentRootId, fileName);
+            //var dirs = sqlite.GetValues(TABLE_FILES, "Parent = {0} and Name = '{1}'".FormatString(parentRootId, fileName));
+            if (dirs != null)
+                return (false, "Existed {0} on {1}".FormatString(fileName, parent));
+            if (parentRootId < 0)
+                return (false, "Not found {0}".FormatString(parent));
+
+            var start = fManager.Write(data);
+
+			jsonStructureManager.CreateFile(dirCount, parentRootId, fileName, start, mimeType);
+            //sqlite.InsertValue(TABLE_FILES, dirCount.ToString(), parentRootId.ToString(), fileName, start.ToString(), mimeType);
+            return (true, string.Empty);
 		}
 
 		public void CreateImage(string fileName, string parent, string inFilePath)
 		{
-			throw new NotImplementedException();
+			var data = ImageLoader.FromImageFile(inFilePath).Data;
+            var mimetype = MimeType.MimeTypeMap.GetMimeType(inFilePath);
+            if (data != null)
+                CreateImage(fileName, parent, data, mimetype);
 		}
 
 		public void CreateImage(string fullPath, string inFilePath)
 		{
-			throw new NotImplementedException();
+			var (parent, fileName) = fullPath.GetFilenameAndParent();
+            CreateImage(fileName, parent.ToString(), inFilePath);
 		}
 
 		public void CreateImages(string parent, string[] filePathArray)
 		{
-			throw new NotImplementedException();
+            foreach (var file in filePathArray.Select((v, i) => new { v, i }))
+            {
+                Console.WriteLine("{0}/{1}".FormatString(file.i + 1, filePathArray.Length));
+                CreateImage(System.IO.Path.GetFileName(file.v), parent, file.v);
+            }
 		}
 
 		public void CreateTable()
@@ -87,7 +112,14 @@ namespace FileManagerLib.Filer.Json
 
 		public void DeleteDirectory(string fullPath)
 		{
-			throw new NotImplementedException();
+			var (parent, dirName) = fullPath.GetFilenameAndParent();
+
+            int rootId = GetDirectoryId(parent);
+            int dirId = GetDirectoryId(dirName, rootId);
+
+			jsonStructureManager.DeleteDirectory(dirId);
+			//jsonStructureManager.DeleteDirectoryFromParent(dirId);
+			//jsonStructureManager.DeleteFileFromParent(dirId);
 		}
 
 		public void DeleteDirectory(int id)
@@ -249,7 +281,36 @@ namespace FileManagerLib.Filer.Json
 
 		public void DataVacuum()
         {
-            throw new NotImplementedException();
+			DatFileManager makeDatFileManager(string f) => new DatFileManager(f);
+
+            var tempFilePath = "{0}.temp".FormatString(this.fManager.FilePath);
+            using (var tempfManager = makeDatFileManager(tempFilePath))
+            {
+				var files = jsonStructureManager.GetFileStructures();
+				foreach (var dataFileInfo in files.Select((v, i) => new { v, i }))
+                {
+                    var id = dataFileInfo.v.Id;
+                    var loc = dataFileInfo.v.Location;
+                    var nloc = fManager.WriteToTemp(loc, tempfManager);
+
+					jsonStructureManager.ChangeFile(id, new FileStructure
+					{
+						Id = dataFileInfo.v.Id,
+						Parent = dataFileInfo.v.Parent,
+						Name = dataFileInfo.v.Name,
+						Location = nloc,
+						MimeType = dataFileInfo.v.MimeType
+					});               
+                    Console.WriteLine("{0}/{1}".FormatString(dataFileInfo.i + 1, files.Length));
+                }
+            }
+
+            var filePath = fManager.FilePath;
+			fManager.Dispose();
+            File.Delete(filePath);
+            File.Move(tempFilePath, filePath);
+
+			fManager = makeDatFileManager(filePath);
         }
 
 		public void WriteToFile(string filePath, string outFilePath)

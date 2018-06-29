@@ -10,11 +10,25 @@ namespace FileManagerLib.Filer.Json
 		private readonly SortedDictionary<int, DirectoryStructure> directories = new SortedDictionary<int, DirectoryStructure>();
 		private readonly SortedDictionary<int, FileStructure> files = new SortedDictionary<int, FileStructure>();
 
+		public int NextDirectoryId
+		{
+			get;
+			private set;
+		}
+
+		public int NextFileId
+		{
+			get;
+			private set;
+		}
+
 		public JsonStructureManager(string text)
 		{
 			var table = Database.Json.JsonSerializer.ToObject<TableStructure>(text);
 			table?.Directory?.ForEach((obj) => directories.Add(obj.Id, obj));
 			table?.File?.ForEach((obj) => files.Add(obj.Id, obj));
+			NextDirectoryId = directories.Count + 1;
+			NextFileId = files.Count + 1;
 		}
 
 
@@ -22,6 +36,7 @@ namespace FileManagerLib.Filer.Json
 		public void CreateDirectory(DirectoryStructure directoryStructure)
 		{
 			directories.Add(directoryStructure.Id, directoryStructure);
+			NextDirectoryId++;
 		}
 
 		public void CreateDirectory(int id, int parent, string name)
@@ -46,8 +61,8 @@ namespace FileManagerLib.Filer.Json
 		{
 			var dList = new List<DirectoryStructure>();
 			foreach (var dir in directories.Values)
-				if (dir.Parent == parentId)
-					dList.Add(dir);
+                if (dir.Parent == parentId)
+                    dList.Add(dir);
 			return dList.ToArray();
 		}
 
@@ -67,7 +82,31 @@ namespace FileManagerLib.Filer.Json
 
 		public void DeleteDirectory(int id)
 		{
+			var dirs = GetDirectoryStructureFromParent(id);
+			foreach (var dir in dirs)
+			{
+				DeleteDirectory(dir.Id);
+			}
+
 			directories.Remove(id);
+			DeleteFileFromParent(id);
+		}
+
+		public void DeleteDirectoryFromParent(int parentId)
+		{
+			var removeList = new List<DirectoryStructure>(directories.Values);
+			foreach (var dir in removeList)
+			{
+				if (dir.Parent == parentId)
+				{
+					if (directories.ContainsKey(dir.Id))
+					{
+						var _dir = directories[dir.Id];
+						DeleteFileFromParent(_dir.Parent);
+                        directories.Remove(dir.Id);
+					}
+				}
+			}
 		}
 		#endregion
 
@@ -76,9 +115,10 @@ namespace FileManagerLib.Filer.Json
 		public void CreateFile(FileStructure fileStructure)
 		{
 			files.Add(fileStructure.Id, fileStructure);
+			NextFileId++;
 		}
 
-		public void CreateFile(int id, int parent, string name, int location, string mtype)
+		public void CreateFile(int id, int parent, string name, long location, string mtype)
 		{
 			var fileStructure = new FileStructure
 			{
@@ -104,6 +144,18 @@ namespace FileManagerLib.Filer.Json
             return array;
         }
 
+		public FileStructure GetFileStructureFromParent(int parentId, string name)
+		{
+			foreach (var file in files.Values)
+			{
+				if (file.Parent == parentId && file.Name.Equals(name))
+				{
+					return file;
+				}
+			}
+			return null;
+		}
+
 		public void ChangeFile(int id, FileStructure fileStructure)
 		{
 			if (GetFileStructure(id) == null)
@@ -115,6 +167,19 @@ namespace FileManagerLib.Filer.Json
 		public void DeleteFile(int id)
 		{
 			files.Remove(id);
+		}
+
+		public void DeleteFileFromParent(int parentId)
+		{
+			var removeList = new List<FileStructure>(files.Values);
+			foreach (var file in removeList)
+            {
+				if (file.Parent == parentId)
+                {
+					if (files.ContainsKey(file.Id))
+						files.Remove(file.Id);
+                }
+            }
 		}
 		#endregion
 

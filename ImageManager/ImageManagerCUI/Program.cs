@@ -79,13 +79,13 @@ namespace ImageManagerCUI
                     CreateDirectory(parser);
                     break;
                 case "deldir":
-                    //DeleteDirectory(parser);
+                    DeleteDirectory(parser);
                     break;
                 case "addfile":
-                    //AddFile(parser);
+                    AddFile(parser);
                     break;
                 case "addfiles":
-                    //AddFiles(parser);
+                    AddFiles(parser);
                     break;
                 case "delfile":
                     //DeleteFile(parser);
@@ -94,7 +94,7 @@ namespace ImageManagerCUI
                     //WriteTo(parser);
                     break;
                 case "vacuum":
-                    //imageManager.DataVacuum();
+					fileManager.DataVacuum();
                     break;
                 case "trace":
                     Trace(parser);
@@ -126,6 +126,40 @@ namespace ImageManagerCUI
                 Console.WriteLine("Success to mkdir {0} on {1}.", fullPath, succ.Item2);
             else
                 Console.WriteLine("Failed to mkdir: {0}.", succ.Item2);
+        }
+
+		public void DeleteDirectory(CmdParser parser)
+        {
+            var fullPath = parser.GetAttribute("name") ?? parser.GetAttribute(0);
+            //var parent = parser.GetAttribute("parent") ?? parser.GetAttribute(1) ?? "/";
+
+            if (fullPath.Substring(0, 1).Equals(":"))
+            {
+                var id = fullPath.TrimStart(':').ToInt();
+				fileManager.DeleteDirectory(id);
+            }
+            else
+            {
+				fileManager.DeleteDirectory(fullPath);
+            }
+        }
+
+		public void AddFile(CmdParser parser)
+        {
+            var fullPath = parser.GetAttribute("name") ?? parser.GetAttribute(0);
+            var filePath = parser.GetAttribute("file") ?? parser.GetAttribute(1);
+            //var parent = parser.GetAttribute("parent") ?? parser.GetAttribute(2) ?? "/";
+
+			fileManager.CreateImage(fullPath, filePath);
+        }
+
+        public void AddFiles(CmdParser parser)
+        {
+            var dirPath = parser.GetAttribute("dir") ?? parser.GetAttribute(0);
+            var parent = parser.GetAttribute("parent") ?? parser.GetAttribute(1) ?? "/";
+
+            var files = Directory.GetFiles(dirPath);
+			fileManager.CreateImages(parent, files);
         }
 
 		public void Trace(CmdParser parser)
