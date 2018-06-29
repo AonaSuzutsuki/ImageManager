@@ -270,10 +270,10 @@ namespace FileManagerLib.Filer.Json
 
 		public void Dispose()
         {
-            fManager.Dispose();
-            var json = jsonStructureManager.ToString();
+            fManager?.Dispose();
+            var json = jsonStructureManager?.ToString();
 			Console.WriteLine(json);
-			jsonStructureManager.WriteToFile(jsonName);
+			jsonStructureManager?.WriteToFile(jsonName);
 
 			fManager = null;
 			jsonStructureManager = null;
