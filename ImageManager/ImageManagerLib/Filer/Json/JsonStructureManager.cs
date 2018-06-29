@@ -7,8 +7,8 @@ namespace FileManagerLib.Filer.Json
 {
 	public class JsonStructureManager
 	{
-		private readonly Dictionary<int, DirectoryStructure> directories = new Dictionary<int, DirectoryStructure>();
-		private readonly Dictionary<int, FileStructure> files = new Dictionary<int, FileStructure>();
+		private readonly SortedDictionary<int, DirectoryStructure> directories = new SortedDictionary<int, DirectoryStructure>();
+		private readonly SortedDictionary<int, FileStructure> files = new SortedDictionary<int, FileStructure>();
 
 		public JsonStructureManager(string text)
 		{

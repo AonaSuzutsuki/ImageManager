@@ -14,7 +14,7 @@ namespace FileManagerLib.Extensions.Collections
 			return (key, val);
 		}
         
-		public static TValue[] ToArray<TKey, TValue>(this Dictionary<TKey, TValue>.ValueCollection values)
+		public static TValue[] ToArray<TKey, TValue>(this SortedDictionary<TKey, TValue>.ValueCollection values)
 		{
 			var array = new TValue[values.Count];
 			int i = 0;
