@@ -42,9 +42,22 @@ namespace Dat
 			return data;
 		}
 
-		public byte[] GetBytesFromEnd(long start)
+		public byte[] GetBytesFromEnd()
 		{
 			byte[] data = null;
+
+			if (fileStream != null)
+            {
+				var idArray = new byte[LEN];
+				fileStream.Seek(-idArray.Length, SeekOrigin.End);
+				fileStream.Read(idArray, 0, idArray.Length);
+				var length = BitConverter.ToInt32(idArray, 0);
+
+
+				fileStream.Seek(-length, SeekOrigin.End);
+                data = new byte[length];
+                fileStream.Read(data, 0, data.Length);
+            }
 
             return data;
 		}
@@ -79,10 +92,22 @@ namespace Dat
             fileStream.Seek(0, SeekOrigin.End);
             fileStream.Write(lenArray, 0, lenArray.Length);
             fileStream.Write(data, 0, data.Length);
-            fileStream.Flush();
 
             return pos;
         }
+
+		public long WriteToEnd(byte[] data)
+		{
+			var len = data.Length;
+            var lenArray = BitConverter.GetBytes(len);
+			var pos = fileStream.Position;
+
+			fileStream.Seek(0, SeekOrigin.End);
+			fileStream.Write(data, 0, data.Length);
+			fileStream.Write(lenArray, 0, lenArray.Length);
+
+			return pos;
+		}
 
 		private static int GetIntAndSeek(Stream stream, long start, long length)
 		{

@@ -35,7 +35,8 @@ namespace FileManagerLib.Filer.Json
             }
 
             fManager = new DatFileManager(datName);
-			jsonStructureManager = new JsonStructureManager(CommonCoreLib.File.FileReader.ReadToEnd(jsonName));
+			var json = newFile ? string.Empty : Encoding.UTF8.GetString(fManager.GetBytesFromEnd());
+			jsonStructureManager = new JsonStructureManager(json);
 		}
 
 		public (bool, string) CreateDirectory(string fullPath)
@@ -331,10 +332,11 @@ namespace FileManagerLib.Filer.Json
 
 		public void Dispose()
         {
-            fManager?.Dispose();
             var json = jsonStructureManager?.ToString();
 			Console.WriteLine(json);
-			jsonStructureManager?.WriteToFile(jsonName);
+			//jsonStructureManager?.WriteToFile(jsonName);
+			fManager.WriteToEnd(Encoding.UTF8.GetBytes(json));
+            fManager?.Dispose();
 
 			fManager = null;
 			jsonStructureManager = null;
