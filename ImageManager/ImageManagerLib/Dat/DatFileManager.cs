@@ -54,7 +54,7 @@ namespace Dat
 				var length = BitConverter.ToInt32(idArray, 0);
 
 
-				fileStream.Seek(-length, SeekOrigin.End);
+				fileStream.Seek(-(length + idArray.Length), SeekOrigin.End);
                 data = new byte[length];
                 fileStream.Read(data, 0, data.Length);
             }

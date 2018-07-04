@@ -82,7 +82,7 @@ namespace FileManagerLib.Filer
         /// </summary>
         /// <param name="dirName">Directory name</param>
         /// <param name="parent">Parent directory path</param>
-        public (bool, string) CreateDirectory(string fullPath)
+        public void CreateDirectory(string fullPath)
         {
             var (parent, dirName) = fullPath.GetFilenameAndParent();
             var dirArray = sqlite.GetValues(TABLE_DIRECTORIES);
@@ -90,13 +90,13 @@ namespace FileManagerLib.Filer
 
             int parentRootId = GetDirectoryId(parent);
             var dirs = sqlite.GetValues(TABLE_DIRECTORIES, "Parent = {0} and Name = '{1}'".FormatString(parentRootId, dirName));
-            if (dirs.Length > 0)
-                return (false, "Existed {0} on {1}".FormatString(dirName, parent));
-            else if (parentRootId < 0)
-                return (false, "Not found {0}".FormatString(parent));
+			if (dirs.Length > 0)
+				throw new Exception("Existed {0} on {1}".FormatString(dirName, parent));
+			else if (parentRootId < 0)
+				throw new DirectoryNotFoundException("Not found {0}".FormatString(parent));
 
             sqlite.InsertValue(TABLE_DIRECTORIES, dirCount.ToString(), parentRootId.ToString(), dirName);
-            return (true, parent.ToString());
+            //return (true, parent.ToString());
         }
 
         /// <summary>
@@ -235,7 +235,7 @@ namespace FileManagerLib.Filer
         /// <param name="parent">Parent directory path</param>
         /// <param name="data">Byte array of Image data</param>
         /// <param name="thumbnail">Byte array of Thumbnail data</param>
-        public (bool, string) CreateImage(string fileName, string parent, byte[] data, string mimeType)
+        public void CreateImage(string fileName, string parent, byte[] data, string mimeType)
         {
             var pathItem = Path.PathSplitter.SplitPath(parent);
             var fileArray = sqlite.GetValues(TABLE_FILES);
@@ -243,15 +243,15 @@ namespace FileManagerLib.Filer
 
             int parentRootId = GetDirectoryId(pathItem);
             var dirs = sqlite.GetValues(TABLE_FILES, "Parent = {0} and Name = '{1}'".FormatString(parentRootId, fileName));
-            if (dirs.Length > 0)
-                return (false, "Existed {0} on {1}".FormatString(fileName, parent));
-            else if (parentRootId < 0)
-                return (false, "Not found {0}".FormatString(parent));
+			if (dirs.Length > 0)
+				throw new Exception("Existed {0} on {1}".FormatString(fileName, parent));
+			else if (parentRootId < 0)
+				throw new DirectoryNotFoundException("Not found {0}".FormatString(parent));
 
             var start = fManager.Write(data);
 
             sqlite.InsertValue(TABLE_FILES, dirCount.ToString(), parentRootId.ToString(), fileName, start.ToString(), mimeType);
-            return (true, string.Empty);
+            //return (true, string.Empty);
         }
 
         /// <summary>
@@ -277,9 +277,10 @@ namespace FileManagerLib.Filer
             CreateImage(fileName, parent.ToString(), inFilePath);
         }
 
-        public void CreateImages(string parent, string[] filePathArray)
+		public void CreateImages(string parent, string dirPath)
         {
             sqlite.StartTransaction();
+			var filePathArray = Directory.GetDirectories(dirPath);
             foreach (var file in filePathArray.Select((v, i) => new { v, i }))
             {
                 Console.WriteLine("{0}/{1}".FormatString(file.i + 1, filePathArray.Length));

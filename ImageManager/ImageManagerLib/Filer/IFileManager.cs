@@ -4,11 +4,11 @@ namespace FileManagerLib.Filer
 {
     public interface IFileManager
     {
-        (bool, string) CreateDirectory(string fullPath);
-        (bool, string) CreateImage(string fileName, string parent, byte[] data, string mimeType);
+        void CreateDirectory(string fullPath);
+        void CreateImage(string fileName, string parent, byte[] data, string mimeType);
         void CreateImage(string fileName, string parent, string inFilePath);
         void CreateImage(string fullPath, string inFilePath);
-        void CreateImages(string parent, string[] filePathArray);
+        void CreateImages(string parent, string dirPath);
         void CreateTable();
         void DataVacuum();
         void DeleteDirectory(string fullPath);

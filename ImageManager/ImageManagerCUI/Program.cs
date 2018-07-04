@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Diagnostics;
 using FileManagerLib.Filer.Json;
+using FileManagerLib.Extensions.Path;
 
 namespace ImageManagerCUI
 {
@@ -36,8 +37,15 @@ namespace ImageManagerCUI
                 //}
                 var sw = new Stopwatch();
                 sw.Start();
-                if (!program.Parse(cmd))
-                    break;
+				try
+				{
+                    if (!program.Parse(cmd))
+                        break;
+				}
+				catch (Exception e)
+				{
+					Console.WriteLine(e.Message);
+				}
                 sw.Stop();
                 var msec = sw.ElapsedMilliseconds;
                 Console.WriteLine("{0}ms".FormatString(msec));
@@ -119,13 +127,17 @@ namespace ImageManagerCUI
 
 		public void CreateDirectory(CmdParser parser)
         {
-            var fullPath = parser.GetAttribute("name") ?? parser.GetAttribute(0);
+			var fullPath = parser.GetAttribute("name") ?? parser.GetAttribute(0);
 
-			var succ = fileManager.CreateDirectory(fullPath);
-            if (succ.Item1)
-                Console.WriteLine("Success to mkdir {0} on {1}.", fullPath, succ.Item2);
-            else
-                Console.WriteLine("Failed to mkdir: {0}.", succ.Item2);
+            try
+            {
+				fileManager.CreateDirectory(fullPath);
+                Console.WriteLine("Success to mkdir {0} on {1}.", fullPath, fullPath.GetFilenameAndParent().parent.ToString());
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Failed to mkdir: {0}.", e.Message);
+            }
         }
 
 		public void DeleteDirectory(CmdParser parser)
@@ -157,9 +169,8 @@ namespace ImageManagerCUI
         {
             var dirPath = parser.GetAttribute("dir") ?? parser.GetAttribute(0);
             var parent = parser.GetAttribute("parent") ?? parser.GetAttribute(1) ?? "/";
-
-            var files = Directory.GetFiles(dirPath);
-			fileManager.CreateImages(parent, files);
+            
+			fileManager.CreateImages(parent, dirPath);
         }
 
 		public void Trace(CmdParser parser)
@@ -258,11 +269,15 @@ namespace ImageManagerCUI
             var fullPath = parser.GetAttribute("name") ?? parser.GetAttribute(0);
             //var parent = parser.GetAttribute("parent") ?? parser.GetAttribute(1) ?? "/";
 
-            var succ = imageManager.CreateDirectory(fullPath);
-            if (succ.Item1)
-                Console.WriteLine("Success to mkdir {0} on {1}.", fullPath, succ.Item2);
-            else
-                Console.WriteLine("Failed to mkdir: {0}.", succ.Item2);
+			try
+			{
+                imageManager.CreateDirectory(fullPath);
+				Console.WriteLine("Success to mkdir {0} on {1}.", fullPath, fullPath.GetFilenameAndParent().parent.ToString());
+			}
+			catch (Exception e)
+			{
+				Console.WriteLine("Failed to mkdir: {0}.", e.Message);
+			}
         }
 
         public void DeleteDirectory(CmdParser parser)
@@ -294,9 +309,8 @@ namespace ImageManagerCUI
         {
             var dirPath = parser.GetAttribute("dir") ?? parser.GetAttribute(0);
             var parent = parser.GetAttribute("parent") ?? parser.GetAttribute(1) ?? "/";
-
-            var files = Directory.GetFiles(dirPath);
-            imageManager.CreateImages(parent, files);
+   
+			imageManager.CreateImages(parent, dirPath);
         }
 
         public void DeleteFile(CmdParser parser)

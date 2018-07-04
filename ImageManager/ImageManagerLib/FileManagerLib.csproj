@@ -106,6 +106,7 @@
     <Compile Include="Filer\Json\Structures.cs" />
     <Compile Include="Extensions\Collections\DictionaryExtension.cs" />
     <Compile Include="Extensions\Collections\ArrayExtension.cs" />
+    <Compile Include="Filer\DirectorySearcher.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
