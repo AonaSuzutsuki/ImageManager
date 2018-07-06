@@ -10,6 +10,7 @@ namespace Dat
 
 		#region Fields
 		private FileStream fileStream;
+        private long lastPositionWithoutJson = 0;
         #endregion
 
         #region Properties
@@ -18,6 +19,8 @@ namespace Dat
             get;
             private set;
         }
+
+        public bool IsShiftJsonPosition { get; set; } = false;
         #endregion
 
         public DatFileManager(string filePath)
@@ -57,6 +60,7 @@ namespace Dat
 				fileStream.Seek(-(length + idArray.Length), SeekOrigin.End);
                 data = new byte[length];
                 fileStream.Read(data, 0, data.Length);
+                lastPositionWithoutJson = -(length + idArray.Length);
             }
 
             return data;
@@ -92,6 +96,7 @@ namespace Dat
             fileStream.Seek(0, SeekOrigin.End);
             fileStream.Write(lenArray, 0, lenArray.Length);
             fileStream.Write(data, 0, data.Length);
+            lastPositionWithoutJson += data.Length;
 
             return pos;
         }
@@ -102,8 +107,12 @@ namespace Dat
             var lenArray = BitConverter.GetBytes(len);
 			var pos = fileStream.Position;
 
-			fileStream.Seek(0, SeekOrigin.End);
-			fileStream.Write(data, 0, data.Length);
+            if (IsShiftJsonPosition && lastPositionWithoutJson < 0)
+                fileStream.Seek(lastPositionWithoutJson, SeekOrigin.End);
+            else
+                fileStream.Seek(0, SeekOrigin.End);
+
+            fileStream.Write(data, 0, data.Length);
 			fileStream.Write(lenArray, 0, lenArray.Length);
 
 			return pos;

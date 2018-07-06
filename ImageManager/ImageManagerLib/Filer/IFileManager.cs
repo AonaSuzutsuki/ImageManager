@@ -20,15 +20,15 @@ namespace FileManagerLib.Filer
         DataFileInfo[] GetDirectories(DataFileInfo dataFileInfo);
         int GetDirectoryId(string dirName, int rootId);
         int GetDirectoryId(PathItem pathItem);
-        string GetDirectoryPath(int id);
-        string GetFilePath(int id);
         DataFileInfo[] GetFiles(int did = 0);
         DataFileInfo[] GetFiles(DataFileInfo dataFileInfo);
         string ToString();
         string TraceDirs();
         string TraceFiles();
         void WriteToFile(string filePath, string outFilePath);
+        void WriteToDir(string filePath, string outFilePath);
         void WriteToFile(int id, string outFilePath);
+        void WriteToDir(int id, string outFilePath);
         void WriteToFile(DataFileInfo[] values, string outFilePath);
     }
 }

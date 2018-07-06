@@ -57,7 +57,7 @@ namespace FileManagerLib.Filer.Json
 			return null;
 		}
 
-		public DirectoryStructure[] GetDirectoryStructureFromParent(int parentId)
+		public DirectoryStructure[] GetDirectoryStructuresFromParent(int parentId)
 		{
 			var dList = new List<DirectoryStructure>();
 			foreach (var dir in directories.Values)
@@ -66,7 +66,19 @@ namespace FileManagerLib.Filer.Json
 			return dList.ToArray();
 		}
 
-		public DirectoryStructure[] GetDirectoryStructures()
+        public DirectoryStructure[] GetDirectoryAllStructuresFromParent(int parentId)
+        {
+            var dirs = GetDirectoryStructuresFromParent(parentId);
+            var dList = new List<DirectoryStructure>(dirs);
+            foreach (var dir in dirs)
+            {
+                dList.AddRange(GetDirectoryAllStructuresFromParent(dir.Id));
+            }
+
+            return dList.ToArray();
+        }
+
+        public DirectoryStructure[] GetDirectoryStructures()
 		{
 			var array = directories.Values.ToArray();
 			return array;
@@ -82,7 +94,7 @@ namespace FileManagerLib.Filer.Json
 
 		public void DeleteDirectory(int id)
 		{
-			var dirs = GetDirectoryStructureFromParent(id);
+			var dirs = GetDirectoryStructuresFromParent(id);
 			foreach (var dir in dirs)
 			{
 				DeleteDirectory(dir.Id);
@@ -108,6 +120,20 @@ namespace FileManagerLib.Filer.Json
 				}
 			}
 		}
+
+        public bool ExistedDirectory(int parentId, string name)
+        {
+            if (parentId == 0 && name.Equals(""))
+                return true;
+
+            var dirs = GetDirectoryStructuresFromParent(parentId);
+            foreach (var dir in dirs)
+            {
+                if (dir.Name.Equals(name))
+                    return true;
+            }
+            return false;
+        }
 		#endregion
 
 
@@ -156,7 +182,33 @@ namespace FileManagerLib.Filer.Json
 			return null;
 		}
 
-		public void ChangeFile(int id, FileStructure fileStructure)
+        public FileStructure[] GetFileStructuresFromParent(int parentId)
+        {
+            var list = new List<FileStructure>();
+            foreach (var file in files.Values)
+            {
+                if (file.Parent == parentId)
+                {
+                    list.Add(file);
+                }
+            }
+            return list.ToArray();
+        }
+
+        public FileStructure[] GetFileAllStructuresFromParent(int parentId)
+        {
+            var files = GetFileStructuresFromParent(parentId);
+            var dirs = GetDirectoryStructuresFromParent(parentId);
+            var dList = new List<FileStructure>(files);
+            foreach (var dir in dirs)
+            {
+                dList.AddRange(GetFileAllStructuresFromParent(dir.Id));
+            }
+
+            return dList.ToArray();
+        }
+
+        public void ChangeFile(int id, FileStructure fileStructure)
 		{
 			if (GetFileStructure(id) == null)
 				return;
@@ -181,11 +233,22 @@ namespace FileManagerLib.Filer.Json
                 }
             }
 		}
-		#endregion
+
+        public bool ExistedFile(int parentId, string name)
+        {
+            var files = GetFileStructuresFromParent(parentId);
+            foreach (var file in files)
+            {
+                if (file.Name.Equals(name))
+                    return true;
+            }
+            return false;
+        }
+        #endregion
 
 
-		#region Common
-		public override string ToString()
+        #region Common
+        public override string ToString()
 		{
 			var tableStructure = new TableStructure
 			{

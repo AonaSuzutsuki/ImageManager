@@ -10,6 +10,11 @@ namespace FileManagerLib.Path
     {
         private List<string> pathList = new List<string>();
 
+        public bool IsRoot
+        {
+            get;
+        }
+
         public PathItem() { }
         public PathItem(string[] array)
         {
@@ -34,6 +39,23 @@ namespace FileManagerLib.Path
         }
 
         public string GetLast() => pathList[pathList.Count - 1];
+
+        public PathItem GetPathItemFrom(int start)
+        {
+            var list = new List<string>();
+            for (int i = start; i < pathList.Count; i++)
+                list.Add(pathList[i]);
+            return new PathItem(list.ToArray());
+        }
+
+        public PathItem GetPathItemFrom(string basePath)
+        {
+            var pathItemArray = PathSplitter.SplitPath(basePath).ToArray();
+            var pathArray = pathList.ToArray();
+            var paths = pathArray.Except(pathItemArray).ToArray();
+            var list = new List<string>(paths);
+            return new PathItem(list.ToArray());
+        }
 
         public string[] ToArray() => pathList.ToArray();
 

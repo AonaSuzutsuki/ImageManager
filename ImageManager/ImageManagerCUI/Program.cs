@@ -14,12 +14,7 @@ namespace ImageManagerCUI
     {
         public static void Main(string[] args)
         {
-			IProgram program;
-			if (args[0].Equals("-j"))
-				program = new JsonProgram();
-			else
-				program = new SQLiteProgram();
-				
+			IProgram program = new JsonProgram();
 
             while (true)
             {
@@ -98,8 +93,11 @@ namespace ImageManagerCUI
                 case "delfile":
                     //DeleteFile(parser);
                     break;
-                case "writeto":
-                    //WriteTo(parser);
+                case "writetofile":
+                    WriteTo(parser, fileManager.WriteToFile, fileManager.WriteToFile);
+                    break;
+                case "writetodir":
+                    WriteTo(parser, fileManager.WriteToDir, fileManager.WriteToDir);
                     break;
                 case "vacuum":
 					fileManager.DataVacuum();
@@ -116,13 +114,22 @@ namespace ImageManagerCUI
 		public void MakeDatabase(CmdParser parser)
         {
             var dbFilename = parser.GetAttribute("file") ?? parser.GetAttribute(0);
-			fileManager = new JsonFileManager(dbFilename, true);
+			fileManager = new JsonFileManager(dbFilename, true, filePath =>
+            {
+                Console.WriteLine("{0} exist. Are you sure you want to delete this item? [y/n]", filePath);
+                Console.Write("> ");
+                var ans = Console.ReadLine();
+                if (ans.Equals("y"))
+                    File.Delete(filePath);
+            });
+            Console.WriteLine("Loaded {0}.", dbFilename);
         }
 
 		public void LoadDatabase(CmdParser parser)
         {
             var dbFilename = parser.GetAttribute("file") ?? parser.GetAttribute(0);
 			fileManager= new JsonFileManager(dbFilename, false);
+            Console.WriteLine("Loaded {0}.", dbFilename);
         }
 
 		public void CreateDirectory(CmdParser parser)
@@ -173,7 +180,42 @@ namespace ImageManagerCUI
 			fileManager.CreateImages(parent, dirPath);
         }
 
-		public void Trace(CmdParser parser)
+        public void DeleteFile(CmdParser parser)
+        {
+            var fullPath = parser.GetAttribute("name") ?? parser.GetAttribute(0);
+            //var parent = parser.GetAttribute("parent") ?? parser.GetAttribute(1) ?? "/";
+
+            if (fullPath.Substring(0, 1).Equals(":"))
+            {
+                var id = fullPath.TrimStart(':').ToInt();
+                fileManager.DeleteFile(id);
+            }
+            else
+            {
+                fileManager.DeleteFile(fullPath);
+            }
+        }
+
+        public void WriteTo(CmdParser parser, Action<int, string> idAct, Action<string, string> nameAct)
+        {
+            var fullPath = parser.GetAttribute("name") ?? parser.GetAttribute(0);
+            var outFilePath = parser.GetAttribute("out") ?? parser.GetAttribute(1);
+            //var parent = parser.GetAttribute("parent") ?? parser.GetAttribute(2) ?? "/";
+
+            if (fullPath.Substring(0, 1).Equals(":"))
+            {
+                var id = fullPath.TrimStart(':').ToInt();
+                //fileManager.WriteToFile(id, outFilePath);
+                idAct?.Invoke(id, outFilePath);
+            }
+            else
+            {
+                nameAct?.Invoke(fullPath, outFilePath);
+                //fileManager.WriteToFile(fullPath, outFilePath);
+            }
+        }
+
+        public void Trace(CmdParser parser)
         {
             var type = parser.GetAttribute("type") ?? parser.GetAttribute(0);
 
@@ -187,179 +229,6 @@ namespace ImageManagerCUI
                     break;
                 default:
 					Console.WriteLine(fileManager);
-                    break;
-            }
-        }
-	}
-
-	public class SQLiteProgram : IProgram
-	{
-		private string dbFilename;
-        private IFileManager imageManager;
-
-
-        public bool Parse(string cmd)
-        {
-            var parser = new CmdParser(cmd);
-            switch (parser.Command)
-            {
-                case "exit":
-                    Close(parser);
-                    return false;
-                case "gc":
-                    GC.Collect();
-                    break;
-                case "close":
-                    Close(parser);
-                    break;
-                case "make":
-                    MakeDatabase(parser);
-                    break;
-                case "open":
-                    LoadDatabase(parser);
-                    break;
-                case "mkdir":
-                    CreateDirectory(parser);
-                    break;
-                case "deldir":
-                    DeleteDirectory(parser);
-                    break;
-                case "addfile":
-                    AddFile(parser);
-                    break;
-                case "addfiles":
-                    AddFiles(parser);
-                    break;
-                case "delfile":
-                    DeleteFile(parser);
-                    break;
-                case "writeto":
-                    WriteTo(parser);
-                    break;
-                case "vacuum":
-                    imageManager.DataVacuum();
-                    break;
-                case "trace":
-                    Trace(parser);
-                    break;
-            }
-            return true;
-        }
-
-        public void Close(CmdParser parser)
-        {
-            imageManager?.Dispose();
-        }
-
-        public void MakeDatabase(CmdParser parser)
-        {
-            dbFilename = parser.GetAttribute("file") ?? parser.GetAttribute(0);
-            imageManager = new FileManager(dbFilename, true);
-            imageManager.CreateTable();
-        }
-
-        public void LoadDatabase(CmdParser parser)
-        {
-            dbFilename = parser.GetAttribute("file") ?? parser.GetAttribute(0);
-            imageManager = new FileManager(dbFilename, false);
-        }
-
-        public void CreateDirectory(CmdParser parser)
-        {
-            var fullPath = parser.GetAttribute("name") ?? parser.GetAttribute(0);
-            //var parent = parser.GetAttribute("parent") ?? parser.GetAttribute(1) ?? "/";
-
-			try
-			{
-                imageManager.CreateDirectory(fullPath);
-				Console.WriteLine("Success to mkdir {0} on {1}.", fullPath, fullPath.GetFilenameAndParent().parent.ToString());
-			}
-			catch (Exception e)
-			{
-				Console.WriteLine("Failed to mkdir: {0}.", e.Message);
-			}
-        }
-
-        public void DeleteDirectory(CmdParser parser)
-        {
-            var fullPath = parser.GetAttribute("name") ?? parser.GetAttribute(0);
-            //var parent = parser.GetAttribute("parent") ?? parser.GetAttribute(1) ?? "/";
-
-            if (fullPath.Substring(0, 1).Equals(":"))
-            {
-                var id = fullPath.TrimStart(':').ToInt();
-                imageManager.DeleteDirectory(id);
-            }
-            else
-            {
-                imageManager.DeleteDirectory(fullPath);
-            }
-        }
-
-        public void AddFile(CmdParser parser)
-        {
-            var fullPath = parser.GetAttribute("name") ?? parser.GetAttribute(0);
-            var filePath = parser.GetAttribute("file") ?? parser.GetAttribute(1);
-            //var parent = parser.GetAttribute("parent") ?? parser.GetAttribute(2) ?? "/";
-
-            imageManager.CreateImage(fullPath, filePath);
-        }
-
-        public void AddFiles(CmdParser parser)
-        {
-            var dirPath = parser.GetAttribute("dir") ?? parser.GetAttribute(0);
-            var parent = parser.GetAttribute("parent") ?? parser.GetAttribute(1) ?? "/";
-   
-			imageManager.CreateImages(parent, dirPath);
-        }
-
-        public void DeleteFile(CmdParser parser)
-        {
-            var fullPath = parser.GetAttribute("name") ?? parser.GetAttribute(0);
-            //var parent = parser.GetAttribute("parent") ?? parser.GetAttribute(1) ?? "/";
-
-            if (fullPath.Substring(0, 1).Equals(":"))
-            {
-                var id = fullPath.TrimStart(':').ToInt();
-                imageManager.DeleteFile(id);
-            }
-            else
-            {
-                imageManager.DeleteFile(fullPath);
-            }
-        }
-
-        public void WriteTo(CmdParser parser)
-        {
-            var fullPath = parser.GetAttribute("name") ?? parser.GetAttribute(0);
-            var outFilePath = parser.GetAttribute("out") ?? parser.GetAttribute(1);
-            //var parent = parser.GetAttribute("parent") ?? parser.GetAttribute(2) ?? "/";
-
-            if (fullPath.Substring(0, 1).Equals(":"))
-            {
-                var id = fullPath.TrimStart(':').ToInt();
-                imageManager.WriteToFile(id, outFilePath);
-            }
-            else
-            {
-                imageManager.WriteToFile(fullPath, outFilePath);
-            }
-        }
-
-        public void Trace(CmdParser parser)
-        {
-            var type = parser.GetAttribute("type") ?? parser.GetAttribute(0);
-
-            switch (type)
-            {
-                case "d":
-                    Console.WriteLine(imageManager.TraceDirs());
-                    break;
-                case "f":
-                    Console.WriteLine(imageManager.TraceFiles());
-                    break;
-                default:
-                    Console.WriteLine(imageManager);
                     break;
             }
         }

@@ -18,23 +18,17 @@ namespace FileManagerLib.Filer.Json
 		private string jsonName;
 		private JsonStructureManager jsonStructureManager;
 		private DatFileManager fManager;
-		#endregion
+        #endregion
 
-		public JsonFileManager(string filePath, bool newFile = false)
+        public JsonFileManager(string filePath, bool newFile = false, Action<string> fileExistAct = null)
 		{
-			var name = System.IO.Path.GetFileNameWithoutExtension(filePath);
-			datName = "{0}.dat".FormatString(name);
-			jsonName = "{0}.json".FormatString(name);
-
 			if (newFile)
 			{
-				if (File.Exists(datName))
-					File.Delete(datName);
-				if (File.Exists(jsonName))
-					File.Delete(jsonName);
-			}
+                if (File.Exists(filePath))
+                    fileExistAct?.Invoke(filePath);
+            }
 
-			fManager = new DatFileManager(datName);
+			fManager = new DatFileManager(filePath) { IsShiftJsonPosition = true };
 			var json = newFile ? string.Empty : Encoding.UTF8.GetString(fManager.GetBytesFromEnd());
 			jsonStructureManager = new JsonStructureManager(json);
 		}
@@ -155,12 +149,12 @@ namespace FileManagerLib.Filer.Json
 
 		public void DeleteFile(string fullPath)
 		{
-			throw new NotImplementedException();
+
 		}
 
 		public void DeleteFile(int id)
 		{
-			throw new NotImplementedException();
+
 		}
 
 		public bool ExistDirectory()
@@ -184,7 +178,7 @@ namespace FileManagerLib.Filer.Json
 				return 0;
 
 			int dirId = 0;
-			var dArray = jsonStructureManager.GetDirectoryStructureFromParent(rootId);
+			var dArray = jsonStructureManager.GetDirectoryStructuresFromParent(rootId);
 			//var list = sqlite.GetValues(TABLE_DIRECTORIES, "Parent = {0} and Name = '{1}'".FormatString(rootId, dirName));
 			if (dArray != null && dArray.Length > 0)
 			{
@@ -222,35 +216,42 @@ namespace FileManagerLib.Filer.Json
 		}
 
 		#region Trace
-		public string GetDirectoryPath(int id)
+		public static string GetDirectoryPath(JsonStructureManager jsonStructureManager, int id)
 		{
 			var pathList = new List<string>();
 
-			int did = id;
-			while (did > 0)
-			{
-				var dir = jsonStructureManager.GetDirectoryStructure(did);
+            if (id > 0)
+            {
+                int did = id;
+                while (did > 0)
+                {
+                    var dir = jsonStructureManager.GetDirectoryStructure(did);
 
-				pathList.Add(dir.Name);
-				var parent = dir.Parent;
-				did = parent;
-			}
+                    pathList.Add(dir.Name);
+                    var parent = dir.Parent;
+                    did = parent;
+                }
 
-			var path = new StringBuilder();
-			pathList.Reverse();
-			foreach (var pathItem in pathList)
-			{
-				path.AppendFormat("/{0}", pathItem);
-			}
-			return path.ToString();
+                var path = new StringBuilder();
+                pathList.Reverse();
+                foreach (var pathItem in pathList)
+                {
+                    path.AppendFormat("/{0}", pathItem);
+                }
+                return path.ToString();
+            }
+			else
+            {
+                return "/";
+            }
 		}
-		public string GetFilePath(int id)
+		public static string GetFilePath(JsonStructureManager jsonStructureManager, int id)
 		{
 			var file = jsonStructureManager.GetFileStructure(id);
 			var fileName = file.Name;
 			var parent = file.Parent;
 
-			string dirPath = GetDirectoryPath(parent);
+			string dirPath = GetDirectoryPath(jsonStructureManager, parent);
 			return "{0}/{1}".FormatString(dirPath, fileName);
 		}
 
@@ -267,7 +268,7 @@ namespace FileManagerLib.Filer.Json
 				sb.AppendFormat("\t[\n");
 				sb.AppendFormat("\t\tId:\t {0}\n", id);
 				sb.AppendFormat("\t\tParent:\t {0}\n", dItem.Parent);
-				sb.AppendFormat("\t\tPath:\t {0}\n", GetDirectoryPath(id));
+				sb.AppendFormat("\t\tPath:\t {0}\n", GetDirectoryPath(jsonStructureManager, id));
 				sb.AppendFormat("\t\tName:\t {0}\n", dItem.Name);
 				sb.AppendFormat("\t]\n");
 			}
@@ -294,7 +295,7 @@ namespace FileManagerLib.Filer.Json
 				sb.AppendFormat("\t[\n");
 				sb.AppendFormat("\t\tId:\t {0}\n", id);
 				sb.AppendFormat("\t\tParent:\t {0}\n", fItem.Parent);
-				sb.AppendFormat("\t\tPath:\t {0}\n", GetFilePath(id));
+				sb.AppendFormat("\t\tPath:\t {0}\n", GetFilePath(jsonStructureManager, id));
 				sb.AppendFormat("\t\tName:\t {0}\n", fItem.Name);
 				sb.AppendFormat("\t\tData:\t {0}\n", Convert.ToBase64String(data));
 				sb.AppendFormat("\t\tLength:\t {0}kb\n", len / 1024);
@@ -352,17 +353,79 @@ namespace FileManagerLib.Filer.Json
 
 		public void WriteToFile(string filePath, string outFilePath)
 		{
-			throw new NotImplementedException();
-		}
+            var (parent, fileName) = filePath.GetFilenameAndParent();
+            int rootId = GetDirectoryId(parent);
+            if (jsonStructureManager.ExistedFile(rootId, fileName))
+            {
+                var file = jsonStructureManager.GetFileStructureFromParent(rootId, fileName);
+                WriteToFile(file, outFilePath);
+            }
+        }
+
+        public void WriteToDir(string filePath, string outFilePath)
+        {
+            var (parent, fileName) = filePath.GetFilenameAndParent();
+            int rootId = GetDirectoryId(parent);
+            if (jsonStructureManager.ExistedDirectory(rootId, fileName))
+            {
+                var dirId = GetDirectoryId(PathSplitter.SplitPath(filePath));
+                var dirs = jsonStructureManager.GetDirectoryAllStructuresFromParent(dirId);
+                var files = jsonStructureManager.GetFileAllStructuresFromParent(dirId);
+
+                if (!Directory.Exists(outFilePath))
+                    Directory.CreateDirectory(outFilePath);
+
+                foreach (var dir in dirs)
+                {
+                    string path;
+                    var pathItem = PathSplitter.SplitPath(GetDirectoryPath(jsonStructureManager, dir.Id));
+                    if (filePath.Equals("/"))
+                        path = outFilePath + pathItem.ToString();
+                    else
+                        path = outFilePath + pathItem.GetPathItemFrom(filePath).ToString();
+                    if (!Directory.Exists(path))
+                        Directory.CreateDirectory(path);
+                }
+
+                foreach (var file in files)
+                {
+                    string path;
+                    var pathItem = PathSplitter.SplitPath(GetFilePath(jsonStructureManager, file.Id));
+                    if (filePath.Equals("/"))
+                        path = outFilePath + pathItem.ToString();
+                    else
+                        path = outFilePath + pathItem.GetPathItemFrom(filePath).ToString();
+                    WriteToFile(file, path);
+                }
+            }
+        }
 
 		public void WriteToFile(int id, string outFilePath)
 		{
-			throw new NotImplementedException();
-		}
+            var filepath = GetFilePath(jsonStructureManager, id);
+            WriteToFile(filepath, outFilePath);
+        }
+
+        public void WriteToDir(int id, string outFilePath)
+        {
+            var filepath = GetDirectoryPath(jsonStructureManager, id);
+            WriteToDir(filepath, outFilePath);
+        }
+
+        public void WriteToFile(FileStructure structure, string outFilePath)
+        {
+            if (structure != null)
+            {
+                var loc = structure.Location;
+                var data = fManager.GetBytes(loc);
+                using (var fs = new FileStream(outFilePath, FileMode.Create, FileAccess.Write, FileShare.None))
+                    fs.Write(data, 0, data.Length);
+            }
+        }
 
 		public void WriteToFile(DataFileInfo[] values, string outFilePath)
 		{
-			throw new NotImplementedException();
+
 		}
 
 
