@@ -50,10 +50,26 @@ namespace FileManagerLib.Path
 
         public PathItem GetPathItemFrom(string basePath)
         {
-            var pathItemArray = PathSplitter.SplitPath(basePath).ToArray();
+            var pathItemArray = new List<string>(PathSplitter.SplitPath(basePath).ToArray());
             var pathArray = pathList.ToArray();
-            var paths = pathArray.Except(pathItemArray).ToArray();
-            var list = new List<string>(paths);
+            var list = new List<string>();
+
+            if (pathItemArray.Count < pathArray.Length)
+            {
+                var cnt = (pathArray.Length - pathItemArray.Count);
+                for (int i = 0; i < cnt; i++)
+                    pathItemArray.Add("");
+            }
+
+            var numbersAndWords = pathArray.Zip(pathItemArray, (n, w) => new { basePath = w, targetPath = n });
+            foreach (var nw in numbersAndWords)
+            {
+                if (!nw.basePath.Equals(nw.targetPath))
+                    list.Add(nw.targetPath);
+            }
+
+            //var paths = pathArray.Except(pathItemArray).ToArray();
+
             return new PathItem(list.ToArray());
         }
 
