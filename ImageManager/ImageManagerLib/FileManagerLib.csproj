@@ -84,11 +84,7 @@
     <Compile Include="Extensions\Imager\ImageExtension.cs" />
     <Compile Include="Extensions\Path\PathItemExtensions.cs" />
     <Compile Include="Extensions\SQLite\TableFieldExtensions.cs" />
-    <Compile Include="Filer\CommonFileDirectory.cs" />
-    <Compile Include="Filer\DataFileInfo.cs" />
-    <Compile Include="Filer\DataFileType.cs" />
     <Compile Include="Filer\ImageLoader.cs" />
-    <None Include="Filer\FileManager.cs" />
     <Compile Include="MimeType\MimeTypeMap.cs" />
     <Compile Include="Path\PathItem.cs" />
     <Compile Include="Path\PathSplitter.cs" />

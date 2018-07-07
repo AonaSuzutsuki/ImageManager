@@ -162,16 +162,6 @@ namespace FileManagerLib.Filer.Json
 			return false;
 		}
 
-		public DataFileInfo[] GetDirectories(int did = 0)
-		{
-			throw new NotImplementedException();
-		}
-
-		public DataFileInfo[] GetDirectories(DataFileInfo dataFileInfo)
-		{
-			throw new NotImplementedException();
-		}
-
 		public int GetDirectoryId(string dirName, int rootId)
 		{
 			if (string.IsNullOrEmpty(dirName) && rootId == 0)
@@ -203,16 +193,6 @@ namespace FileManagerLib.Filer.Json
 				dirId = GetDirectoryId(path, dirId);
 
 			return dirId;
-		}
-
-		public DataFileInfo[] GetFiles(int did = 0)
-		{
-			throw new NotImplementedException();
-		}
-
-		public DataFileInfo[] GetFiles(DataFileInfo dataFileInfo)
-		{
-			throw new NotImplementedException();
 		}
 
 		#region Trace
@@ -422,11 +402,6 @@ namespace FileManagerLib.Filer.Json
                     fs.Write(data, 0, data.Length);
             }
         }
-
-		public void WriteToFile(DataFileInfo[] values, string outFilePath)
-		{
-
-		}
 
 
 		public void Dispose()
