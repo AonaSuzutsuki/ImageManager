@@ -88,27 +88,29 @@ namespace FileManagerLib.Filer.Json
 				return;
    
 			var mimeType = MimeType.MimeTypeMap.GetMimeType(inFilePath);
-			var stream = new FileStream(inFilePath, FileMode.Open, FileAccess.Read, FileShare.Read);
-			if (stream.Length > 536870912)
+			using (var stream = new FileStream(inFilePath, FileMode.Open, FileAccess.Read, FileShare.Read))
 			{
-				var (nextId, parentId) = ResolveTermParameters(fileName, parent);
-				var start = fManager.Write(stream, (writeStream) => {
-					while (true)
-                    {
-                        byte[] bs = new byte[8192];
-                        int readSize = stream.Read(bs, 0, bs.Length);
-                        if (readSize == 0)
-                            break;
-						writeStream.Write(bs, 0, bs.Length);
-                    }
-				});
-				jsonStructureManager.CreateFile(nextId, parentId, fileName, start, mimeType);
-			}
-			else
-			{
-				var data = ImageLoader.FromImageFile(stream, stream.Dispose).Data;
-                if (data != null)
-					CreateImage(fileName, parent, data, mimeType);
+				if (stream.Length > fManager.SplitSize)
+                {
+                    var (nextId, parentId) = ResolveTermParameters(fileName, parent);
+                    var start = fManager.Write(stream, (writeStream) => {
+                        while (true)
+                        {
+                            byte[] bs = new byte[fManager.SplitSize];
+                            int readSize = stream.Read(bs, 0, bs.Length);
+                            if (readSize == 0)
+                                break;
+							writeStream.Write(bs, 0, readSize);
+                        }
+                    });
+                    jsonStructureManager.CreateFile(nextId, parentId, fileName, start, mimeType);
+                }
+                else
+                {
+                    var data = ImageLoader.FromImageFile(stream).Data;
+                    if (data != null)
+                        CreateImage(fileName, parent, data, mimeType);
+                }
 			}         
 		}
 
@@ -358,6 +360,8 @@ namespace FileManagerLib.Filer.Json
 			fManager = makeDatFileManager(filePath);
 		}
 
+
+		#region Writer
 		public void WriteToFile(string filePath, string outFilePath)
 		{
             var (parent, fileName) = filePath.GetFilenameAndParent();
@@ -424,11 +428,13 @@ namespace FileManagerLib.Filer.Json
             if (structure != null)
             {
                 var loc = structure.Location;
-                var data = fManager.GetBytes(loc);
-                using (var fs = new FileStream(outFilePath, FileMode.Create, FileAccess.Write, FileShare.None))
-                    fs.Write(data, 0, data.Length);
+				fManager.WriteToFile(loc, outFilePath);
+                //var data = fManager.GetBytes(loc);
+                //using (var fs = new FileStream(outFilePath, FileMode.Create, FileAccess.Write, FileShare.None))
+                    //fs.Write(data, 0, data.Length);
             }
         }
+        #endregion
 
 
 		public void Dispose()
