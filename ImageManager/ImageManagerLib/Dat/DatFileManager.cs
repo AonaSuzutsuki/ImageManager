@@ -96,10 +96,26 @@ namespace Dat
             fileStream.Seek(0, SeekOrigin.End);
             fileStream.Write(lenArray, 0, lenArray.Length);
             fileStream.Write(data, 0, data.Length);
-            lastPositionWithoutJson += data.Length;
+			lastPositionWithoutJson += len;
 
             return pos;
         }
+
+		public long Write(Stream stream, Action<Stream> writeAction)
+		{
+			var len = stream.Length;
+            var lenArray = BitConverter.GetBytes(len);
+
+            var pos = fileStream.Position;
+            fileStream.Seek(0, SeekOrigin.End);
+            fileStream.Write(lenArray, 0, lenArray.Length);
+
+			writeAction?.Invoke(fileStream);
+
+			lastPositionWithoutJson += len;
+
+            return pos;
+		}
 
 		public long WriteToEnd(byte[] data)
 		{

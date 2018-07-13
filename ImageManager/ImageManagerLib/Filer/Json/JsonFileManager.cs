@@ -56,33 +56,60 @@ namespace FileManagerLib.Filer.Json
 			//return (true, parent.ToString());
 		}
 
+		private (int nextId, int parentId) ResolveTermParameters(string fileName, string parent)
+		{
+			var pathItem = PathSplitter.SplitPath(parent);
+            var fileArray = jsonStructureManager.GetFileStructures();
+            int dirCount = jsonStructureManager.NextFileId;//fileArray.Length > 0 ? fileArray[fileArray.Length - 1].Id + 1 : 1;
+
+            int parentRootId = GetDirectoryId(pathItem);
+            var dirs = jsonStructureManager.GetFileStructureFromParent(parentRootId, fileName);
+            //var dirs = sqlite.GetValues(TABLE_FILES, "Parent = {0} and Name = '{1}'".FormatString(parentRootId, fileName));
+            if (dirs != null)
+                throw new Exception("Existed {0} on {1}".FormatString(fileName, parent));
+            if (parentRootId < 0)
+                throw new DirectoryNotFoundException("Not found {0}".FormatString(parent));
+
+			return (dirCount, parentRootId);
+		}
+
 		public void CreateImage(string fileName, string parent, byte[] data, string mimeType)
 		{
-			var pathItem = Path.PathSplitter.SplitPath(parent);
-			var fileArray = jsonStructureManager.GetFileStructures();
-			int dirCount = jsonStructureManager.NextFileId;//fileArray.Length > 0 ? fileArray[fileArray.Length - 1].Id + 1 : 1;
-
-			int parentRootId = GetDirectoryId(pathItem);
-			var dirs = jsonStructureManager.GetFileStructureFromParent(parentRootId, fileName);
-			//var dirs = sqlite.GetValues(TABLE_FILES, "Parent = {0} and Name = '{1}'".FormatString(parentRootId, fileName));
-			if (dirs != null)
-				throw new Exception("Existed {0} on {1}".FormatString(fileName, parent));
-			if (parentRootId < 0)
-				throw new DirectoryNotFoundException("Not found {0}".FormatString(parent));
-
-			var start = fManager.Write(data);
-
-			jsonStructureManager.CreateFile(dirCount, parentRootId, fileName, start, mimeType);
+			var (nextId, parentId) = ResolveTermParameters(fileName, parent);         
+			var start = fManager.Write(data);         
+			jsonStructureManager.CreateFile(nextId, parentId, fileName, start, mimeType);
 			//sqlite.InsertValue(TABLE_FILES, dirCount.ToString(), parentRootId.ToString(), fileName, start.ToString(), mimeType);
 			//return (true, string.Empty);
 		}
 
 		public void CreateImage(string fileName, string parent, string inFilePath)
 		{
-			var data = ImageLoader.FromImageFile(inFilePath).Data;
-			var mimetype = MimeType.MimeTypeMap.GetMimeType(inFilePath);
-			if (data != null)
-				CreateImage(fileName, parent, data, mimetype);
+			if (!File.Exists(inFilePath))
+				return;
+   
+			var mimeType = MimeType.MimeTypeMap.GetMimeType(inFilePath);
+			var stream = new FileStream(inFilePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+			if (stream.Length > 536870912)
+			{
+				var (nextId, parentId) = ResolveTermParameters(fileName, parent);
+				var start = fManager.Write(stream, (writeStream) => {
+					while (true)
+                    {
+                        byte[] bs = new byte[8192];
+                        int readSize = stream.Read(bs, 0, bs.Length);
+                        if (readSize == 0)
+                            break;
+						writeStream.Write(bs, 0, bs.Length);
+                    }
+				});
+				jsonStructureManager.CreateFile(nextId, parentId, fileName, start, mimeType);
+			}
+			else
+			{
+				var data = ImageLoader.FromImageFile(stream, stream.Dispose).Data;
+                if (data != null)
+					CreateImage(fileName, parent, data, mimeType);
+			}         
 		}
 
 		public void CreateImage(string fullPath, string inFilePath)
@@ -111,7 +138,7 @@ namespace FileManagerLib.Filer.Json
 			}
 		}
 
-		private string[] ResolveAbsolutePath(string basePath, string parent, string[] dirPathArray)
+		private static string[] ResolveAbsolutePath(string basePath, string parent, string[] dirPathArray)
 		{
 			string func(string path, string referencePath)
 			{
