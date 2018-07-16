@@ -169,7 +169,7 @@ namespace ImageManagerCUI
             var filePath = parser.GetAttribute("file") ?? parser.GetAttribute(1);
             //var parent = parser.GetAttribute("parent") ?? parser.GetAttribute(2) ?? "/";
 
-			fileManager.CreateImage(fullPath, filePath);
+			fileManager.CreateFile(fullPath, filePath);
         }
 
         public void AddFiles(CmdParser parser)
@@ -177,7 +177,7 @@ namespace ImageManagerCUI
             var dirPath = parser.GetAttribute("dir") ?? parser.GetAttribute(0);
             var parent = parser.GetAttribute("parent") ?? parser.GetAttribute(1) ?? "/";
             
-			fileManager.CreateImages(parent, dirPath);
+			fileManager.CreateFiles(parent, dirPath);
         }
 
         public void DeleteFile(CmdParser parser)

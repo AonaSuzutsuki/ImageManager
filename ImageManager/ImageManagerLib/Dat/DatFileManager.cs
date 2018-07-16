@@ -135,7 +135,7 @@ namespace Dat
             
             var pos = fileStream.Position;
 			fileStream.Seek(LastPositionWithoutJson, SeekOrigin.End);
-            fileStream.Write(lenArray, 0, lenArray.Length);
+            fileStream.Write(lenArray, 0, LEN);
             fileStream.Write(data, 0, data.Length);
 			LastPositionWithoutJson += len;
 
@@ -144,12 +144,12 @@ namespace Dat
 
 		public long Write(Stream stream, Action<Stream> writeAction)
 		{
-			var len = (int)stream.Length;
+			var len = stream.Length;
             var lenArray = BitConverter.GetBytes(len);
 
             var pos = fileStream.Position;
 			fileStream.Seek(LastPositionWithoutJson, SeekOrigin.End);
-            fileStream.Write(lenArray, 0, lenArray.Length);
+            fileStream.Write(lenArray, 0, LEN);
 
 			writeAction?.Invoke(fileStream);
 
@@ -170,7 +170,7 @@ namespace Dat
                 fileStream.Seek(0, SeekOrigin.End);
 
             fileStream.Write(data, 0, data.Length);
-			fileStream.Write(lenArray, 0, lenArray.Length);
+			fileStream.Write(lenArray, 0, LEN);
 
 			return pos;
 		}

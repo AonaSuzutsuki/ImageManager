@@ -1,21 +1,24 @@
 ﻿using FileManagerLib.Path;
+using System;
 
 namespace FileManagerLib.Filer
 {
-    public interface IFileManager
+    public interface IFileManager : IDisposable
     {
+        /// <summary>
+        /// Create the directory.
+        /// </summary>
+        /// <param name="fullPath">Fullpath of directory. ex:/dir/subdir</param>
         void CreateDirectory(string fullPath);
-        void CreateImage(string fileName, string parent, byte[] data, string mimeType);
-        void CreateImage(string fileName, string parent, string inFilePath);
-        void CreateImage(string fullPath, string inFilePath);
-        void CreateImages(string parent, string dirPath);
-        void CreateTable();
+        void CreateFile(string fileName, string parent, byte[] data, string mimeType);
+        void CreateFile(string fileName, string parent, string inFilePath);
+        void CreateFile(string fullPath, string inFilePath);
+        void CreateFiles(string parent, string dirPath);
         void DataVacuum();
         void DeleteDirectory(string fullPath);
         void DeleteDirectory(int id);
         void DeleteFile(string fullPath);
         void DeleteFile(int id);
-        void Dispose();
         int GetDirectoryId(string dirName, int rootId);
         int GetDirectoryId(PathItem pathItem);
         string ToString();

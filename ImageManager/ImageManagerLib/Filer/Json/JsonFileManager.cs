@@ -73,7 +73,7 @@ namespace FileManagerLib.Filer.Json
 			return (dirCount, parentRootId);
 		}
 
-		public void CreateImage(string fileName, string parent, byte[] data, string mimeType)
+		public void CreateFile(string fileName, string parent, byte[] data, string mimeType)
 		{
 			var (nextId, parentId) = ResolveTermParameters(fileName, parent);         
 			var start = fManager.Write(data);         
@@ -82,7 +82,7 @@ namespace FileManagerLib.Filer.Json
 			//return (true, string.Empty);
 		}
 
-		public void CreateImage(string fileName, string parent, string inFilePath)
+		public void CreateFile(string fileName, string parent, string inFilePath)
 		{
 			if (!File.Exists(inFilePath))
 				return;
@@ -109,18 +109,18 @@ namespace FileManagerLib.Filer.Json
                 {
                     var data = ImageLoader.FromImageFile(stream).Data;
                     if (data != null)
-                        CreateImage(fileName, parent, data, mimeType);
+                        CreateFile(fileName, parent, data, mimeType);
                 }
 			}         
 		}
 
-		public void CreateImage(string fullPath, string inFilePath)
+		public void CreateFile(string fullPath, string inFilePath)
 		{
 			var (parent, fileName) = fullPath.GetFilenameAndParent();
-			CreateImage(fileName, parent.ToString(), inFilePath);
+			CreateFile(fileName, parent.ToString(), inFilePath);
 		}
 
-		public void CreateImages(string parent, string dirPath)
+		public void CreateFiles(string parent, string dirPath)
 		{
 			var filePathArray = DirectorySearcher.GetAllFiles(dirPath);
 			var dirPathArray = DirectorySearcher.GetAllDirectories(dirPath);
@@ -136,7 +136,7 @@ namespace FileManagerLib.Filer.Json
 				var path = file.v;
 				var par = System.IO.Path.GetDirectoryName(internalFilePathArray[file.i]);
 				Console.WriteLine("{0}/{1}\t{2}".FormatString(file.i + 1, filePathArray.Length, file.v));
-				CreateImage(System.IO.Path.GetFileName(path), System.IO.Path.GetDirectoryName(internalFilePathArray[file.i]), path);
+				CreateFile(System.IO.Path.GetFileName(path), System.IO.Path.GetDirectoryName(internalFilePathArray[file.i]), path);
 			}
 		}
 
@@ -154,11 +154,6 @@ namespace FileManagerLib.Filer.Json
 			foreach (var dir in dirPathArray)
                 list.Add(func(dir, basePath));
 			return list.ToArray();
-		}
-
-		public void CreateTable()
-		{
-			return;
 		}
 
 		public void DeleteDirectory(string fullPath)
