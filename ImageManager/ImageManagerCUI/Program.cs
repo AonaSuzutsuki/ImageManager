@@ -5,6 +5,8 @@ using FileManagerLib.Filer;
 using System.IO;
 using System.Linq;
 using System.Diagnostics;
+using FileManagerLib.Filer.Json;
+using FileManagerLib.Extensions.Path;
 
 namespace ImageManagerCUI
 {
@@ -12,7 +14,7 @@ namespace ImageManagerCUI
     {
         public static void Main(string[] args)
         {
-            var program = new Program();
+			IProgram program = new JsonProgram();
 
             while (true)
             {
@@ -30,32 +32,45 @@ namespace ImageManagerCUI
                 //}
                 var sw = new Stopwatch();
                 sw.Start();
-                if (!program.Parse(cmd))
-                    break;
+				try
+				{
+                    if (!program.Parse(cmd))
+                        break;
+				}
+				catch (Exception e)
+				{
+					Console.WriteLine(e.Message);
+				}
                 sw.Stop();
                 var msec = sw.ElapsedMilliseconds;
                 Console.WriteLine("{0}ms".FormatString(msec));
             }
         }
+    }
 
 
-        private string dbFilename;
-        private FileManager imageManager;
+	public interface IProgram
+	{
+		bool Parse(string cmd);
+	}
 
+	public class JsonProgram : IProgram
+	{
+		JsonFileManager fileManager;
 
-        public bool Parse(string cmd)
-        {
-            var parser = new CmdParser(cmd);
+		public bool Parse(string cmd)
+		{
+			var parser = new CmdParser(cmd);
             switch (parser.Command)
             {
-                case "exit":
-                    Close(parser);
+				case "exit":
+					fileManager?.Dispose();
                     return false;
                 case "gc":
                     GC.Collect();
                     break;
                 case "close":
-                    Close(parser);
+					fileManager?.Dispose();
                     break;
                 case "make":
                     MakeDatabase(parser);
@@ -76,52 +91,63 @@ namespace ImageManagerCUI
                     AddFiles(parser);
                     break;
                 case "delfile":
-                    DeleteFile(parser);
+                    //DeleteFile(parser);
                     break;
-                case "writeto":
-                    WriteTo(parser);
+                case "writetofile":
+                    WriteTo(parser, fileManager.WriteToFile, fileManager.WriteToFile);
+                    break;
+                case "writetodir":
+                    WriteTo(parser, fileManager.WriteToDir, fileManager.WriteToDir);
                     break;
                 case "vacuum":
-                    imageManager.DataVacuum();
+					fileManager.DataVacuum();
                     break;
                 case "trace":
                     Trace(parser);
                     break;
             }
             return true;
-        }
-        
-        public void Close(CmdParser parser)
+		}
+
+
+
+		public void MakeDatabase(CmdParser parser)
         {
-            imageManager?.Dispose();
+            var dbFilename = parser.GetAttribute("file") ?? parser.GetAttribute(0);
+			fileManager = new JsonFileManager(dbFilename, true, filePath =>
+            {
+                Console.WriteLine("{0} exist. Are you sure you want to delete this item? [y/n]", filePath);
+                Console.Write("> ");
+                var ans = Console.ReadLine();
+                if (ans.Equals("y"))
+                    File.Delete(filePath);
+            });
+            Console.WriteLine("Loaded {0}.", dbFilename);
         }
 
-        public void MakeDatabase(CmdParser parser)
+		public void LoadDatabase(CmdParser parser)
         {
-            dbFilename = parser.GetAttribute("file") ?? parser.GetAttribute(0);
-            imageManager = new FileManager(dbFilename, true);
-            imageManager.CreateTable();
+            var dbFilename = parser.GetAttribute("file") ?? parser.GetAttribute(0);
+			fileManager= new JsonFileManager(dbFilename, false);
+            Console.WriteLine("Loaded {0}.", dbFilename);
         }
 
-        public void LoadDatabase(CmdParser parser)
+		public void CreateDirectory(CmdParser parser)
         {
-            dbFilename = parser.GetAttribute("file") ?? parser.GetAttribute(0);
-            imageManager = new FileManager(dbFilename, false);
+			var fullPath = parser.GetAttribute("name") ?? parser.GetAttribute(0);
+
+            try
+            {
+				fileManager.CreateDirectory(fullPath);
+                Console.WriteLine("Success to mkdir {0} on {1}.", fullPath, fullPath.GetFilenameAndParent().parent.ToString());
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Failed to mkdir: {0}.", e.Message);
+            }
         }
 
-        public void CreateDirectory(CmdParser parser)
-        {
-            var fullPath = parser.GetAttribute("name") ?? parser.GetAttribute(0);
-            //var parent = parser.GetAttribute("parent") ?? parser.GetAttribute(1) ?? "/";
-
-            var succ = imageManager.CreateDirectory(fullPath);
-            if (succ.Item1)
-                Console.WriteLine("Success to mkdir {0} on {1}.", fullPath, succ.Item2);
-            else
-                Console.WriteLine("Failed to mkdir: {0}.", succ.Item2);
-        }
-
-        public void DeleteDirectory(CmdParser parser)
+		public void DeleteDirectory(CmdParser parser)
         {
             var fullPath = parser.GetAttribute("name") ?? parser.GetAttribute(0);
             //var parent = parser.GetAttribute("parent") ?? parser.GetAttribute(1) ?? "/";
@@ -129,49 +155,48 @@ namespace ImageManagerCUI
             if (fullPath.Substring(0, 1).Equals(":"))
             {
                 var id = fullPath.TrimStart(':').ToInt();
-                imageManager.DeleteDirectory(id);
+				fileManager.DeleteDirectory(id);
             }
             else
             {
-                imageManager.DeleteDirectory(fullPath);
+				fileManager.DeleteDirectory(fullPath);
             }
         }
 
-        public void AddFile(CmdParser parser)
+		public void AddFile(CmdParser parser)
         {
             var fullPath = parser.GetAttribute("name") ?? parser.GetAttribute(0);
             var filePath = parser.GetAttribute("file") ?? parser.GetAttribute(1);
             //var parent = parser.GetAttribute("parent") ?? parser.GetAttribute(2) ?? "/";
 
-            imageManager.CreateImage(fullPath, filePath);
+			fileManager.CreateImage(fullPath, filePath);
         }
 
         public void AddFiles(CmdParser parser)
         {
             var dirPath = parser.GetAttribute("dir") ?? parser.GetAttribute(0);
             var parent = parser.GetAttribute("parent") ?? parser.GetAttribute(1) ?? "/";
-
-            var files = Directory.GetFiles(dirPath);
-            imageManager.CreateImages(parent, files);
+            
+			fileManager.CreateImages(parent, dirPath);
         }
 
         public void DeleteFile(CmdParser parser)
         {
             var fullPath = parser.GetAttribute("name") ?? parser.GetAttribute(0);
             //var parent = parser.GetAttribute("parent") ?? parser.GetAttribute(1) ?? "/";
-            
+
             if (fullPath.Substring(0, 1).Equals(":"))
             {
                 var id = fullPath.TrimStart(':').ToInt();
-                imageManager.DeleteFile(id);
+                fileManager.DeleteFile(id);
             }
             else
             {
-                imageManager.DeleteFile(fullPath);
+                fileManager.DeleteFile(fullPath);
             }
         }
 
-        public void WriteTo(CmdParser parser)
+        public void WriteTo(CmdParser parser, Action<int, string> idAct, Action<string, string> nameAct)
         {
             var fullPath = parser.GetAttribute("name") ?? parser.GetAttribute(0);
             var outFilePath = parser.GetAttribute("out") ?? parser.GetAttribute(1);
@@ -180,11 +205,13 @@ namespace ImageManagerCUI
             if (fullPath.Substring(0, 1).Equals(":"))
             {
                 var id = fullPath.TrimStart(':').ToInt();
-                imageManager.WriteToFile(id, outFilePath);
+                //fileManager.WriteToFile(id, outFilePath);
+                idAct?.Invoke(id, outFilePath);
             }
             else
             {
-                imageManager.WriteToFile(fullPath, outFilePath);
+                nameAct?.Invoke(fullPath, outFilePath);
+                //fileManager.WriteToFile(fullPath, outFilePath);
             }
         }
 
@@ -195,15 +222,15 @@ namespace ImageManagerCUI
             switch (type)
             {
                 case "d":
-                    Console.WriteLine(imageManager.TraceDirs());
+					Console.WriteLine(fileManager.TraceDirs());
                     break;
                 case "f":
-                    Console.WriteLine(imageManager.TraceFiles());
+					Console.WriteLine(fileManager.TraceFiles());
                     break;
                 default:
-                    Console.WriteLine(imageManager);
+					Console.WriteLine(fileManager);
                     break;
             }
         }
-    }
+	}
 }

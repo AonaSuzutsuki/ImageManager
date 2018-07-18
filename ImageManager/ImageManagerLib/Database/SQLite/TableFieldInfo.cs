@@ -1,5 +1,5 @@
 ﻿using CommonExtensionLib.Extensions;
-using FileManagerLib.Extentions.SQLite;
+using FileManagerLib.Extensions.SQLite;
 using System;
 using System.Collections.Generic;
 using System.Linq;

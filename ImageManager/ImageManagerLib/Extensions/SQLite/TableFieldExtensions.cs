@@ -5,9 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FileManagerLib.Extentions.SQLite
+namespace FileManagerLib.Extensions.SQLite
 {
-    public static class TableFieldExtentions
+    public static class TableFieldExtensions
     {
         public static string AttributeToString(this TableFieldAttribute attr)
         {

@@ -5,9 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FileManagerLib.Extentions.Imager
+namespace FileManagerLib.Extensions.Imager
 {
-    public static class ImageExtention
+	public static class ImageExtension
     {
         public static Image ByteArrayToImage(this byte[] b)
         {

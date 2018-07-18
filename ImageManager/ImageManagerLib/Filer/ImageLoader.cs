@@ -54,6 +54,20 @@ namespace FileManagerLib.Filer
             return imageInfo;
 
         }
+		public static ImageInfo FromImageFile(Stream stream, Action disposeAct = null)
+        {
+			if (stream == null)
+                return null;
+
+            byte[] data = new byte[stream.Length];
+			stream.Read(data, 0, data.Length);
+            
+			disposeAct?.Invoke();
+            
+            var imageInfo = new ImageInfo(data, Convert.ToBase64String(data));
+            return imageInfo;
+
+        }
         #endregion
     }
 }

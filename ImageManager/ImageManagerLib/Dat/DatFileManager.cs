@@ -10,6 +10,7 @@ namespace Dat
 
 		#region Fields
 		private FileStream fileStream;
+        private long lastPositionWithoutJson = 0;
         #endregion
 
         #region Properties
@@ -18,6 +19,16 @@ namespace Dat
             get;
             private set;
         }
+
+		public int SplitSize { get; } = 25165824; //536870912
+
+        public bool IsShiftJsonPosition { get; set; } = false;
+
+		private long LastPositionWithoutJson
+		{
+			get => lastPositionWithoutJson > 0 ? 0 : lastPositionWithoutJson;
+			set => lastPositionWithoutJson = value;
+		}
         #endregion
 
         public DatFileManager(string filePath)
@@ -42,14 +53,35 @@ namespace Dat
 			return data;
 		}
 
-        public (long, byte[]) GetPartialBytes(long start, long length)
+		public byte[] GetBytesFromEnd()
+		{
+			byte[] data = null;
+
+			if (fileStream != null)
+            {
+				var idArray = new byte[LEN];
+				fileStream.Seek(-idArray.Length, SeekOrigin.End);
+				fileStream.Read(idArray, 0, idArray.Length);
+				var length = BitConverter.ToInt32(idArray, 0);
+
+
+				fileStream.Seek(-(length + idArray.Length), SeekOrigin.End);
+                data = new byte[length];
+                fileStream.Read(data, 0, data.Length);
+				LastPositionWithoutJson = -(length + idArray.Length);
+            }
+
+            return data;
+		}
+
+        public (uint, byte[]) GetPartialBytes(long start, long length)
         {
-            long len = 0;
+            uint len = 0;
             byte[] data = null;
 
             if (fileStream != null)
             {
-                len = GetIntAndSeek(fileStream, start, LEN);
+                len = (uint)GetIntAndSeek(fileStream, start, LEN);
 
                 data = new byte[length];
                 fileStream.Read(data, 0, data.Length);
@@ -57,6 +89,39 @@ namespace Dat
 
             return (len, data);
         }
+
+		public void WriteToFile(long start, string outFilePath)
+		{
+            if (fileStream != null)
+            {
+				using (var fs = new FileStream(outFilePath, FileMode.Create, FileAccess.Write, FileShare.None))
+                {
+					var length = GetIntAndSeek(fileStream, start, LEN);
+					if (length > SplitSize)
+                    {
+						while (true)
+                        {
+                            var data = new byte[SplitSize];
+                            int readSize = fileStream.Read(data, 0, data.Length);
+                            if (length <= readSize)
+                            {
+                                fs.Write(data, 0, (int)length);
+                                break;
+                            }
+                            
+                            fs.Write(data, 0, readSize);
+                            length -= (uint)readSize;
+                        }
+                    }
+                    else
+                    {
+                        var data = new byte[length];
+                        fileStream.Read(data, 0, data.Length);
+						fs.Write(data, 0, data.Length);
+                    }
+                }
+            }
+		}
 
 		public void Dispose()
 		{
@@ -69,20 +134,53 @@ namespace Dat
             var lenArray = BitConverter.GetBytes(len);
             
             var pos = fileStream.Position;
-            fileStream.Seek(0, SeekOrigin.End);
+			fileStream.Seek(LastPositionWithoutJson, SeekOrigin.End);
             fileStream.Write(lenArray, 0, lenArray.Length);
             fileStream.Write(data, 0, data.Length);
-            fileStream.Flush();
+			LastPositionWithoutJson += len;
 
             return pos;
         }
 
-		private static int GetIntAndSeek(Stream stream, long start, long length)
+		public long Write(Stream stream, Action<Stream> writeAction)
+		{
+			var len = (int)stream.Length;
+            var lenArray = BitConverter.GetBytes(len);
+
+            var pos = fileStream.Position;
+			fileStream.Seek(LastPositionWithoutJson, SeekOrigin.End);
+            fileStream.Write(lenArray, 0, lenArray.Length);
+
+			writeAction?.Invoke(fileStream);
+
+			LastPositionWithoutJson += len;
+
+            return pos;
+		}
+
+		public long WriteToEnd(byte[] data)
+		{
+			var len = data.Length;
+            var lenArray = BitConverter.GetBytes(len);
+			var pos = fileStream.Position;
+
+			if (IsShiftJsonPosition && len > -LastPositionWithoutJson)
+				fileStream.Seek(LastPositionWithoutJson, SeekOrigin.End);
+            else
+                fileStream.Seek(0, SeekOrigin.End);
+
+            fileStream.Write(data, 0, data.Length);
+			fileStream.Write(lenArray, 0, lenArray.Length);
+
+			return pos;
+		}
+
+		private static uint GetIntAndSeek(Stream stream, long start, long length)
 		{
 			var idLenArray = new byte[length];
 			stream.Seek(start, SeekOrigin.Begin);
 			stream.Read(idLenArray, 0, idLenArray.Length);
-            var idLength = BitConverter.ToInt32(idLenArray, 0);
+            var idLength = BitConverter.ToUInt32(idLenArray, 0);
 			//stream.Seek(idLenArray.Length, SeekOrigin.Current);
 
 			return idLength;
@@ -94,7 +192,7 @@ namespace Dat
             var destStream = dest.fileStream;
 
             srcStream.Seek(loc, SeekOrigin.Begin);
-            int length = GetIntAndSeek(srcStream, loc, LEN);
+            uint length = GetIntAndSeek(srcStream, loc, LEN);
 
             var data = new byte[length];
             srcStream.Read(data, 0, data.Length);
