@@ -96,12 +96,12 @@ namespace Dat
 		{
             if (fileStream != null)
             {
-				using (var fs = new FileStream(outFilePath, FileMode.Create, FileAccess.Write, FileShare.None))
+                using (var fs = new FileStream(outFilePath, FileMode.Create, FileAccess.Write, FileShare.None))
                 {
-					var length = GetIntAndSeek(fileStream, start, LEN);
-					//if (length > SplitSize)
-     //               {
-						while (true)
+                    var length = GetIntAndSeek(fileStream, start, LEN);
+                    if (length > SplitSize)
+                    {
+                        while (true)
                         {
                             var data = new byte[SplitSize];
                             int readSize = fileStream.Read(data, 0, data.Length);
@@ -110,20 +110,20 @@ namespace Dat
                                 fs.Write(data, 0, (int)length);
                                 break;
                             }
-                            
+
                             fs.Write(data, 0, readSize);
                             length -= (uint)readSize;
                         }
-      //              }
-      //              else
-      //              {
-      //                  var data = new byte[length];
-      //                  fileStream.Read(data, 0, data.Length);
-						//fs.Write(data, 0, data.Length);
-      //              }
+                    }
+                    else
+                    {
+                        var data = new byte[length];
+                        fileStream.Read(data, 0, data.Length);
+                        fs.Write(data, 0, data.Length);
+                    }
                 }
             }
-		}
+        }
 
 		public void Dispose()
 		{
