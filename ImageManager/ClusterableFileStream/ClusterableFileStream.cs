@@ -36,7 +36,7 @@ namespace Clusterable.IO
             }
         }
 
-		public long SplitSize { get; set; } = 1073741824;
+		public long SplitSize { get; set; } = 1073741824; //1073741824:1gb 10485760:10mb
 
         public string[] Filenames
         {
@@ -50,7 +50,7 @@ namespace Clusterable.IO
         }
         #endregion
 
-        public ClusterableFileStream(string path, FileMode mode, FileAccess access, FileShare share)
+        public ClusterableFileStream(string path, FileMode mode, FileAccess access, FileShare share, string assemblyDirPath = null)
         {
 			if (mode == FileMode.Create || !File.Exists(path))
             {
@@ -58,7 +58,9 @@ namespace Clusterable.IO
             }
             else
             {
-                var absolutePath = CommonCoreLib.Path.PathConverter.ToAbsolutePath(path, () => Path.GetDirectoryName(Assembly.GetEntryAssembly().Location));
+                if (assemblyDirPath == null)
+                    assemblyDirPath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+                var absolutePath = CommonCoreLib.Path.PathConverter.ToAbsolutePath(path, () => assemblyDirPath);
                 var root = Path.GetDirectoryName(absolutePath);
                 var fname = Path.GetFileName(path).Replace(".", @"\.");
                 var files = Directory.GetFiles(root);
@@ -112,12 +114,16 @@ namespace Clusterable.IO
 				Write(data, offset + writeLen, remLen);
 		}
 
+        List<Stream> prestreams = new List<Stream>();
+        List<int> remLens = new List<int>();
+
 		public int Read(byte[] buffer, int offset, int length)
 		{
-			var prestreams = new List<Stream>();
-			var remLens = new List<int>();
-			var buffers = new List<byte[]>();
-			var startIndex = (int)Math.Floor((double)Position / (double)SplitSize);
+            //var prestreams = new List<Stream>();
+            //var remLens = new List<int>();
+            prestreams.Clear();
+            remLens.Clear();
+            var startIndex = (int)Math.Floor((double)Position / (double)SplitSize);
 			var requres = (int)Math.Ceiling((double)length / (double)SplitSize);
 
             // 読み込むべきストリームと長さのリストを計算
@@ -138,11 +144,18 @@ namespace Clusterable.IO
 			foreach (var item in prestreams.Select((value, index) => new { value, index }))
 			{
 				var rlen = remLens[item.index];
-				var buf = new byte[rlen];
-				item.value.Seek(start, SeekOrigin.Begin);
+
+                byte[] buf;
+                if (rlen < buffer.Length)
+                    buf = new byte[rlen];
+                else
+                    buf = buffer;
+                
+                item.value.Seek(start, SeekOrigin.Begin);
 				var prereadCount = item.value.Read(buf, 0, buf.Length);
 
-                Array.Copy(buf, 0, buffer, readCount, buf.Length);
+                if (rlen < buffer.Length)
+                    Buffer.BlockCopy(buf, 0, buffer, readCount, buf.Length);
 				//foreach (var b in buf.Select((value, index) => new { value, index }))
     //                buffer[readCount + b.index] = b.value;
 				readCount += prereadCount;
