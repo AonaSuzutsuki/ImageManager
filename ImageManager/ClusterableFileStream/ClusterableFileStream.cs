@@ -2,18 +2,19 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using CommonExtensionLib.Extensions;
 
-namespace ClusterableFileStream
+namespace Clusterable.IO
 {
     public class ClusterableFileStream : IDisposable
     {
 
         #region Fields
-        private IList<Stream> streams = new List<Stream>();
+        private List<FileStream> streams = new List<FileStream>();
 
 		private string baseFilePath;
 		private FileMode mode;
@@ -35,7 +36,18 @@ namespace ClusterableFileStream
             }
         }
 
-		public long SplitSize { get; set; } = 5;
+		public long SplitSize { get; set; } = 1073741824;
+
+        public string[] Filenames
+        {
+            get
+            {
+                var names = new List<string>();
+                foreach (var stream in streams)
+                    names.Add(stream.Name);
+                return names.ToArray();
+            }
+        }
         #endregion
 
         public ClusterableFileStream(string path, FileMode mode, FileAccess access, FileShare share)
@@ -46,21 +58,28 @@ namespace ClusterableFileStream
             }
             else
             {
-				var root = Path.GetDirectoryName(path);
+                var absolutePath = CommonCoreLib.Path.PathConverter.ToAbsolutePath(path, () => Path.GetDirectoryName(Assembly.GetEntryAssembly().Location));
+                var root = Path.GetDirectoryName(absolutePath);
                 var fname = Path.GetFileName(path).Replace(".", @"\.");
                 var files = Directory.GetFiles(root);
+                var sorted = new SortedDictionary<int, FileStream>();
                 foreach (var file in files)
                 {
-                    if (Regex.IsMatch(file, fname + @"(\.([0-9]{0,3}))?"))
-					{
-						var stream = new FileStream(file, mode, access, share);
-						streams.Add(stream);
-						Position += stream.Length;
+                    var reg = new Regex(fname + @"(\.(?<num>[0-9]{0,3}))?", RegexOptions.IgnoreCase | RegexOptions.Singleline);
+                    var match = reg.Match(file);
+                    if (match.Success)
+                    {
+                        var numstr = match.Groups["num"].Value;
+                        var num = string.IsNullOrEmpty(numstr) ? 0 : numstr.ToInt();
+                        var stream = new FileStream(file, mode, access, share);
+                        sorted.Add(num, stream);
+                        Position += stream.Length;
                     }
                 }
+                streams.AddRange(sorted.Values);
             }
 
-			this.baseFilePath = path;
+            this.baseFilePath = path;
 			this.mode = mode;
 			this.access = access;
 			this.share = share;
@@ -81,10 +100,12 @@ namespace ClusterableFileStream
 				return wLen;
 			};
 
-			var writeLen = func(stream);
+            var writeLen = func(stream);
 			var remLen = length - writeLen; // 残りの長さ
 
-			stream.Write(data, offset, writeLen);
+            int start = (int)(Position - SplitSize * startIndex);
+            stream.Seek(start, SeekOrigin.Begin);
+            stream.Write(data, offset, writeLen);
 			Position += writeLen;
 
 			if (remLen > 0)
@@ -100,7 +121,7 @@ namespace ClusterableFileStream
 			var requres = (int)Math.Ceiling((double)length / (double)SplitSize);
 
             // 読み込むべきストリームと長さのリストを計算
-			var prelen = length;
+            var prelen = length;
 			for (int i = 0; i < requres; i++)
 			{
 				var index = startIndex + i;
@@ -112,18 +133,22 @@ namespace ClusterableFileStream
 				}
 			}
 
-			int start = (int)Position + offset;
+			int start = (int)(Position - SplitSize * startIndex) + offset;
 			int readCount = 0;
 			foreach (var item in prestreams.Select((value, index) => new { value, index }))
 			{
 				var rlen = remLens[item.index];
 				var buf = new byte[rlen];
-				item.value.Seek(0, SeekOrigin.Begin);
-				var prereadCount = item.value.Read(buf, start, buf.Length);
-				foreach (var b in buf.Select((value, index) => new { value, index }))
-                    buffer[readCount + b.index] = b.value;
+				item.value.Seek(start, SeekOrigin.Begin);
+				var prereadCount = item.value.Read(buf, 0, buf.Length);
+
+                Array.Copy(buf, 0, buffer, readCount, buf.Length);
+				//foreach (var b in buf.Select((value, index) => new { value, index }))
+    //                buffer[readCount + b.index] = b.value;
 				readCount += prereadCount;
-			}
+                Position += prereadCount;
+                start = 0;
+            }
             
 			return readCount;
 		}
@@ -143,6 +168,22 @@ namespace ClusterableFileStream
 				Position = Length + offset;         
 			}
 		}
+
+        public string[] Delete(Func<string, string> func = null)
+        {
+            var filenames = new List<string>(streams.Count);
+            foreach (var stream in streams)
+            {
+                var filename = stream.Name;
+                stream.Dispose();
+                File.Delete(filename);
+                if (func != null)
+                    filename = func(filename);
+                filenames.Add(filename);
+            }
+            return filenames.ToArray();
+        }
+
 
 		#region IDisposable Support
 		private bool disposedValue = false; // To detect redundant calls
