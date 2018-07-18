@@ -348,11 +348,12 @@ namespace FileManagerLib.Filer.Json
 			}
 
 			var filePath = fManager.FilePath;
-			fManager.Dispose();
-			File.Delete(filePath);
-			File.Move(tempFilePath, filePath);
+            //fManager.Dispose();
+            //File.Delete(filePath);
+            //File.Move(tempFilePath, filePath);
+            fManager.Rename(".temp");
 
-			fManager = makeDatFileManager(filePath);
+			//fManager = makeDatFileManager(filePath);
 		}
 
 
@@ -393,15 +394,16 @@ namespace FileManagerLib.Filer.Json
                         Directory.CreateDirectory(path);
                 }
 
-                foreach (var file in files)
+                foreach (var item in files.Select((value, index) => new { index, value }))
                 {
                     string path;
-                    var pathItem = PathSplitter.SplitPath(GetFilePath(jsonStructureManager, file.Id));
+                    var pathItem = PathSplitter.SplitPath(GetFilePath(jsonStructureManager, item.value.Id));
                     if (filePath.Equals("/"))
                         path = outFilePath + pathItem.ToString();
                     else
                         path = outFilePath + pathItem.GetPathItemFrom(filePath).ToString();
-                    WriteToFile(file, path);
+                    Console.WriteLine("{0}/{1}\t{2}".FormatString(item.index + 1, files.Length, item.value.Name));
+                    WriteToFile(item.value, path);
                 }
             }
         }

@@ -32,15 +32,15 @@ namespace ImageManagerCUI
                 //}
                 var sw = new Stopwatch();
                 sw.Start();
-				try
-				{
+				//try
+				//{
                     if (!program.Parse(cmd))
                         break;
-				}
-				catch (Exception e)
-				{
-					Console.WriteLine(e.Message);
-				}
+				//}
+				//catch (Exception e)
+				//{
+				//	Console.WriteLine(e.Message);
+				//}
                 sw.Stop();
                 var msec = sw.ElapsedMilliseconds;
                 Console.WriteLine("{0}ms".FormatString(msec));
