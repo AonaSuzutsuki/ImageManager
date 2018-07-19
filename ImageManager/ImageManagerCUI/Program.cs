@@ -122,6 +122,7 @@ namespace ImageManagerCUI
                 if (ans.Equals("y"))
                     File.Delete(filePath);
             });
+			Initialize();
             Console.WriteLine("Loaded {0}.", dbFilename);
         }
 
@@ -129,8 +130,15 @@ namespace ImageManagerCUI
         {
             var dbFilename = parser.GetAttribute("file") ?? parser.GetAttribute(0);
 			fileManager= new JsonFileManager(dbFilename, false);
+			Initialize();
             Console.WriteLine("Loaded {0}.", dbFilename);
         }
+
+		public void Initialize()
+		{
+			fileManager.WriteIntoResourceProgress += FileManager_WriteProgress;
+			fileManager.WriteToFilesProgress += FileManager_WriteProgress;
+		}
 
 		public void CreateDirectory(CmdParser parser)
         {
@@ -232,5 +240,11 @@ namespace ImageManagerCUI
                     break;
             }
         }
+        
+		void FileManager_WriteProgress(object sender, JsonFileManager.ReadWriteProgressEventArgs eventArgs)
+		{
+			Console.WriteLine("{0}/{1} ({2}%)\t{3}".FormatString(eventArgs.CompletedNumber, eventArgs.FullNumber, eventArgs.Percentage, eventArgs.CurrentFilepath));
+		}
+
 	}
 }

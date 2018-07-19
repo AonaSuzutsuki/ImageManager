@@ -14,13 +14,40 @@ namespace FileManagerLib.Filer.Json
 	{
 
 		#region Fields
-		private string datName;
-		private string jsonName;
 		private JsonStructureManager jsonStructureManager;
 		private DatFileManager fManager;
+		private bool isWrited = false;
+		#endregion
+
+		#region Events
+		public class ReadWriteProgressEventArgs : EventArgs
+		{
+			public int CompletedNumber { get; }
+			public int FullNumber { get; }
+			public double Percentage
+			{
+				get
+				{
+					if (FullNumber > 0)
+						return Math.Ceiling(((double)CompletedNumber / (double)FullNumber) * 100);
+					return 0;
+				}
+			}
+			public string CurrentFilepath { get; }
+
+			public ReadWriteProgressEventArgs(int completedNumber, int fullNumber, string currentFilePath)
+			{
+				CompletedNumber = completedNumber;
+				FullNumber = fullNumber;
+				CurrentFilepath = currentFilePath;
+			}
+		}
+		public delegate void ReadWriteProgressEventHandler(object sender, ReadWriteProgressEventArgs eventArgs);
+		public event ReadWriteProgressEventHandler WriteToFilesProgress;
+		public event ReadWriteProgressEventHandler WriteIntoResourceProgress;
         #endregion
 
-        public JsonFileManager(string filePath, bool newFile = false, Action<string> fileExistAct = null)
+		public JsonFileManager(string filePath, bool newFile = false, Action<string> fileExistAct = null)
 		{
 			if (newFile)
 			{
@@ -135,8 +162,8 @@ namespace FileManagerLib.Filer.Json
 			{
 				var path = file.v;
 				var par = System.IO.Path.GetDirectoryName(internalFilePathArray[file.i]);
-				Console.WriteLine("{0}/{1}\t{2}".FormatString(file.i + 1, filePathArray.Length, file.v));
 				CreateFile(System.IO.Path.GetFileName(path), System.IO.Path.GetDirectoryName(internalFilePathArray[file.i]), path);
+				WriteIntoResourceProgress?.Invoke(this, new ReadWriteProgressEventArgs(file.i + 1, filePathArray.Length, path));
 			}
 		}
 
@@ -402,7 +429,9 @@ namespace FileManagerLib.Filer.Json
                         path = outFilePath + pathItem.ToString();
                     else
                         path = outFilePath + pathItem.GetPathItemFrom(filePath).ToString();
-                    Console.WriteLine("{0}/{1}\t{2}".FormatString(item.index + 1, files.Length, item.value.Name));
+					
+					WriteToFilesProgress?.Invoke(this, new ReadWriteProgressEventArgs(item.index + 1, files.Length, item.value.Name));
+
                     WriteToFile(item.value, path);
                 }
             }
@@ -439,7 +468,7 @@ namespace FileManagerLib.Filer.Json
 			var json = jsonStructureManager?.ToString();
 			Console.WriteLine(json);
 			//jsonStructureManager?.WriteToFile(jsonName);
-			fManager.WriteToEnd(Encoding.UTF8.GetBytes(json));
+			fManager?.WriteToEnd(Encoding.UTF8.GetBytes(json));
 			fManager?.Dispose();
 
 			fManager = null;
