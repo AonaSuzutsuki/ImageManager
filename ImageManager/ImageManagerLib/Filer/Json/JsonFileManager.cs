@@ -465,10 +465,12 @@ namespace FileManagerLib.Filer.Json
 
 		public void Dispose()
 		{
-			var json = jsonStructureManager?.ToString();
-			Console.WriteLine(json);
-			//jsonStructureManager?.WriteToFile(jsonName);
-			fManager?.WriteToEnd(Encoding.UTF8.GetBytes(json));
+			if (jsonStructureManager != null && jsonStructureManager.IsChenged)
+			{
+				var json = jsonStructureManager?.ToString();
+                Console.WriteLine(json);
+                fManager?.WriteToEnd(Encoding.UTF8.GetBytes(json));
+			}         
 			fManager?.Dispose();
 
 			fManager = null;
