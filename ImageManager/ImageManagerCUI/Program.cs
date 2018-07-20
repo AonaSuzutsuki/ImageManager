@@ -93,6 +93,12 @@ namespace ImageManagerCUI
                 case "delfile":
                     //DeleteFile(parser);
                     break;
+				case "getfiles":
+					GetFiles(parser);
+					break;
+				case "getdirs":
+					GetDirs(parser);
+                    break;
                 case "writetofile":
                     WriteTo(parser, fileManager.WriteToFile, fileManager.WriteToFile);
                     break;
@@ -120,7 +126,11 @@ namespace ImageManagerCUI
                 Console.Write("> ");
                 var ans = Console.ReadLine();
                 if (ans.Equals("y"))
+				{
                     File.Delete(filePath);
+					return true;
+				}
+				return false;
             });
 			Initialize();
             Console.WriteLine("Loaded {0}.", dbFilename);
@@ -203,6 +213,26 @@ namespace ImageManagerCUI
                 fileManager.DeleteFile(fullPath);
             }
         }
+
+		public void GetFiles(CmdParser parser)
+		{
+			var did = parser.GetAttribute("id") ?? parser.GetAttribute(0);
+			var files = fileManager.GetFiles(did.ToInt());
+			foreach (var file in files)
+			{
+				Console.WriteLine("{0}", file);
+			}
+		}
+
+		public void GetDirs(CmdParser parser)
+		{
+			var did = parser.GetAttribute("id") ?? parser.GetAttribute(0);
+			var dirs = fileManager.GetDirectories(did.ToInt());
+            foreach (var dir in dirs)
+            {
+                Console.WriteLine("{0}", dir);
+            }
+		}
 
         public void WriteTo(CmdParser parser, Action<int, string> idAct, Action<string, string> nameAct)
         {

@@ -16,7 +16,6 @@ namespace FileManagerLib.Filer.Json
 		#region Fields
 		private JsonStructureManager jsonStructureManager;
 		private DatFileManager fManager;
-		private bool isWrited = false;
 		#endregion
 
 		#region Events
@@ -46,13 +45,13 @@ namespace FileManagerLib.Filer.Json
 		public event ReadWriteProgressEventHandler WriteToFilesProgress;
 		public event ReadWriteProgressEventHandler WriteIntoResourceProgress;
         #endregion
-
-		public JsonFileManager(string filePath, bool newFile = false, Action<string> fileExistAct = null)
+        
+		public JsonFileManager(string filePath, bool newFile = false, Func<string, bool> fileExistAct = null)
 		{
 			if (newFile)
 			{
-                if (File.Exists(filePath))
-                    fileExistAct?.Invoke(filePath);
+				if (File.Exists(filePath) && fileExistAct != null)
+					newFile = fileExistAct.Invoke(filePath);
             }
 
 			fManager = new DatFileManager(filePath) { IsShiftJsonPosition = true };
@@ -244,6 +243,28 @@ namespace FileManagerLib.Filer.Json
 				dirId = GetDirectoryId(path, dirId);
 
 			return dirId;
+		}
+
+		public string[] GetFiles(int dirId)
+		{
+			var files = jsonStructureManager.GetFileStructuresFromParent(dirId);
+			var fList = new List<string>();
+			foreach (var file in files)
+			{
+				fList.Add(file.Name);
+			}
+			return fList.ToArray();
+		}
+        
+		public string[] GetDirectories(int dirId)
+		{
+			var dirs = jsonStructureManager.GetDirectoryStructuresFromParent(dirId);
+            var dList = new List<string>();
+            foreach (var dir in dirs)
+            {
+                dList.Add(dir.Name);
+            }
+            return dList.ToArray();
 		}
 
 		#region Trace
