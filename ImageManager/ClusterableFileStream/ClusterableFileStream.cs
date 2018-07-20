@@ -16,6 +16,7 @@ namespace Clusterable.IO
         #region Fields
         private List<FileStream> streams = new List<FileStream>();
 
+		private long position = 0;
 		private string baseFilePath;
 		private FileMode mode;
 		private FileAccess access;
@@ -23,7 +24,16 @@ namespace Clusterable.IO
 		#endregion
 
 		#region Properties
-		public long Position { get; private set; } = 0;
+		public long Position
+		{
+			get
+			{
+				if (position < 0)
+					return 0;
+				return position;
+			}
+			private set => position = value;
+		}
 
 		public long Length
         {
@@ -124,18 +134,31 @@ namespace Clusterable.IO
             prestreams.Clear();
             remLens.Clear();
             var startIndex = (int)Math.Floor((double)Position / (double)SplitSize);
-			var requres = (int)Math.Ceiling((double)length / (double)SplitSize);
+			var pres = Math.Floor(((double)Position + (double)length) / (double)SplitSize) - startIndex;
+			var requres = (int)Math.Ceiling((double)length / (double)SplitSize) + (int)pres;
 
             // 読み込むべきストリームと長さのリストを計算
             var prelen = length;
+			var preremlen = 0;
 			for (int i = 0; i < requres; i++)
 			{
 				var index = startIndex + i;
 				if (index < streams.Count)
 				{
 					prestreams.Add(streams[index]);
-                    remLens.Add(prelen > (int)SplitSize ? (int)SplitSize : prelen);
-                    prelen -= (int)SplitSize;
+
+					var isOver = Position + prelen > SplitSize * (startIndex + 1 + i);
+                    if (isOver)
+                    {
+						var overSize = SplitSize * (startIndex + 1 + i) - Position + preremlen;
+						remLens.Add((int)overSize);
+						prelen -= (int)overSize;
+						preremlen += (int)overSize;
+                    }
+                    else
+                    {
+						remLens.Add(prelen);
+                    }
 				}
 			}
 
@@ -156,8 +179,6 @@ namespace Clusterable.IO
 
                 if (rlen < buffer.Length)
                     Buffer.BlockCopy(buf, 0, buffer, readCount, buf.Length);
-				//foreach (var b in buf.Select((value, index) => new { value, index }))
-    //                buffer[readCount + b.index] = b.value;
 				readCount += prereadCount;
                 Position += prereadCount;
                 start = 0;
