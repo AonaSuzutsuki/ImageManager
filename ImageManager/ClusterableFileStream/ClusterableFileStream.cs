@@ -144,20 +144,24 @@ namespace Clusterable.IO
 			{
 				var index = startIndex + i;
 				if (index < streams.Count)
-				{
-					prestreams.Add(streams[index]);
-
-					var isOver = Position + prelen > SplitSize * (startIndex + 1 + i);
+				{               
+					var isOver = Position + prelen + preremlen > SplitSize * (startIndex + 1 + i);
                     if (isOver)
                     {
-						var overSize = SplitSize * (startIndex + 1 + i) - Position + preremlen;
+						var overSize = SplitSize * (startIndex + 1 + i) - (Position + preremlen);
 						remLens.Add((int)overSize);
+                        prestreams.Add(streams[index]);
 						prelen -= (int)overSize;
 						preremlen += (int)overSize;
                     }
                     else
                     {
-						remLens.Add(prelen);
+						if (prelen > 0)
+						{
+                            remLens.Add(prelen);
+							prestreams.Add(streams[index]);
+							break;
+						}
                     }
 				}
 			}
