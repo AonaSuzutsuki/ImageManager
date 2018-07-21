@@ -107,7 +107,7 @@ namespace Clusterable.IO
 			var stream = streams[startIndex];
             
 			Func<Stream, int> func = (stm) => {
-				var wLen = (int)(SplitSize - stm.Length); // 書き込む長さ
+				var wLen = (int)(((startIndex + 1) * SplitSize) - Position); // 書き込む長さ
                 wLen = wLen > (int)length ? (int)length : wLen;
 				return wLen;
 			};
