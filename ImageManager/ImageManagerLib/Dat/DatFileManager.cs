@@ -38,7 +38,7 @@ namespace Dat
 			FilePath = filePath;
 			fileStream = new Clusterable.IO.ClusterableFileStream(filePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read)
 			{
-				SplitSize = 18077000
+				//SplitSize = 18077000
 			};
 		}
 
@@ -135,18 +135,26 @@ namespace Dat
 
         public void Rename(string suffix)
         {
+			var splitSize = fileStream.SplitSize;
             var filenames = fileStream.Delete();
+			fileStream.Dispose();
 
-            var prefs = new ClusterableFileStream(filenames[0] + suffix, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read);
+			var prefs = new ClusterableFileStream(filenames[0] + suffix, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read)
+			{
+				SplitSize = splitSize
+			};
             var srcFilenames = prefs.Filenames;
             prefs.Dispose();
 
-            foreach (var item in filenames.Select((value, index) => new { index, value }))
+			foreach (var item in srcFilenames.Select((value, index) => new { index, value }))
             {
-                var src = srcFilenames[item.index];
-                File.Move(src, item.value);
+				var dest = filenames[item.index];
+				File.Move(item.value, dest);
             }
-            fileStream = new ClusterableFileStream(filenames[0], FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read);
+			fileStream = new ClusterableFileStream(filenames[0], FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read)
+			{
+				SplitSize = splitSize
+			};
         }
 
         public long Write(byte[] data)
