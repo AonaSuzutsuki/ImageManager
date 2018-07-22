@@ -32,15 +32,15 @@ namespace Clusterable.IO.Tests
         [TestMethod()]
         public void WriteTest()
         {
-            var fs = MakeFileStream("test2.dat", FileMode.Create, 2);
+            var fs = MakeFileStream("test_w.dat", FileMode.Create, 2);
             WriteTestData(fs);
-            fs.Dispose();
+            fs.Delete();
         }
 
         [TestMethod()]
         public void ReadTest()
         {
-            var fs = MakeFileStream("test2.dat", FileMode.Create);
+            var fs = MakeFileStream("test_r1.dat", FileMode.Create);
             WriteTestData(fs);
 
             fs.Seek(0, SeekOrigin.Begin);
@@ -59,7 +59,7 @@ namespace Clusterable.IO.Tests
                 Buffer.BlockCopy(rdata, 0, res2, readCount, readSize);
                 readCount += readSize;
             }
-            fs.Dispose();
+            fs.Delete();
 
             CollectionAssert.AreEqual(exceptedData, res1);
             CollectionAssert.AreEqual(exceptedData, res2);

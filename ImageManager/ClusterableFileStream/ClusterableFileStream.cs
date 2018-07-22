@@ -242,6 +242,7 @@ namespace Clusterable.IO
                     filename = func(filename);
                 filenames.Add(filename);
             }
+            Dispose();
             return filenames.ToArray();
         }
 
