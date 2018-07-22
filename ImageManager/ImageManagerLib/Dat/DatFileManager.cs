@@ -36,10 +36,7 @@ namespace Dat
         public DatFileManager(string filePath)
         {
 			FilePath = filePath;
-			fileStream = new Clusterable.IO.ClusterableFileStream(filePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read)
-			{
-				//SplitSize = 18077000
-			};
+            fileStream = new Clusterable.IO.ClusterableFileStream(filePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read, 18077000);
 		}
 
 		public byte[] GetBytes(long start)
@@ -139,10 +136,7 @@ namespace Dat
             var filenames = fileStream.Delete();
 			fileStream.Dispose();
 
-			var prefs = new ClusterableFileStream(filenames[0] + suffix, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read)
-			{
-				SplitSize = splitSize
-			};
+            var prefs = new ClusterableFileStream(filenames[0] + suffix, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read);
             var srcFilenames = prefs.Filenames;
             prefs.Dispose();
 
@@ -151,10 +145,7 @@ namespace Dat
 				var dest = filenames[item.index];
 				File.Move(item.value, dest);
             }
-			fileStream = new ClusterableFileStream(filenames[0], FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read)
-			{
-				SplitSize = splitSize
-			};
+            fileStream = new ClusterableFileStream(filenames[0], FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read);
         }
 
         public long Write(byte[] data)
@@ -209,10 +200,10 @@ namespace Dat
 			var idLenArray = new byte[length];
 			stream.Seek(start, SeekOrigin.Begin);
 			stream.Read(idLenArray, 0, idLenArray.Length);
-            var idLength = BitConverter.ToUInt32(idLenArray, 0);
+            var idLength = BitConverter.ToInt32(idLenArray, 0);
 			//stream.Seek(idLenArray.Length, SeekOrigin.Current);
 
-			return idLength;
+			return (uint)idLength;
 		}
 
         public long WriteToTemp(long loc, DatFileManager dest)
