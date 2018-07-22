@@ -36,8 +36,8 @@ namespace Dat
         public DatFileManager(string filePath)
         {
 			FilePath = filePath;
-            fileStream = new Clusterable.IO.ClusterableFileStream(filePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read, 18077000);
-		}
+            fileStream = new ClusterableFileStream(filePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read); //18077000
+        }
 
 		public byte[] GetBytes(long start)
 		{
