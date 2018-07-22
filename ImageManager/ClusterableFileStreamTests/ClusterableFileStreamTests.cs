@@ -14,12 +14,13 @@ namespace Clusterable.IO.Tests
     {
         private byte[] exceptedData = new byte[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 };
 
-        public ClusterableFileStream MakeFileStream(string filename, FileMode mode, string asmDirPath = null)
+        public ClusterableFileStream MakeFileStream(string filename, FileMode mode, long splitSize = 0, string asmDirPath = null)
         {
-            var fs = new ClusterableFileStream(filename, mode, FileAccess.ReadWrite, FileShare.None, asmDirPath)
-            {
-                SplitSize = 2
-            };
+            ClusterableFileStream fs;
+            if (splitSize > 0)
+                fs = new ClusterableFileStream(filename, mode, FileAccess.ReadWrite, FileShare.None, splitSize, asmDirPath);
+            else
+                fs = new ClusterableFileStream(filename, mode, FileAccess.ReadWrite, FileShare.None, asmDirPath);
             return fs;
         }
 
@@ -31,7 +32,7 @@ namespace Clusterable.IO.Tests
         [TestMethod()]
         public void WriteTest()
         {
-            var fs = MakeFileStream("test2.dat", FileMode.Create);
+            var fs = MakeFileStream("test2.dat", FileMode.Create, 2);
             WriteTestData(fs);
             fs.Dispose();
         }
@@ -68,7 +69,7 @@ namespace Clusterable.IO.Tests
         public void ReadTest2()
         {
             var dir = Path.GetDirectoryName(typeof(ClusterableFileStreamTests).Assembly.Location);
-            var fs = MakeFileStream("AvailableTestData/test.dat", FileMode.OpenOrCreate, dir);
+            var fs = MakeFileStream("AvailableTestData/test2.dat", FileMode.OpenOrCreate, -1, dir);
 
             fs.Seek(0, SeekOrigin.Begin);
             var res1 = new byte[exceptedData.Length];

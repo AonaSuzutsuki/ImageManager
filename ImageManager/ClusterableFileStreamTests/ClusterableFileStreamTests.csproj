@@ -78,25 +78,37 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="AvailableTestData\test.dat">
+    <None Include="AvailableTestData\test2.dat">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="AvailableTestData\test.dat.1">
+    <None Include="AvailableTestData\test2.dat.1">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="AvailableTestData\test.dat.2">
+    <None Include="AvailableTestData\test2.dat.10">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="AvailableTestData\test.dat.3">
+    <None Include="AvailableTestData\test2.dat.2">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="AvailableTestData\test.dat.4">
+    <None Include="AvailableTestData\test2.dat.3">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="AvailableTestData\test.dat.5">
+    <None Include="AvailableTestData\test2.dat.4">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="AvailableTestData\test.dat.6">
+    <None Include="AvailableTestData\test2.dat.5">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="AvailableTestData\test2.dat.6">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="AvailableTestData\test2.dat.7">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="AvailableTestData\test2.dat.8">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="AvailableTestData\test2.dat.9">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="packages.config" />
