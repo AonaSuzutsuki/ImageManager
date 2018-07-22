@@ -13,6 +13,10 @@ namespace Clusterable.IO
     public class ClusterableFileStream : IDisposable
     {
 
+        #region Constants
+        private const int SPLIT_LEN = 8;
+        #endregion
+
         #region Fields
         private List<FileStream> streams = new List<FileStream>();
 
@@ -28,11 +32,11 @@ namespace Clusterable.IO
 		{
 			get
 			{
-				if (position < 0)
+                var prep = position - SPLIT_LEN;
+				if (prep < 0)
 					return 0;
-				return position;
+				return prep;
 			}
-			private set => position = value;
 		}
 
 		public long Length
@@ -46,7 +50,7 @@ namespace Clusterable.IO
             }
         }
 
-		public long SplitSize { get; set; } = 1073741824; //1073741824:1gb 10485760:10mb
+		public long SplitSize { get; } //1073741824:1gb 10485760:10mb
 
         public string[] Filenames
         {
@@ -60,11 +64,23 @@ namespace Clusterable.IO
         }
         #endregion
 
-        public ClusterableFileStream(string path, FileMode mode, FileAccess access, FileShare share, string assemblyDirPath = null)
+        public ClusterableFileStream(string path, FileMode mode, FileAccess access, FileShare share, long splitSize = 1073741824, string assemblyDirPath = null)
         {
-			if (mode == FileMode.Create || !File.Exists(path))
+            this.baseFilePath = path;
+            this.mode = mode;
+            this.access = access;
+            this.share = share;
+
+            bool v = mode == FileMode.Create || !File.Exists(path);
+            if (v)
             {
-                streams.Add(new FileStream(path, mode, access, share));
+                var stream = new FileStream(path, mode, access, share);
+                streams.Add(stream);
+                var splistSizeArray = BitConverter.GetBytes(splitSize);
+                SplitSize = splitSize;
+                Write(splistSizeArray, 0, splistSizeArray.Length);
+                //stream.Write(splistSizeArray, 0, SPLIT_LEN);
+                //position += SPLIT_LEN;
             }
             else
             {
@@ -83,31 +99,38 @@ namespace Clusterable.IO
                     {
                         var numstr = match.Groups["num"].Value;
                         var num = string.IsNullOrEmpty(numstr) ? 0 : numstr.ToInt();
-                        var stream = new FileStream(file, mode, access, share);
-                        sorted.Add(num, stream);
-                        Position += stream.Length;
+                        var _stream = new FileStream(file, mode, access, share);
+                        sorted.Add(num, _stream);
+                        position += _stream.Length;
                     }
                 }
                 streams.AddRange(sorted.Values);
-            }
 
-            this.baseFilePath = path;
-			this.mode = mode;
-			this.access = access;
-			this.share = share;
+                var stream = streams[0];
+                var splistSizeArray = new byte[SPLIT_LEN];
+                stream.Read(splistSizeArray, 0, SPLIT_LEN);
+                SplitSize = BitConverter.ToInt64(splistSizeArray, 0);
+                position += SPLIT_LEN;
+            }
         }
 
-        
-		public void Write(byte[] data, int offset, long length)
+        public ClusterableFileStream(string path, FileMode mode, FileAccess access, FileShare share, string assemblyDirPath, long splitSize = 1073741824) : this(path, mode, access, share, splitSize, assemblyDirPath)
+        {
+            
+        }
+
+
+
+        public void Write(byte[] data, int offset, long length)
 		{
-			var startIndex = (int)Math.Floor((double)Position / (double)SplitSize);
+			var startIndex = (int)Math.Floor((double)position / (double)SplitSize);
 
 			if (startIndex >= streams.Count)
 				streams.Add(new FileStream("{0}.{1}".FormatString(baseFilePath, streams.Count), mode, access, share));
 			var stream = streams[startIndex];
             
 			Func<Stream, int> func = (stm) => {
-				var wLen = (int)(((startIndex + 1) * SplitSize) - Position); // 書き込む長さ
+				var wLen = (int)(((startIndex + 1) * SplitSize) - position); // 書き込む長さ
                 wLen = wLen > (int)length ? (int)length : wLen;
 				return wLen;
 			};
@@ -115,10 +138,10 @@ namespace Clusterable.IO
             var writeLen = func(stream);
 			var remLen = length - writeLen; // 残りの長さ
 
-            int start = (int)(Position - SplitSize * startIndex);
+            int start = (int)(position - SplitSize * startIndex);
             stream.Seek(start, SeekOrigin.Begin);
             stream.Write(data, offset, writeLen);
-			Position += writeLen;
+            position += writeLen;
 
 			if (remLen > 0)
 				Write(data, offset + writeLen, remLen);
@@ -133,8 +156,8 @@ namespace Clusterable.IO
             //var remLens = new List<int>();
             prestreams.Clear();
             remLens.Clear();
-            var startIndex = (int)Math.Floor((double)Position / (double)SplitSize);
-			var pres = Math.Floor(((double)Position + (double)length) / (double)SplitSize) - startIndex;
+            var startIndex = (int)Math.Floor((double)position / (double)SplitSize);
+			var pres = Math.Floor(((double)position + (double)length) / (double)SplitSize) - startIndex;
 			var requres = (int)Math.Ceiling((double)length / (double)SplitSize) + (int)pres;
 
             // 読み込むべきストリームと長さのリストを計算
@@ -145,10 +168,10 @@ namespace Clusterable.IO
 				var index = startIndex + i;
 				if (index < streams.Count)
 				{               
-					var isOver = Position + prelen + preremlen > SplitSize * (startIndex + 1 + i);
+					var isOver = position + prelen + preremlen > SplitSize * (startIndex + 1 + i);
                     if (isOver)
                     {
-						var overSize = SplitSize * (startIndex + 1 + i) - (Position + preremlen);
+						var overSize = SplitSize * (startIndex + 1 + i) - (position + preremlen);
 						remLens.Add((int)overSize);
                         prestreams.Add(streams[index]);
 						prelen -= (int)overSize;
@@ -166,7 +189,7 @@ namespace Clusterable.IO
 				}
 			}
 
-			int start = (int)(Position - SplitSize * startIndex) + offset;
+			int start = (int)(position - SplitSize * startIndex) + offset;
 			int readCount = 0;
 			foreach (var item in prestreams.Select((value, index) => new { value, index }))
 			{
@@ -184,7 +207,7 @@ namespace Clusterable.IO
                 if (rlen < buffer.Length)
                     Buffer.BlockCopy(buf, 0, buffer, readCount, buf.Length);
 				readCount += prereadCount;
-                Position += prereadCount;
+                position += prereadCount;
                 start = 0;
             }
             
@@ -195,15 +218,15 @@ namespace Clusterable.IO
 		{
 			if (seekOrigin == SeekOrigin.Begin)
 			{
-				Position = offset;
+                position = SPLIT_LEN + offset;
 			}
 			else if (seekOrigin == SeekOrigin.Current)
 			{
-				Position += offset;
+                position += offset;
 			}
 			else
 			{
-				Position = Length + offset;         
+                position = Length + offset;         
 			}
 		}
 
