@@ -14,18 +14,44 @@ namespace FileManagerLib.Filer.Json
 	{
 
 		#region Fields
-		private string datName;
-		private string jsonName;
 		private JsonStructureManager jsonStructureManager;
 		private DatFileManager fManager;
-        #endregion
+		#endregion
 
-        public JsonFileManager(string filePath, bool newFile = false, Action<string> fileExistAct = null)
+		#region Events
+		public class ReadWriteProgressEventArgs : EventArgs
+		{
+			public int CompletedNumber { get; }
+			public int FullNumber { get; }
+			public double Percentage
+			{
+				get
+				{
+					if (FullNumber > 0)
+						return Math.Ceiling(((double)CompletedNumber / (double)FullNumber) * 100);
+					return 0;
+				}
+			}
+			public string CurrentFilepath { get; }
+
+			public ReadWriteProgressEventArgs(int completedNumber, int fullNumber, string currentFilePath)
+			{
+				CompletedNumber = completedNumber;
+				FullNumber = fullNumber;
+				CurrentFilepath = currentFilePath;
+			}
+		}
+		public delegate void ReadWriteProgressEventHandler(object sender, ReadWriteProgressEventArgs eventArgs);
+		public event ReadWriteProgressEventHandler WriteToFilesProgress;
+		public event ReadWriteProgressEventHandler WriteIntoResourceProgress;
+        #endregion
+        
+		public JsonFileManager(string filePath, bool newFile = false, Func<string, bool> fileExistAct = null)
 		{
 			if (newFile)
 			{
-                if (File.Exists(filePath))
-                    fileExistAct?.Invoke(filePath);
+				if (File.Exists(filePath) && fileExistAct != null)
+					newFile = fileExistAct.Invoke(filePath);
             }
 
 			fManager = new DatFileManager(filePath) { IsShiftJsonPosition = true };
@@ -73,7 +99,7 @@ namespace FileManagerLib.Filer.Json
 			return (dirCount, parentRootId);
 		}
 
-		public void CreateImage(string fileName, string parent, byte[] data, string mimeType)
+		public void CreateFile(string fileName, string parent, byte[] data, string mimeType)
 		{
 			var (nextId, parentId) = ResolveTermParameters(fileName, parent);         
 			var start = fManager.Write(data);         
@@ -82,7 +108,7 @@ namespace FileManagerLib.Filer.Json
 			//return (true, string.Empty);
 		}
 
-		public void CreateImage(string fileName, string parent, string inFilePath)
+		public void CreateFile(string fileName, string parent, string inFilePath)
 		{
 			if (!File.Exists(inFilePath))
 				return;
@@ -109,18 +135,18 @@ namespace FileManagerLib.Filer.Json
                 {
                     var data = ImageLoader.FromImageFile(stream).Data;
                     if (data != null)
-                        CreateImage(fileName, parent, data, mimeType);
+                        CreateFile(fileName, parent, data, mimeType);
                 }
 			}         
 		}
 
-		public void CreateImage(string fullPath, string inFilePath)
+		public void CreateFile(string fullPath, string inFilePath)
 		{
 			var (parent, fileName) = fullPath.GetFilenameAndParent();
-			CreateImage(fileName, parent.ToString(), inFilePath);
+			CreateFile(fileName, parent.ToString(), inFilePath);
 		}
 
-		public void CreateImages(string parent, string dirPath)
+		public void CreateFiles(string parent, string dirPath)
 		{
 			var filePathArray = DirectorySearcher.GetAllFiles(dirPath);
 			var dirPathArray = DirectorySearcher.GetAllDirectories(dirPath);
@@ -135,8 +161,8 @@ namespace FileManagerLib.Filer.Json
 			{
 				var path = file.v;
 				var par = System.IO.Path.GetDirectoryName(internalFilePathArray[file.i]);
-				Console.WriteLine("{0}/{1}\t{2}".FormatString(file.i + 1, filePathArray.Length, file.v));
-				CreateImage(System.IO.Path.GetFileName(path), System.IO.Path.GetDirectoryName(internalFilePathArray[file.i]), path);
+				CreateFile(System.IO.Path.GetFileName(path), System.IO.Path.GetDirectoryName(internalFilePathArray[file.i]), path);
+				WriteIntoResourceProgress?.Invoke(this, new ReadWriteProgressEventArgs(file.i + 1, filePathArray.Length, path));
 			}
 		}
 
@@ -154,11 +180,6 @@ namespace FileManagerLib.Filer.Json
 			foreach (var dir in dirPathArray)
                 list.Add(func(dir, basePath));
 			return list.ToArray();
-		}
-
-		public void CreateTable()
-		{
-			return;
 		}
 
 		public void DeleteDirectory(string fullPath)
@@ -222,6 +243,28 @@ namespace FileManagerLib.Filer.Json
 				dirId = GetDirectoryId(path, dirId);
 
 			return dirId;
+		}
+
+		public string[] GetFiles(int dirId)
+		{
+			var files = jsonStructureManager.GetFileStructuresFromParent(dirId);
+			var fList = new List<string>();
+			foreach (var file in files)
+			{
+				fList.Add(file.Name);
+			}
+			return fList.ToArray();
+		}
+        
+		public string[] GetDirectories(int dirId)
+		{
+			var dirs = jsonStructureManager.GetDirectoryStructuresFromParent(dirId);
+            var dList = new List<string>();
+            foreach (var dir in dirs)
+            {
+                dList.Add(dir.Name);
+            }
+            return dList.ToArray();
 		}
 
 		#region Trace
@@ -353,11 +396,12 @@ namespace FileManagerLib.Filer.Json
 			}
 
 			var filePath = fManager.FilePath;
-			fManager.Dispose();
-			File.Delete(filePath);
-			File.Move(tempFilePath, filePath);
+            //fManager.Dispose();
+            //File.Delete(filePath);
+            //File.Move(tempFilePath, filePath);
+            fManager.Rename(".temp");
 
-			fManager = makeDatFileManager(filePath);
+			//fManager = makeDatFileManager(filePath);
 		}
 
 
@@ -398,15 +442,18 @@ namespace FileManagerLib.Filer.Json
                         Directory.CreateDirectory(path);
                 }
 
-                foreach (var file in files)
+                foreach (var item in files.Select((value, index) => new { index, value }))
                 {
                     string path;
-                    var pathItem = PathSplitter.SplitPath(GetFilePath(jsonStructureManager, file.Id));
+                    var pathItem = PathSplitter.SplitPath(GetFilePath(jsonStructureManager, item.value.Id));
                     if (filePath.Equals("/"))
                         path = outFilePath + pathItem.ToString();
                     else
                         path = outFilePath + pathItem.GetPathItemFrom(filePath).ToString();
-                    WriteToFile(file, path);
+					
+					WriteToFilesProgress?.Invoke(this, new ReadWriteProgressEventArgs(item.index + 1, files.Length, item.value.Name));
+
+                    WriteToFile(item.value, path);
                 }
             }
         }
@@ -439,10 +486,12 @@ namespace FileManagerLib.Filer.Json
 
 		public void Dispose()
 		{
-			var json = jsonStructureManager?.ToString();
-			Console.WriteLine(json);
-			//jsonStructureManager?.WriteToFile(jsonName);
-			fManager.WriteToEnd(Encoding.UTF8.GetBytes(json));
+			if (jsonStructureManager != null && jsonStructureManager.IsChenged)
+			{
+				var json = jsonStructureManager?.ToString();
+                Console.WriteLine(json);
+                fManager?.WriteToEnd(Encoding.UTF8.GetBytes(json));
+			}         
 			fManager?.Dispose();
 
 			fManager = null;

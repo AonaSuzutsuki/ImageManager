@@ -32,15 +32,15 @@ namespace ImageManagerCUI
                 //}
                 var sw = new Stopwatch();
                 sw.Start();
-				try
-				{
+				//try
+				//{
                     if (!program.Parse(cmd))
                         break;
-				}
-				catch (Exception e)
-				{
-					Console.WriteLine(e.Message);
-				}
+				//}
+				//catch (Exception e)
+				//{
+				//	Console.WriteLine(e.Message);
+				//}
                 sw.Stop();
                 var msec = sw.ElapsedMilliseconds;
                 Console.WriteLine("{0}ms".FormatString(msec));
@@ -93,6 +93,12 @@ namespace ImageManagerCUI
                 case "delfile":
                     //DeleteFile(parser);
                     break;
+				case "getfiles":
+					GetFiles(parser);
+					break;
+				case "getdirs":
+					GetDirs(parser);
+                    break;
                 case "writetofile":
                     WriteTo(parser, fileManager.WriteToFile, fileManager.WriteToFile);
                     break;
@@ -120,8 +126,13 @@ namespace ImageManagerCUI
                 Console.Write("> ");
                 var ans = Console.ReadLine();
                 if (ans.Equals("y"))
+				{
                     File.Delete(filePath);
+					return true;
+				}
+				return false;
             });
+			Initialize();
             Console.WriteLine("Loaded {0}.", dbFilename);
         }
 
@@ -129,8 +140,15 @@ namespace ImageManagerCUI
         {
             var dbFilename = parser.GetAttribute("file") ?? parser.GetAttribute(0);
 			fileManager= new JsonFileManager(dbFilename, false);
+			Initialize();
             Console.WriteLine("Loaded {0}.", dbFilename);
         }
+
+		public void Initialize()
+		{
+			fileManager.WriteIntoResourceProgress += FileManager_WriteProgress;
+			fileManager.WriteToFilesProgress += FileManager_WriteProgress;
+		}
 
 		public void CreateDirectory(CmdParser parser)
         {
@@ -169,7 +187,7 @@ namespace ImageManagerCUI
             var filePath = parser.GetAttribute("file") ?? parser.GetAttribute(1);
             //var parent = parser.GetAttribute("parent") ?? parser.GetAttribute(2) ?? "/";
 
-			fileManager.CreateImage(fullPath, filePath);
+			fileManager.CreateFile(fullPath, filePath);
         }
 
         public void AddFiles(CmdParser parser)
@@ -177,7 +195,7 @@ namespace ImageManagerCUI
             var dirPath = parser.GetAttribute("dir") ?? parser.GetAttribute(0);
             var parent = parser.GetAttribute("parent") ?? parser.GetAttribute(1) ?? "/";
             
-			fileManager.CreateImages(parent, dirPath);
+			fileManager.CreateFiles(parent, dirPath);
         }
 
         public void DeleteFile(CmdParser parser)
@@ -195,6 +213,26 @@ namespace ImageManagerCUI
                 fileManager.DeleteFile(fullPath);
             }
         }
+
+		public void GetFiles(CmdParser parser)
+		{
+			var did = parser.GetAttribute("id") ?? parser.GetAttribute(0);
+			var files = fileManager.GetFiles(did.ToInt());
+			foreach (var file in files)
+			{
+				Console.WriteLine("{0}", file);
+			}
+		}
+
+		public void GetDirs(CmdParser parser)
+		{
+			var did = parser.GetAttribute("id") ?? parser.GetAttribute(0);
+			var dirs = fileManager.GetDirectories(did.ToInt());
+            foreach (var dir in dirs)
+            {
+                Console.WriteLine("{0}", dir);
+            }
+		}
 
         public void WriteTo(CmdParser parser, Action<int, string> idAct, Action<string, string> nameAct)
         {
@@ -232,5 +270,11 @@ namespace ImageManagerCUI
                     break;
             }
         }
+        
+		void FileManager_WriteProgress(object sender, JsonFileManager.ReadWriteProgressEventArgs eventArgs)
+		{
+			Console.WriteLine("{0}/{1} ({2}%)\t{3}".FormatString(eventArgs.CompletedNumber, eventArgs.FullNumber, eventArgs.Percentage, eventArgs.CurrentFilepath));
+		}
+
 	}
 }

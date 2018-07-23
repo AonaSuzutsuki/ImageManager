@@ -112,7 +112,12 @@
   <ItemGroup>
     <Content Include="SQLite.Interop.dll" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\ClusterableFileStream\ClusterableFileStream.csproj">
+      <Project>{b1a1e959-94dd-4798-80e9-9501a174ded6}</Project>
+      <Name>ClusterableFileStream</Name>
+    </ProjectReference>
+  </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\System.Data.SQLite.Core.1.0.108.0\build\net46\System.Data.SQLite.Core.targets" Condition="Exists('..\packages\System.Data.SQLite.Core.1.0.108.0\build\net46\System.Data.SQLite.Core.targets')" />

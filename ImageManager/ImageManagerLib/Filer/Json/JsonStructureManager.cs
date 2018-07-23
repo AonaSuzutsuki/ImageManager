@@ -22,11 +22,20 @@ namespace FileManagerLib.Filer.Json
 			private set;
 		}
 
+		public bool IsChenged
+		{
+			get;
+			private set;
+		}
+
 		public JsonStructureManager(string text)
 		{
 			var table = Database.Json.JsonSerializer.ToObject<TableStructure>(text);
 			table?.Directory?.ForEach((obj) => directories.Add(obj.Id, obj));
 			table?.File?.ForEach((obj) => files.Add(obj.Id, obj));
+			if (table == null)
+				IsChenged = true;
+
 			NextDirectoryId = directories.Count + 1;
 			NextFileId = files.Count + 1;
 		}
@@ -37,6 +46,7 @@ namespace FileManagerLib.Filer.Json
 		{
 			directories.Add(directoryStructure.Id, directoryStructure);
 			NextDirectoryId++;
+			IsChenged = true;
 		}
 
 		public void CreateDirectory(int id, int parent, string name)
@@ -90,6 +100,7 @@ namespace FileManagerLib.Filer.Json
 				return;
 
 			directories[id] = directoryStructure;
+            IsChenged = true;
 		}
 
 		public void DeleteDirectory(int id)
@@ -102,6 +113,7 @@ namespace FileManagerLib.Filer.Json
 
 			directories.Remove(id);
 			DeleteFileFromParent(id);
+            IsChenged = true;
 		}
 
 		public void DeleteDirectoryFromParent(int parentId)
@@ -115,7 +127,8 @@ namespace FileManagerLib.Filer.Json
 					{
 						var _dir = directories[dir.Id];
 						DeleteFileFromParent(_dir.Parent);
-                        directories.Remove(dir.Id);
+						directories.Remove(dir.Id);
+                        IsChenged = true;
 					}
 				}
 			}
@@ -142,6 +155,7 @@ namespace FileManagerLib.Filer.Json
 		{
 			files.Add(fileStructure.Id, fileStructure);
 			NextFileId++;
+            IsChenged = true;
 		}
 
 		public void CreateFile(int id, int parent, string name, long location, string mtype)
@@ -214,11 +228,13 @@ namespace FileManagerLib.Filer.Json
 				return;
 
 			files[id] = fileStructure;
+            IsChenged = true;
 		}
 
 		public void DeleteFile(int id)
 		{
 			files.Remove(id);
+            IsChenged = true;
 		}
 
 		public void DeleteFileFromParent(int parentId)
@@ -229,15 +245,17 @@ namespace FileManagerLib.Filer.Json
 				if (file.Parent == parentId)
                 {
 					if (files.ContainsKey(file.Id))
+					{
 						files.Remove(file.Id);
+                        IsChenged = true;
+					}
                 }
             }
 		}
 
         public bool ExistedFile(int parentId, string name)
         {
-            var files = GetFileStructuresFromParent(parentId);
-            foreach (var file in files)
+			foreach (var file in GetFileStructuresFromParent(parentId))
             {
                 if (file.Name.Equals(name))
                     return true;
