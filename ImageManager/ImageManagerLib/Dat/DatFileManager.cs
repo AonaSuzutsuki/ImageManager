@@ -3,7 +3,7 @@ using System;
 using System.IO;
 using System.Linq;
 
-namespace Dat
+namespace FileManagerLib.Dat
 {
     public class DatFileManager : IDisposable
     {
@@ -91,9 +91,10 @@ namespace Dat
 
             return (len, data);
         }
-
-		public void WriteToFile(long start, string outFilePath)
+        
+		public bool WriteToFile(long start, string outFilePath, string expHash)
 		{
+            bool isOk = false;
             if (fileStream != null)
             {
                 using (var fs = new FileStream(outFilePath, FileMode.Create, FileAccess.Write, FileShare.None))
@@ -122,7 +123,17 @@ namespace Dat
                         fs.Write(data, 0, data.Length);
                     }
                 }
-            }
+    
+				using (var stream = new FileStream(outFilePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+				{
+					var hash = Crypto.Sha256.GetSha256(stream);
+					if (expHash.Equals(hash))
+						isOk = true;
+					else
+						isOk = false;
+				}
+			}
+            return isOk;
         }
 
 		public void Dispose()

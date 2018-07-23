@@ -10,7 +10,7 @@ namespace FileManagerLib.Filer
         /// </summary>
         /// <param name="fullPath">Fullpath of directory. ex:/dir/subdir</param>
         void CreateDirectory(string fullPath);
-        void CreateFile(string fileName, string parent, byte[] data, string mimeType);
+        void CreateFile(string fileName, string parent, byte[] data, string mimeType, string hash);
         void CreateFile(string fileName, string parent, string inFilePath);
         void CreateFile(string fullPath, string inFilePath);
         void CreateFiles(string parent, string dirPath);
@@ -26,9 +26,9 @@ namespace FileManagerLib.Filer
         string ToString();
         string TraceDirs();
         string TraceFiles();
-        void WriteToFile(string filePath, string outFilePath);
-        void WriteToDir(string filePath, string outFilePath);
-        void WriteToFile(int id, string outFilePath);
-        void WriteToDir(int id, string outFilePath);
+		bool WriteToFile(string filePath, string outFilePath);
+		void WriteToDir(string filePath, string outFilePath);
+        bool WriteToFile(int id, string outFilePath);
+		void WriteToDir(int id, string outFilePath);
     }
 }

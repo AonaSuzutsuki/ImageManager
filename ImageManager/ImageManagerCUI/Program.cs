@@ -100,10 +100,10 @@ namespace ImageManagerCUI
 					GetDirs(parser);
                     break;
                 case "writetofile":
-                    WriteTo(parser, fileManager.WriteToFile, fileManager.WriteToFile);
+                    WriteTo(parser);
                     break;
                 case "writetodir":
-                    WriteTo(parser, fileManager.WriteToDir, fileManager.WriteToDir);
+                    WriteToDir(parser);
                     break;
                 case "vacuum":
 					fileManager.DataVacuum();
@@ -182,9 +182,9 @@ namespace ImageManagerCUI
         }
 
 		public void AddFile(CmdParser parser)
-        {
-            var fullPath = parser.GetAttribute("name") ?? parser.GetAttribute(0);
-            var filePath = parser.GetAttribute("file") ?? parser.GetAttribute(1);
+		{
+            var filePath = parser.GetAttribute("file") ?? parser.GetAttribute(0);
+            var fullPath = parser.GetAttribute("name") ?? parser.GetAttribute(1);
             //var parent = parser.GetAttribute("parent") ?? parser.GetAttribute(2) ?? "/";
 
 			fileManager.CreateFile(fullPath, filePath);
@@ -234,7 +234,7 @@ namespace ImageManagerCUI
             }
 		}
 
-        public void WriteTo(CmdParser parser, Action<int, string> idAct, Action<string, string> nameAct)
+		public void WriteTo(CmdParser parser)
         {
             var fullPath = parser.GetAttribute("name") ?? parser.GetAttribute(0);
             var outFilePath = parser.GetAttribute("out") ?? parser.GetAttribute(1);
@@ -244,14 +244,30 @@ namespace ImageManagerCUI
             {
                 var id = fullPath.TrimStart(':').ToInt();
                 //fileManager.WriteToFile(id, outFilePath);
-                idAct?.Invoke(id, outFilePath);
+				fileManager.WriteToFile(id, outFilePath);
             }
             else
             {
-                nameAct?.Invoke(fullPath, outFilePath);
+				fileManager.WriteToFile(fullPath, outFilePath);
                 //fileManager.WriteToFile(fullPath, outFilePath);
             }
         }
+
+		public void WriteToDir(CmdParser parser)
+		{
+			var fullPath = parser.GetAttribute("name") ?? parser.GetAttribute(0);
+            var outFilePath = parser.GetAttribute("out") ?? parser.GetAttribute(1);
+
+            if (fullPath.Substring(0, 1).Equals(":"))
+            {
+                var id = fullPath.TrimStart(':').ToInt();
+				fileManager.WriteToDir(id, outFilePath);
+            }
+            else
+            {
+				fileManager.WriteToDir(fullPath, outFilePath);
+            }
+		}
 
         public void Trace(CmdParser parser)
         {
@@ -273,7 +289,10 @@ namespace ImageManagerCUI
         
 		void FileManager_WriteProgress(object sender, JsonFileManager.ReadWriteProgressEventArgs eventArgs)
 		{
-			Console.WriteLine("{0}/{1} ({2}%)\t{3}".FormatString(eventArgs.CompletedNumber, eventArgs.FullNumber, eventArgs.Percentage, eventArgs.CurrentFilepath));
+			if (eventArgs.IsCompleted)
+				Console.WriteLine("{0}/{1} ({2}%)\t{3}".FormatString(eventArgs.CompletedNumber, eventArgs.FullNumber, eventArgs.Percentage, eventArgs.CurrentFilepath));
+			else
+				Console.WriteLine("Failed {0}".FormatString(eventArgs.CurrentFilepath));
 		}
 
 	}

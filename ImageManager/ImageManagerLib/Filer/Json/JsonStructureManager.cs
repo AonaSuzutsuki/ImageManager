@@ -158,7 +158,7 @@ namespace FileManagerLib.Filer.Json
             IsChenged = true;
 		}
 
-		public void CreateFile(int id, int parent, string name, long location, string mtype)
+		public void CreateFile(int id, int parent, string name, long location, string mtype, string hash)
 		{
 			var fileStructure = new FileStructure
 			{
@@ -166,7 +166,8 @@ namespace FileManagerLib.Filer.Json
 				Parent = parent,
 				Name = name,
 				Location = location,
-				MimeType = mtype
+				MimeType = mtype,
+				Hash = hash
 			};
 			CreateFile(fileStructure);
 		}

@@ -44,11 +44,13 @@ namespace FileManagerLib.Filer.Json
 		public long Location { get; set; }
         [JsonProperty("mimetype")]
         public string MimeType { get; set; }
+		[JsonProperty("hash")]
+		public string Hash { get; set; }
 
         public override string ToString()
         {
             var sb = new StringBuilder();
-            sb.AppendFormat("[FileStructure\t\tId = {0}, Parent = {1}, Name = {2}, Location = {3}, MimeType = {4} ]", Id, Parent, Name, Location, MimeType);
+			sb.AppendFormat("[FileStructure\t\tId = {0}, Parent = {1}, Name = {2}, Location = {3}, MimeType = {4}, Hash = {5} ]", Id, Parent, Name, Location, MimeType, Hash);
             return sb.ToString();
         }
     }

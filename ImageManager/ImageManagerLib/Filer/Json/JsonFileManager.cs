@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using CommonExtensionLib.Extensions;
-using Dat;
+using FileManagerLib.Dat;
 using FileManagerLib.Extensions.Path;
 using FileManagerLib.Path;
 
@@ -23,6 +23,7 @@ namespace FileManagerLib.Filer.Json
 		{
 			public int CompletedNumber { get; }
 			public int FullNumber { get; }
+			public bool IsCompleted { get; }
 			public double Percentage
 			{
 				get
@@ -34,11 +35,12 @@ namespace FileManagerLib.Filer.Json
 			}
 			public string CurrentFilepath { get; }
 
-			public ReadWriteProgressEventArgs(int completedNumber, int fullNumber, string currentFilePath)
+			public ReadWriteProgressEventArgs(int completedNumber, int fullNumber, string currentFilePath, bool isCompleted)
 			{
 				CompletedNumber = completedNumber;
 				FullNumber = fullNumber;
 				CurrentFilepath = currentFilePath;
+				IsCompleted = isCompleted;
 			}
 		}
 		public delegate void ReadWriteProgressEventHandler(object sender, ReadWriteProgressEventArgs eventArgs);
@@ -99,15 +101,15 @@ namespace FileManagerLib.Filer.Json
 			return (dirCount, parentRootId);
 		}
 
-		public void CreateFile(string fileName, string parent, byte[] data, string mimeType)
+		public void CreateFile(string fileName, string parent, byte[] data, string mimeType, string hash)
 		{
 			var (nextId, parentId) = ResolveTermParameters(fileName, parent);         
 			var start = fManager.Write(data);         
-			jsonStructureManager.CreateFile(nextId, parentId, fileName, start, mimeType);
+			jsonStructureManager.CreateFile(nextId, parentId, fileName, start, mimeType, hash);
 			//sqlite.InsertValue(TABLE_FILES, dirCount.ToString(), parentRootId.ToString(), fileName, start.ToString(), mimeType);
 			//return (true, string.Empty);
 		}
-
+        
 		public void CreateFile(string fileName, string parent, string inFilePath)
 		{
 			if (!File.Exists(inFilePath))
@@ -116,6 +118,7 @@ namespace FileManagerLib.Filer.Json
 			var mimeType = MimeType.MimeTypeMap.GetMimeType(inFilePath);
 			using (var stream = new FileStream(inFilePath, FileMode.Open, FileAccess.Read, FileShare.Read))
 			{
+				var hash = Crypto.Sha256.GetSha256(stream);
 				if (stream.Length > fManager.SplitSize)
                 {
                     var (nextId, parentId) = ResolveTermParameters(fileName, parent);
@@ -129,13 +132,13 @@ namespace FileManagerLib.Filer.Json
 							writeStream.Write(bs, 0, readSize);
                         }
                     });
-                    jsonStructureManager.CreateFile(nextId, parentId, fileName, start, mimeType);
+					jsonStructureManager.CreateFile(nextId, parentId, fileName, start, mimeType, hash);
                 }
                 else
                 {
                     var data = ImageLoader.FromImageFile(stream).Data;
                     if (data != null)
-                        CreateFile(fileName, parent, data, mimeType);
+                        CreateFile(fileName, parent, data, mimeType, hash);
                 }
 			}         
 		}
@@ -162,7 +165,7 @@ namespace FileManagerLib.Filer.Json
 				var path = file.v;
 				var par = System.IO.Path.GetDirectoryName(internalFilePathArray[file.i]);
 				CreateFile(System.IO.Path.GetFileName(path), System.IO.Path.GetDirectoryName(internalFilePathArray[file.i]), path);
-				WriteIntoResourceProgress?.Invoke(this, new ReadWriteProgressEventArgs(file.i + 1, filePathArray.Length, path));
+				WriteIntoResourceProgress?.Invoke(this, new ReadWriteProgressEventArgs(file.i + 1, filePathArray.Length, path, true));
 			}
 		}
 
@@ -406,18 +409,19 @@ namespace FileManagerLib.Filer.Json
 
 
 		#region Writer
-		public void WriteToFile(string filePath, string outFilePath)
+		public bool WriteToFile(string filePath, string outFilePath)
 		{
             var (parent, fileName) = filePath.GetFilenameAndParent();
             int rootId = GetDirectoryId(parent);
             if (jsonStructureManager.ExistedFile(rootId, fileName))
             {
                 var file = jsonStructureManager.GetFileStructureFromParent(rootId, fileName);
-                WriteToFile(file, outFilePath);
+                return WriteToFile(file, outFilePath);
             }
+			return false;
         }
 
-        public void WriteToDir(string filePath, string outFilePath)
+		public void WriteToDir(string filePath, string outFilePath)
         {
             var (parent, fileName) = filePath.GetFilenameAndParent();
             int rootId = GetDirectoryId(parent);
@@ -450,36 +454,36 @@ namespace FileManagerLib.Filer.Json
                         path = outFilePath + pathItem.ToString();
                     else
                         path = outFilePath + pathItem.GetPathItemFrom(filePath).ToString();
-					
-					WriteToFilesProgress?.Invoke(this, new ReadWriteProgressEventArgs(item.index + 1, files.Length, item.value.Name));
 
-                    WriteToFile(item.value, path);
+					var isOk = WriteToFile(item.value, path);               
+					WriteToFilesProgress?.Invoke(this, new ReadWriteProgressEventArgs(item.index + 1, files.Length, item.value.Name, isOk));
                 }
             }
         }
-
-		public void WriteToFile(int id, string outFilePath)
+        
+		public bool WriteToFile(int id, string outFilePath)
 		{
             var filepath = GetFilePath(jsonStructureManager, id);
-            WriteToFile(filepath, outFilePath);
+            return WriteToFile(filepath, outFilePath);
         }
 
-        public void WriteToDir(int id, string outFilePath)
+		public void WriteToDir(int id, string outFilePath)
         {
             var filepath = GetDirectoryPath(jsonStructureManager, id);
-            WriteToDir(filepath, outFilePath);
+			WriteToDir(filepath, outFilePath);
         }
 
-        public void WriteToFile(FileStructure structure, string outFilePath)
+        public bool WriteToFile(FileStructure structure, string outFilePath)
         {
             if (structure != null)
             {
                 var loc = structure.Location;
-				fManager.WriteToFile(loc, outFilePath);
+				return fManager.WriteToFile(loc, outFilePath, structure.Hash);
                 //var data = fManager.GetBytes(loc);
                 //using (var fs = new FileStream(outFilePath, FileMode.Create, FileAccess.Write, FileShare.None))
                     //fs.Write(data, 0, data.Length);
             }
+			return false;
         }
         #endregion
 
