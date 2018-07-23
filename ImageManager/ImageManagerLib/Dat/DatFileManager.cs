@@ -7,11 +7,11 @@ namespace FileManagerLib.Dat
 {
     public class DatFileManager : IDisposable
     {
-        
-		private const int LEN = 4;
 
-		#region Fields
-		private Clusterable.IO.ClusterableFileStream fileStream;
+        private const int LEN = 4;
+
+        #region Fields
+        private Clusterable.IO.ClusterableFileStream fileStream;
         private long lastPositionWithoutJson = 0;
         #endregion
 
@@ -41,14 +41,14 @@ namespace FileManagerLib.Dat
             fileStream = new ClusterableFileStream(filePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read); //18077000
         }
 
-		public byte[] GetBytes(long start)
+		public byte[] GetBytes(long start, int identifierLength = LEN)
 		{
 			byte[] data = null;
 
 			if (fileStream != null)
 			{
 				//id = GetIntAndSeek(fileStream, start, ID_LEN);
-				var length = GetIntAndSeek(fileStream, start, LEN);
+				var length = GetIntAndSeek(fileStream, start, identifierLength);
 
 				data = new byte[length];
 				fileStream.Read(data, 0, data.Length);
@@ -57,13 +57,13 @@ namespace FileManagerLib.Dat
 			return data;
 		}
 
-		public byte[] GetBytesFromEnd()
+		public byte[] GetBytesFromEnd(int identifierLength = LEN)
 		{
 			byte[] data = null;
 
 			if (fileStream != null)
             {
-				var idArray = new byte[LEN];
+				var idArray = new byte[identifierLength];
 				fileStream.Seek(-idArray.Length, SeekOrigin.End);
 				var rc = fileStream.Read(idArray, 0, idArray.Length);
 				var length = BitConverter.ToInt32(idArray, 0);
@@ -78,14 +78,14 @@ namespace FileManagerLib.Dat
             return data;
 		}
 
-        public (uint, byte[]) GetPartialBytes(long start, long length)
+        public (uint, byte[]) GetPartialBytes(long start, long length, int identifierLength = LEN)
         {
             uint len = 0;
             byte[] data = null;
 
             if (fileStream != null)
             {
-                len = (uint)GetIntAndSeek(fileStream, start, LEN);
+                len = (uint)GetIntAndSeek(fileStream, start, identifierLength);
 
                 data = new byte[length];
                 fileStream.Read(data, 0, data.Length);
@@ -94,14 +94,14 @@ namespace FileManagerLib.Dat
             return (len, data);
         }
         
-		public bool WriteToFile(long start, string outFilePath, string expHash)
+		public bool WriteToFile(long start, string outFilePath, string expHash, int identifierLength = LEN)
 		{
             bool isOk = false;
             if (fileStream != null)
             {
                 using (var fs = new FileStream(outFilePath, FileMode.Create, FileAccess.Write, FileShare.None))
                 {
-                    var length = GetIntAndSeek(fileStream, start, LEN);
+                    var length = GetIntAndSeek(fileStream, start, identifierLength);
                     if (length > SplitSize)
                     {
                         while (true)
@@ -146,13 +146,13 @@ namespace FileManagerLib.Dat
 			((IDisposable)fileStream).Dispose();
 		}
 
-        public void Rename(string suffix)
+        public DatFileManager Rename(string suffix)
         {
 			var splitSize = fileStream.SplitSize;
             var filenames = fileStream.Delete();
 			fileStream.Dispose();
 
-            var prefs = new ClusterableFileStream(filenames[0] + suffix, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read);
+            var prefs = new ClusterableFileStream(filenames[0] + suffix, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read, splitSize);
             var srcFilenames = prefs.Filenames;
             prefs.Dispose();
 
@@ -161,31 +161,33 @@ namespace FileManagerLib.Dat
 				var dest = filenames[item.index];
 				File.Move(item.value, dest);
             }
-            fileStream = new ClusterableFileStream(filenames[0], FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read);
+            var datFileManager = new DatFileManager(filenames[0]);
+            return datFileManager;
+            //fileStream = new ClusterableFileStream(filenames[0], FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read);
         }
 
-        public long Write(byte[] data)
+        public long Write(byte[] data, int identifierLength = LEN)
         {
             var len = data.Length;
             var lenArray = BitConverter.GetBytes(len);
             
             var pos = fileStream.Position;
 			fileStream.Seek(LastPositionWithoutJson, SeekOrigin.End);
-            fileStream.Write(lenArray, 0, LEN);
+            fileStream.Write(lenArray, 0, identifierLength);
             fileStream.Write(data, 0, data.Length);
 			LastPositionWithoutJson += len;
 
             return pos;
         }
 
-		public long Write(Stream stream, Action<Clusterable.IO.ClusterableFileStream> writeAction)
+		public long Write(Stream stream, Action<Clusterable.IO.ClusterableFileStream> writeAction, int identifierLength = LEN)
 		{
 			var len = stream.Length;
             var lenArray = BitConverter.GetBytes(len);
 
             var pos = fileStream.Position;
 			fileStream.Seek(LastPositionWithoutJson, SeekOrigin.End);
-            fileStream.Write(lenArray, 0, LEN);
+            fileStream.Write(lenArray, 0, identifierLength);
 
 			writeAction?.Invoke(fileStream);
 
@@ -194,9 +196,9 @@ namespace FileManagerLib.Dat
             return pos;
 		}
 
-		public long WriteToEnd(byte[] data)
+		public long WriteToEnd(byte[] data, int identifierLength = LEN)
 		{
-			var len = data.Length;
+			var len = data.LongLength;
             var lenArray = BitConverter.GetBytes(len);
 			var pos = fileStream.Position;
 
@@ -206,7 +208,7 @@ namespace FileManagerLib.Dat
                 fileStream.Seek(0, SeekOrigin.End);
 
             fileStream.Write(data, 0, data.Length);
-			fileStream.Write(lenArray, 0, LEN);
+			fileStream.Write(lenArray, 0, identifierLength);
 
 			return pos;
 		}
@@ -222,19 +224,19 @@ namespace FileManagerLib.Dat
 			return (uint)idLength;
 		}
 
-        public long WriteToTemp(long loc, DatFileManager dest)
+        public long WriteToTemp(long loc, DatFileManager dest, int identifierLength = LEN)
         {
             var srcStream = this.fileStream;
             var destStream = dest.fileStream;
 
             srcStream.Seek(loc, SeekOrigin.Begin);
-            uint length = GetIntAndSeek(srcStream, loc, LEN);
+            uint length = GetIntAndSeek(srcStream, loc, identifierLength);
 
             var data = new byte[length];
             srcStream.Read(data, 0, data.Length);
 
             long retloc = destStream.Position;
-            destStream.Write(BitConverter.GetBytes(length), 0, LEN);
+            destStream.Write(BitConverter.GetBytes(length), 0, identifierLength);
             destStream.Write(data, 0, data.Length);
             return retloc;
 

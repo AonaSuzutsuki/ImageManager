@@ -13,8 +13,13 @@ namespace FileManagerLib.Filer.Json
 	public class JsonFileManager : IFileManager
 	{
 
-		#region Fields
-		private JsonStructureManager jsonStructureManager;
+        #region Constants
+        private const int LEN = 4;
+        private const int JSON_LEN = 8;
+        #endregion
+
+        #region Fields
+        private JsonStructureManager jsonStructureManager;
 		private DatFileManager fManager;
 		#endregion
 
@@ -105,7 +110,7 @@ namespace FileManagerLib.Filer.Json
 		public void CreateFile(string fileName, string parent, byte[] data, string mimeType, string hash)
 		{
 			var (nextId, parentId) = ResolveTermParameters(fileName, parent);         
-			var start = fManager.Write(data);         
+			var start = fManager.Write(data, LEN);         
 			jsonStructureManager.CreateFile(nextId, parentId, fileName, start, mimeType, hash);
 			//sqlite.InsertValue(TABLE_FILES, dirCount.ToString(), parentRootId.ToString(), fileName, start.ToString(), mimeType);
 			//return (true, string.Empty);
@@ -135,7 +140,7 @@ namespace FileManagerLib.Filer.Json
                                 break;
 							writeStream.Write(bs, 0, readSize);
                         }
-                    });
+                    }, LEN);
 					jsonStructureManager.CreateFile(nextId, parentId, fileName, start, mimeType, hash);
                 }
                 else
@@ -347,7 +352,7 @@ namespace FileManagerLib.Filer.Json
 				var id = fItem.Id;
 				var location = fItem.Location;
 
-				var tuple = fManager.GetPartialBytes(location, 40);
+				var tuple = fManager.GetPartialBytes(location, 40, LEN);
 				var data = tuple.Item2;
 				var len = tuple.Item1;
 
@@ -482,7 +487,7 @@ namespace FileManagerLib.Filer.Json
             if (structure != null)
             {
                 var loc = structure.Location;
-				return fManager.WriteToFile(loc, outFilePath, structure.Hash);
+				return fManager.WriteToFile(loc, outFilePath, structure.Hash, LEN);
                 //var data = fManager.GetBytes(loc);
                 //using (var fs = new FileStream(outFilePath, FileMode.Create, FileAccess.Write, FileShare.None))
                     //fs.Write(data, 0, data.Length);
@@ -498,7 +503,7 @@ namespace FileManagerLib.Filer.Json
 			{
 				var json = jsonStructureManager?.ToString();
                 Console.WriteLine(json);
-                fManager?.WriteToEnd(Encoding.UTF8.GetBytes(json));
+                fManager?.WriteToEnd(Encoding.UTF8.GetBytes(json), JSON_LEN);
 			}         
 			fManager?.Dispose();
 
