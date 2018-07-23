@@ -51,6 +51,7 @@ namespace FileManagerLib.Filer.Json
 		public delegate void ReadWriteProgressEventHandler(object sender, ReadWriteProgressEventArgs eventArgs);
 		public event ReadWriteProgressEventHandler WriteToFilesProgress;
 		public event ReadWriteProgressEventHandler WriteIntoResourceProgress;
+        public event ReadWriteProgressEventHandler VacuumProgress;
         #endregion
 
         public JsonFileManager(string filePath, bool isCheckHash, bool newFile = false, Func<string, bool> fileExistAct = null)
@@ -383,38 +384,43 @@ namespace FileManagerLib.Filer.Json
 
 		public void DataVacuum()
 		{
-			DatFileManager makeDatFileManager(string f) => new DatFileManager(f);
+			DatFileManager makeDatFileManager(string f) => new DatFileManager(f) { IsCheckHash = fManager.IsCheckHash };
 
 			var tempFilePath = "{0}.temp".FormatString(this.fManager.FilePath);
 			using (var tempfManager = makeDatFileManager(tempFilePath))
 			{
-				var files = jsonStructureManager.GetFileStructures();
-				foreach (var dataFileInfo in files.Select((v, i) => new { v, i }))
-				{
-					var id = dataFileInfo.v.Id;
-					var loc = dataFileInfo.v.Location;
-					var nloc = fManager.WriteToTemp(loc, tempfManager);
+                //var files = jsonStructureManager.GetFileStructures();
+                //foreach (var dataFileInfo in files.Select((v, i) => new { v, i }))
+                //{
+                //	var id = dataFileInfo.v.Id;
+                //	var loc = dataFileInfo.v.Location;
+                //	var nloc = fManager.WriteToTemp(loc, tempfManager, LEN);
 
-					jsonStructureManager.ChangeFile(id, new FileStructure
-					{
-						Id = dataFileInfo.v.Id,
-						Parent = dataFileInfo.v.Parent,
-						Name = dataFileInfo.v.Name,
-						Location = nloc,
-						MimeType = dataFileInfo.v.MimeType
-					});
-					Console.WriteLine("{0}/{1}".FormatString(dataFileInfo.i + 1, files.Length));
-				}
+                //	jsonStructureManager.ChangeFile(id, new FileStructure
+                //	{
+                //		Id = dataFileInfo.v.Id,
+                //		Parent = dataFileInfo.v.Parent,
+                //		Name = dataFileInfo.v.Name,
+                //		Location = nloc,
+                //		MimeType = dataFileInfo.v.MimeType,
+                //                    Hash = dataFileInfo.v.Hash
+                //	});
+                //	Console.WriteLine("{0}/{1}".FormatString(dataFileInfo.i + 1, files.Length));
+                //}
+                JsonStructureManager.Vacuum(jsonStructureManager, fManager, tempfManager, LEN, (completedNumber, fullNumber, currentFilePath) =>
+                {
+                    VacuumProgress?.Invoke(this, new ReadWriteProgressEventArgs(completedNumber, fullNumber, currentFilePath, true));
+                });
 			}
 
 			var filePath = fManager.FilePath;
             //fManager.Dispose();
             //File.Delete(filePath);
             //File.Move(tempFilePath, filePath);
-            fManager.Rename(".temp");
+            fManager = fManager.Rename(".temp");
 
-			//fManager = makeDatFileManager(filePath);
-		}
+            //fManager = makeDatFileManager(filePath);
+        }
 
 
 		#region Writer

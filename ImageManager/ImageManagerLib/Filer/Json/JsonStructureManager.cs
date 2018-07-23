@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using CommonExtensionLib.Extensions;
+using FileManagerLib.Dat;
 using FileManagerLib.Extensions.Collections;
 
 namespace FileManagerLib.Filer.Json
@@ -268,6 +271,31 @@ namespace FileManagerLib.Filer.Json
         }
         #endregion
 
+        #region Vacuum
+        public static void Vacuum(JsonStructureManager jsonStructureManager, DatFileManager srcfileManager, DatFileManager destfileManager, int identifierLength, Action<int, int, string> action)
+        {
+            var files = jsonStructureManager.GetFileStructures();
+            foreach (var dataFileInfo in files.Select((v, i) => new { v, i }))
+            {
+                var id = dataFileInfo.v.Id;
+                var loc = dataFileInfo.v.Location;
+                var nloc = srcfileManager.WriteToTemp(loc, destfileManager, identifierLength);
+
+                jsonStructureManager.ChangeFile(id, new FileStructure
+                {
+                    Id = dataFileInfo.v.Id,
+                    Parent = dataFileInfo.v.Parent,
+                    Name = dataFileInfo.v.Name,
+                    Location = nloc,
+                    MimeType = dataFileInfo.v.MimeType,
+                    Hash = dataFileInfo.v.Hash
+                });
+                action?.Invoke(dataFileInfo.i + 1, files.Length, dataFileInfo.v.Name);
+            }
+            jsonStructureManager.IsChenged = true;
+        }
+        #endregion
+
 
         #region Common
         public override string ToString()
@@ -289,8 +317,5 @@ namespace FileManagerLib.Filer.Json
 				    sw.Write(ToString());
 		}
 		#endregion
-
-
-        
 	}
 }

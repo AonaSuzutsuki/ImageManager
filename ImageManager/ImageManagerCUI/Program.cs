@@ -151,9 +151,10 @@ namespace ImageManagerCUI
 		{
 			fileManager.WriteIntoResourceProgress += FileManager_WriteProgress;
 			fileManager.WriteToFilesProgress += FileManager_WriteProgress;
+            fileManager.VacuumProgress += FileManager_WriteProgress;
 		}
-
-		public void CreateDirectory(CmdParser parser)
+        
+        public void CreateDirectory(CmdParser parser)
         {
 			var fullPath = parser.GetAttribute("name") ?? parser.GetAttribute(0);
 
