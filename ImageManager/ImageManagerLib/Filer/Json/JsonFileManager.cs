@@ -407,7 +407,7 @@ namespace FileManagerLib.Filer.Json
                 //	});
                 //	Console.WriteLine("{0}/{1}".FormatString(dataFileInfo.i + 1, files.Length));
                 //}
-                JsonStructureManager.Vacuum(jsonStructureManager, fManager, tempfManager, LEN, (completedNumber, fullNumber, currentFilePath) =>
+                jsonStructureManager.Vacuum(fManager, tempfManager, LEN, (completedNumber, fullNumber, currentFilePath) =>
                 {
                     VacuumProgress?.Invoke(this, new ReadWriteProgressEventArgs(completedNumber, fullNumber, currentFilePath, true));
                 });

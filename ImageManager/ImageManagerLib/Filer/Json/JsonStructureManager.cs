@@ -272,16 +272,16 @@ namespace FileManagerLib.Filer.Json
         #endregion
 
         #region Vacuum
-        public static void Vacuum(JsonStructureManager jsonStructureManager, DatFileManager srcfileManager, DatFileManager destfileManager, int identifierLength, Action<int, int, string> action)
+        public void Vacuum(DatFileManager srcfileManager, DatFileManager destfileManager, int identifierLength, Action<int, int, string> action)
         {
-            var files = jsonStructureManager.GetFileStructures();
+            var files = GetFileStructures();
             foreach (var dataFileInfo in files.Select((v, i) => new { v, i }))
             {
                 var id = dataFileInfo.v.Id;
                 var loc = dataFileInfo.v.Location;
                 var nloc = srcfileManager.WriteToTemp(loc, destfileManager, identifierLength);
 
-                jsonStructureManager.ChangeFile(id, new FileStructure
+                ChangeFile(id, new FileStructure
                 {
                     Id = dataFileInfo.v.Id,
                     Parent = dataFileInfo.v.Parent,
@@ -292,7 +292,7 @@ namespace FileManagerLib.Filer.Json
                 });
                 action?.Invoke(dataFileInfo.i + 1, files.Length, dataFileInfo.v.Name);
             }
-            jsonStructureManager.IsChenged = true;
+            IsChenged = true;
         }
         #endregion
 
