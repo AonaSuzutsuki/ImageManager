@@ -47,8 +47,8 @@ namespace FileManagerLib.Filer.Json
 		public event ReadWriteProgressEventHandler WriteToFilesProgress;
 		public event ReadWriteProgressEventHandler WriteIntoResourceProgress;
         #endregion
-        
-		public JsonFileManager(string filePath, bool newFile = false, Func<string, bool> fileExistAct = null)
+
+        public JsonFileManager(string filePath, bool isCheckHash, bool newFile = false, Func<string, bool> fileExistAct = null)
 		{
 			if (newFile)
 			{
@@ -57,9 +57,10 @@ namespace FileManagerLib.Filer.Json
             }
 
 			fManager = new DatFileManager(filePath) { IsShiftJsonPosition = true };
-			var json = newFile ? string.Empty : Encoding.UTF8.GetString(fManager.GetBytesFromEnd());
-			jsonStructureManager = new JsonStructureManager(json);
-		}
+			var json = newFile ? string.Empty : Encoding.UTF8.GetString(fManager.GetBytesFromEnd(JSON_LEN));
+			jsonStructureManager = new JsonStructureManager(json, isCheckHash);
+            fManager.IsCheckHash = jsonStructureManager.IsCheckHash;
+        }
         
 		public void CreateDirectory(string fullPath)
 		{
@@ -118,8 +119,11 @@ namespace FileManagerLib.Filer.Json
 			var mimeType = MimeType.MimeTypeMap.GetMimeType(inFilePath);
 			using (var stream = new FileStream(inFilePath, FileMode.Open, FileAccess.Read, FileShare.Read))
 			{
-				var hash = Crypto.Sha256.GetSha256(stream);
-				if (stream.Length > fManager.SplitSize)
+                string hash = string.Empty;
+                if (jsonStructureManager.IsCheckHash)
+                    hash = Crypto.Sha256.GetSha256(stream);
+
+                if (stream.Length > fManager.SplitSize)
                 {
                     var (nextId, parentId) = ResolveTermParameters(fileName, parent);
                     var start = fManager.Write(stream, (writeStream) => {

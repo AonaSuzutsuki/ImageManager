@@ -120,7 +120,10 @@ namespace ImageManagerCUI
 		public void MakeDatabase(CmdParser parser)
         {
             var dbFilename = parser.GetAttribute("file") ?? parser.GetAttribute(0);
-			fileManager = new JsonFileManager(dbFilename, true, filePath =>
+            var checkHash = parser.GetAttribute("hash") ?? parser.GetAttribute(1);
+            var isCheckHash = checkHash == null ? true : false;
+
+            fileManager = new JsonFileManager(dbFilename, isCheckHash, true, filePath =>
             {
                 Console.WriteLine("{0} exist. Are you sure you want to delete this item? [y/n]", filePath);
                 Console.Write("> ");

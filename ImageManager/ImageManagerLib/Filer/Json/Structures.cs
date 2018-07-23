@@ -11,6 +11,8 @@ namespace FileManagerLib.Filer.Json
         public DirectoryStructure[] Directory { get; set; }
         [JsonProperty("file")]
         public FileStructure[] File { get; set; }
+        [JsonProperty("isCheckHash")]
+        public bool IsCheckHash { get; set; } = true;
     }
 
 	[JsonObject("directory")]

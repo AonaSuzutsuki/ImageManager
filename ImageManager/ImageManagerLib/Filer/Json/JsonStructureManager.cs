@@ -28,10 +28,13 @@ namespace FileManagerLib.Filer.Json
 			private set;
 		}
 
-		public JsonStructureManager(string text)
+        public bool IsCheckHash { get; }
+
+		public JsonStructureManager(string text, bool isCheckhHash)
 		{
 			var table = Database.Json.JsonSerializer.ToObject<TableStructure>(text);
-			table?.Directory?.ForEach((obj) => directories.Add(obj.Id, obj));
+            IsCheckHash = table == null ? isCheckhHash : table.IsCheckHash;
+            table?.Directory?.ForEach((obj) => directories.Add(obj.Id, obj));
 			table?.File?.ForEach((obj) => files.Add(obj.Id, obj));
 			if (table == null)
 				IsChenged = true;
@@ -272,7 +275,8 @@ namespace FileManagerLib.Filer.Json
 			var tableStructure = new TableStructure
 			{
 				Directory = directories.Values.ToArray(),
-				File = files.Values.ToArray()
+				File = files.Values.ToArray(),
+                IsCheckHash = IsCheckHash
 			};
 			var json = Database.Json.JsonSerializer.ToJson(tableStructure);
 			return json;

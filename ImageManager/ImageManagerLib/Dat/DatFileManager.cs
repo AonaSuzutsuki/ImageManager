@@ -31,6 +31,8 @@ namespace FileManagerLib.Dat
 			get => lastPositionWithoutJson > 0 ? 0 : lastPositionWithoutJson;
 			set => lastPositionWithoutJson = value;
 		}
+
+        public bool IsCheckHash { get; set; } = true;
         #endregion
 
         public DatFileManager(string filePath)
@@ -124,16 +126,19 @@ namespace FileManagerLib.Dat
                     }
                 }
     
-				using (var stream = new FileStream(outFilePath, FileMode.Open, FileAccess.Read, FileShare.Read))
-				{
-					var hash = Crypto.Sha256.GetSha256(stream);
-					if (expHash.Equals(hash))
-						isOk = true;
-					else
-						isOk = false;
-				}
+                if (IsCheckHash)
+                {
+                    using (var stream = new FileStream(outFilePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+                    {
+                        var hash = Crypto.Sha256.GetSha256(stream);
+                        if (expHash.Equals(hash))
+                            isOk = true;
+                        else
+                            isOk = false;
+                    }
+                }
 			}
-            return isOk;
+            return IsCheckHash ? isOk : true;
         }
 
 		public void Dispose()
