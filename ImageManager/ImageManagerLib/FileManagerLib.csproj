@@ -105,6 +105,8 @@
     <Compile Include="Extensions\Collections\ArrayExtension.cs" />
     <Compile Include="Filer\DirectorySearcher.cs" />
     <Compile Include="Crypto\Sha256.cs" />
+    <Compile Include="Filer\Json\AbstractJsonResourceManager.cs" />
+    <Compile Include="Filer\Json\JsonResourceManager.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

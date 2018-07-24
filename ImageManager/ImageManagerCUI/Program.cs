@@ -14,7 +14,7 @@ namespace ImageManagerCUI
     {
         public static void Main(string[] args)
         {
-			IProgram program = new JsonProgram();
+			AbstractProgram program = new JsonProgram();
 
             while (true)
             {
@@ -49,16 +49,21 @@ namespace ImageManagerCUI
     }
 
 
-	public interface IProgram
+	public abstract class AbstractProgram
 	{
-		bool Parse(string cmd);
+		public abstract bool Parse(string cmd);
+
+		protected virtual void Initialize()
+		{
+			
+		}
 	}
 
-	public class JsonProgram : IProgram
+	public class JsonProgram : AbstractProgram
 	{
 		JsonFileManager fileManager;
 
-		public bool Parse(string cmd)
+		public override bool Parse(string cmd)
 		{
 			var parser = new CmdParser(cmd);
             switch (parser.Command)
@@ -123,7 +128,7 @@ namespace ImageManagerCUI
             var checkHash = parser.GetAttribute("hash") ?? parser.GetAttribute(1);
             var isCheckHash = checkHash == null ? true : false;
 
-            fileManager = new JsonFileManager(dbFilename, isCheckHash, true, filePath =>
+			fileManager = new JsonFileManager(dbFilename, true, isCheckHash, filePath =>
             {
                 Console.WriteLine("{0} exist. Are you sure you want to delete this item? [y/n]", filePath);
                 Console.Write("> ");
@@ -147,7 +152,7 @@ namespace ImageManagerCUI
             Console.WriteLine("Loaded {0}.", dbFilename);
         }
 
-		public void Initialize()
+		protected override void Initialize()
 		{
 			fileManager.WriteIntoResourceProgress += FileManager_WriteProgress;
 			fileManager.WriteToFilesProgress += FileManager_WriteProgress;
@@ -300,4 +305,77 @@ namespace ImageManagerCUI
 		}
 
 	}
+
+
+	public class JsonDataProgram : AbstractProgram
+	{
+  
+		JsonResourceManager fileManager;
+
+		public override bool Parse(string cmd)
+		{         
+			var parser = new CmdParser(cmd);
+            switch (parser.Command)
+            {
+                case "exit":
+                    fileManager?.Dispose();
+                    return false;
+                case "gc":
+                    GC.Collect();
+                    break;
+                case "close":
+                    fileManager?.Dispose();
+                    break;
+                case "make":
+                    MakeDatabase(parser);
+                    break;
+                case "open":
+                    LoadDatabase(parser);
+                    break;
+                case "adddata":
+                    break;
+                case "getdata":
+                    break;
+                case "vacuum":
+                    fileManager.DataVacuum();
+                    break;
+                case "trace":
+                    Trace(parser);
+                    break;
+            }
+            return true;
+		}
+
+
+		public void MakeDatabase(CmdParser parser)
+        {
+            var dbFilename = parser.GetAttribute("file") ?? parser.GetAttribute(0);
+            var checkHash = parser.GetAttribute("hash") ?? parser.GetAttribute(1);
+            var isCheckHash = checkHash == null ? true : false;
+
+			fileManager = new JsonResourceManager(dbFilename, true, isCheckHash, filePath =>
+            {
+                Console.WriteLine("{0} exist. Are you sure you want to delete this item? [y/n]", filePath);
+                Console.Write("> ");
+                var ans = Console.ReadLine();
+                if (ans.Equals("y"))
+                {
+                    File.Delete(filePath);
+                    return true;
+                }
+                return false;
+            });
+            Initialize();
+            Console.WriteLine("Loaded {0}.", dbFilename);
+        }
+
+        public void LoadDatabase(CmdParser parser)
+        {
+            var dbFilename = parser.GetAttribute("file") ?? parser.GetAttribute(0);
+			fileManager = new JsonResourceManager(dbFilename, false);
+            Initialize();
+            Console.WriteLine("Loaded {0}.", dbFilename);
+        }
+	}
+
 }
