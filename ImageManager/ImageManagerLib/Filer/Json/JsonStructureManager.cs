@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
+using Clusterable.IO;
 using CommonExtensionLib.Extensions;
 using FileManagerLib.Dat;
 using FileManagerLib.Extensions.Collections;
@@ -317,5 +319,13 @@ namespace FileManagerLib.Filer.Json
 				    sw.Write(ToString());
 		}
 		#endregion
+
+        
+		public void WriteJson(DatFileManager fileManager, int len)
+		{
+			var json = ToString();
+			fileManager?.WriteToEnd(Encoding.UTF8.GetBytes(json), len);
+			IsChenged = false;
+		}
 	}
 }

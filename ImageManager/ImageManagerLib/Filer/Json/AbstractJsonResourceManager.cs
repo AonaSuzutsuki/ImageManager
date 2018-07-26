@@ -317,15 +317,18 @@ namespace FileManagerLib.Filer.Json
 		}
 		#endregion
 
+		#region Save
+		public void Save()
+		{
+			if (jsonStructureManager != null && jsonStructureManager.IsChenged)
+                jsonStructureManager.WriteJson(fManager, JSON_LEN);
+		}
+		#endregion
+
 		#region Dispose
 		public void Dispose()
         {
-            if (jsonStructureManager != null && jsonStructureManager.IsChenged)
-            {
-                var json = jsonStructureManager?.ToString();
-                Console.WriteLine(json);
-                fManager?.WriteToEnd(Encoding.UTF8.GetBytes(json), JSON_LEN);
-            }
+			Save();
             fManager?.Dispose();
 
             fManager = null;
