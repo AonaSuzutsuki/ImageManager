@@ -232,7 +232,9 @@ namespace FileManagerLib.Filer.Json
 			var parent = file.Parent;
 
 			string dirPath = GetDirectoryPath(jsonStructureManager, parent);
-			return "{0}/{1}".FormatString(dirPath, fileName);
+			if (!dirPath.Equals("/"))
+			    return "{0}/{1}".FormatString(dirPath, fileName);
+			return "/{0}".FormatString(fileName);
 		}
 
 		public string TraceDirs()
@@ -279,6 +281,7 @@ namespace FileManagerLib.Filer.Json
 				sb.AppendFormat("\t\tName:\t {0}\n", fItem.Name);
 				sb.AppendFormat("\t\tData:\t {0}\n", Convert.ToBase64String(data));
 				sb.AppendFormat("\t\tLength:\t {0}kb\n", len / 1024);
+				sb.AppendFormat("\t\tLocation:\t {0}\n", location);
 				sb.AppendFormat("\t\tType:\t {0}\n", fItem.MimeType);
 				sb.AppendFormat("\t]\n");
 			}
