@@ -7,6 +7,7 @@ using System.Linq;
 using System.Diagnostics;
 using FileManagerLib.Filer.Json;
 using FileManagerLib.Extensions.Path;
+using System.Text;
 
 namespace ImageManagerCUI
 {
@@ -14,7 +15,7 @@ namespace ImageManagerCUI
     {
         public static void Main(string[] args)
         {
-			AbstractProgram program = new JsonProgram();
+			AbstractProgram program = new JsonDataProgram();
 
             while (true)
             {
@@ -333,8 +334,10 @@ namespace ImageManagerCUI
                     LoadDatabase(parser);
                     break;
                 case "adddata":
+                    AddData(parser);
                     break;
                 case "getdata":
+                    GetData(parser);
                     break;
                 case "vacuum":
                     fileManager.DataVacuum();
@@ -376,6 +379,42 @@ namespace ImageManagerCUI
             Initialize();
             Console.WriteLine("Loaded {0}.", dbFilename);
         }
-	}
+
+        public void AddData(CmdParser parser)
+        {
+            var text = parser.GetAttribute("text") ?? parser.GetAttribute(0);
+            var fullPath = parser.GetAttribute("name") ?? parser.GetAttribute(1);
+
+            fileManager.WriteString(fullPath, text);
+        }
+
+        public void GetData(CmdParser parser)
+        {
+            var fullPath = parser.GetAttribute("name") ?? parser.GetAttribute(0);
+            
+            var text = fileManager.GetString(fullPath);
+            Console.WriteLine(text);
+        }
+
+
+
+        public void Trace(CmdParser parser)
+        {
+            var type = parser.GetAttribute("type") ?? parser.GetAttribute(0);
+
+            switch (type)
+            {
+                case "d":
+                    Console.WriteLine(fileManager.TraceDirs());
+                    break;
+                case "f":
+                    Console.WriteLine(fileManager.TraceFiles());
+                    break;
+                default:
+                    Console.WriteLine(fileManager);
+                    break;
+            }
+        }
+    }
 
 }

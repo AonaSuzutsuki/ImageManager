@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Text;
 using FileManagerLib.Extensions.Path;
+using FileManagerLib.MimeType;
 
 namespace FileManagerLib.Filer.Json
 {
@@ -21,6 +23,12 @@ namespace FileManagerLib.Filer.Json
 			}
 			return null;
 		}
+
+        public string GetString(string fullPath)
+        {
+            var bytes = GetBytes(fullPath);
+            return Encoding.UTF8.GetString(bytes);
+        }
 		#endregion
 
 		#region Write
@@ -30,9 +38,19 @@ namespace FileManagerLib.Filer.Json
 			int rootId = GetDirectoryId(parent);
 			if (!jsonStructureManager.ExistedFile(rootId, fileName))
 			{
-				fManager.Write(bytes, LEN);
-			}
+                var nextId = jsonStructureManager.NextFileId;
+                var hash = Crypto.Sha256.GetSha256(bytes);
+
+                var start = fManager.Write(bytes, LEN);
+                jsonStructureManager.CreateFile(nextId, rootId, fileName, start, MimeTypeMap.GetMimeTypeFromExtension("txt"), hash);
+            }
 		}
+
+        public void WriteString(string fullPath, string text)
+        {
+            var bytes = Encoding.UTF8.GetBytes(text);
+            WriteBytes(fullPath, bytes);
+        }
 		#endregion
 	}
 }
