@@ -15,7 +15,7 @@ namespace ImageManagerCUI
     {
         public static void Main(string[] args)
         {
-			AbstractProgram program = new JsonDataProgram();
+			AbstractProgram program = new JsonProgram();
 
             while (true)
             {
@@ -114,6 +114,9 @@ namespace ImageManagerCUI
                 case "vacuum":
 					fileManager.DataVacuum();
                     break;
+				case "save":
+					fileManager.Save();
+					break;
                 case "trace":
                     Trace(parser);
                     break;
