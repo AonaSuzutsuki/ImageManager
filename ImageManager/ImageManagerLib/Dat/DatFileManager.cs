@@ -171,11 +171,11 @@ namespace FileManagerLib.Dat
             var len = data.Length;
             var lenArray = BitConverter.GetBytes(len);
             
-            var pos = fileStream.Position;
 			fileStream.Seek(LastPositionWithoutJson, SeekOrigin.End);
+            var pos = fileStream.Position;
             fileStream.Write(lenArray, 0, identifierLength);
             fileStream.Write(data, 0, data.Length);
-			LastPositionWithoutJson += len;
+			LastPositionWithoutJson += (len + lenArray.Length);
 
             return pos;
         }
@@ -184,9 +184,9 @@ namespace FileManagerLib.Dat
 		{
 			var len = stream.Length;
             var lenArray = BitConverter.GetBytes(len);
-
-            var pos = fileStream.Position;
+   
 			fileStream.Seek(LastPositionWithoutJson, SeekOrigin.End);
+            var pos = fileStream.Position;
             fileStream.Write(lenArray, 0, identifierLength);
 
 			writeAction?.Invoke(fileStream);
@@ -209,11 +209,13 @@ namespace FileManagerLib.Dat
 
             fileStream.Write(data, 0, data.Length);
 			fileStream.Write(lenArray, 0, identifierLength);
+   
+			LastPositionWithoutJson = 0 - (len + lenArray.LongLength);
 
 			return pos;
 		}
 
-		private static uint GetIntAndSeek(Clusterable.IO.ClusterableFileStream stream, long start, long length)
+		private static uint GetIntAndSeek(ClusterableFileStream stream, long start, long length)
 		{
 			var idLenArray = new byte[length];
 			stream.Seek(start, SeekOrigin.Begin);
