@@ -23,6 +23,10 @@ namespace ImageManager.Views
         public MainWindow()
         {
             InitializeComponent();
+
+            var model = new Models.MainWindowModel();
+            var vm = new ViewModels.MainWindowViewModel(this, model);
+            DataContext = vm;
         }
     }
 }
