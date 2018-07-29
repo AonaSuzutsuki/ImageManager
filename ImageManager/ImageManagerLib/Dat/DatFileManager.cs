@@ -11,7 +11,7 @@ namespace FileManagerLib.Dat
         private const int LEN = 4;
 
         #region Fields
-        private Clusterable.IO.ClusterableFileStream fileStream;
+        private ClusterableFileStream fileStream;
         private long lastPositionWithoutJson = 0;
         #endregion
 

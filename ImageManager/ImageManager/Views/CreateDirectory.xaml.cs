@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FileManagerLib.Filer.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,22 +11,22 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
 using System.Windows.Shapes;
 
 namespace ImageManager.Views
 {
     /// <summary>
-    /// MainWindow.xaml の相互作用ロジック
+    /// CreateDirectory.xaml の相互作用ロジック
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class CreateDirectory : Window
     {
-        public MainWindow()
+
+        public CreateDirectory(string currentDirectory, JsonFileManager fileManager, Action<string> action)
         {
             InitializeComponent();
 
-            var model = new Models.MainWindowModel(this);
-            var vm = new ViewModels.MainWindowViewModel(this, model);
+            var model = new Models.CreateDirectoryModel(currentDirectory, fileManager, action);
+            var vm = new ViewModels.CreateDirectoryViewModel(this, model);
             DataContext = vm;
         }
     }

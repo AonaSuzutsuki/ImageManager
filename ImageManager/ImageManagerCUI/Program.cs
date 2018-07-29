@@ -132,18 +132,7 @@ namespace ImageManagerCUI
             var checkHash = parser.GetAttribute("hash") ?? parser.GetAttribute(1);
             var isCheckHash = checkHash == null ? true : false;
 
-			fileManager = new JsonFileManager(dbFilename, true, isCheckHash, filePath =>
-            {
-                Console.WriteLine("{0} exist. Are you sure you want to delete this item? [y/n]", filePath);
-                Console.Write("> ");
-                var ans = Console.ReadLine();
-                if (ans.Equals("y"))
-				{
-                    File.Delete(filePath);
-					return true;
-				}
-				return false;
-            });
+            fileManager = new JsonFileManager(dbFilename, true, isCheckHash);
 			Initialize();
             Console.WriteLine("Loaded {0}.", dbFilename);
         }
@@ -229,23 +218,41 @@ namespace ImageManagerCUI
 
 		public void GetFiles(CmdParser parser)
 		{
-			var did = parser.GetAttribute("id") ?? parser.GetAttribute(0);
-			var files = fileManager.GetFiles(did.ToInt());
-			foreach (var file in files)
-			{
-				Console.WriteLine("{0}", file);
-			}
-		}
+            var fullPath = parser.GetAttribute("name") ?? parser.GetAttribute(0);
+
+            FileStructure[] fileStructures;
+            if (fullPath.Substring(0, 1).Equals(":"))
+            {
+                var id = fullPath.TrimStart(':').ToInt();
+                fileStructures = fileManager.GetFiles(id);
+            }
+            else
+            {
+                fileStructures = fileManager.GetFiles(fullPath);
+            }
+            
+			foreach (var file in fileStructures)
+                Console.WriteLine("{0}", file);
+        }
 
 		public void GetDirs(CmdParser parser)
 		{
-			var did = parser.GetAttribute("id") ?? parser.GetAttribute(0);
-			var dirs = fileManager.GetDirectories(did.ToInt());
-            foreach (var dir in dirs)
+            var fullPath = parser.GetAttribute("name") ?? parser.GetAttribute(0);
+
+            DirectoryStructure[] directoryStructures;
+            if (fullPath.Substring(0, 1).Equals(":"))
             {
-                Console.WriteLine("{0}", dir);
+                var id = fullPath.TrimStart(':').ToInt();
+                directoryStructures = fileManager.GetDirectories(id);
             }
-		}
+            else
+            {
+                directoryStructures = fileManager.GetDirectories(fullPath);
+            }
+
+            foreach (var dir in directoryStructures)
+                Console.WriteLine("{0}", dir);
+        }
 
 		public void WriteTo(CmdParser parser)
         {
@@ -300,7 +307,7 @@ namespace ImageManagerCUI
             }
         }
         
-		void FileManager_WriteProgress(object sender, JsonFileManager.ReadWriteProgressEventArgs eventArgs)
+		void FileManager_WriteProgress(object sender, AbstractJsonResourceManager.ReadWriteProgressEventArgs eventArgs)
 		{
 			if (eventArgs.IsCompleted)
 				Console.WriteLine("{0}/{1} ({2}%)\t{3}".FormatString(eventArgs.CompletedNumber, eventArgs.FullNumber, eventArgs.Percentage, eventArgs.CurrentFilepath));
@@ -359,18 +366,7 @@ namespace ImageManagerCUI
             var checkHash = parser.GetAttribute("hash") ?? parser.GetAttribute(1);
             var isCheckHash = checkHash == null ? true : false;
 
-			fileManager = new JsonResourceManager(dbFilename, true, isCheckHash, filePath =>
-            {
-                Console.WriteLine("{0} exist. Are you sure you want to delete this item? [y/n]", filePath);
-                Console.Write("> ");
-                var ans = Console.ReadLine();
-                if (ans.Equals("y"))
-                {
-                    File.Delete(filePath);
-                    return true;
-                }
-                return false;
-            });
+            fileManager = new JsonResourceManager(dbFilename, true, isCheckHash);
             Initialize();
             Console.WriteLine("Loaded {0}.", dbFilename);
         }

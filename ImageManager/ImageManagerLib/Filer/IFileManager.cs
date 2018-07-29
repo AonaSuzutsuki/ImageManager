@@ -1,4 +1,5 @@
-﻿using FileManagerLib.Path;
+﻿using FileManagerLib.Filer.Json;
+using FileManagerLib.Path;
 using System;
 
 namespace FileManagerLib.Filer
@@ -21,8 +22,8 @@ namespace FileManagerLib.Filer
         void DeleteFile(int id);
         int GetDirectoryId(string dirName, int rootId);
         int GetDirectoryId(PathItem pathItem);
-		string[] GetFiles(int dirId);
-		string[] GetDirectories(int dirId);
+		FileStructure[] GetFiles(int dirId);
+		DirectoryStructure[] GetDirectories(int dirId);
         string ToString();
         string TraceDirs();
         string TraceFiles();

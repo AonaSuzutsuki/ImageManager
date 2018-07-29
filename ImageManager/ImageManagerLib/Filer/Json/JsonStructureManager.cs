@@ -271,6 +271,11 @@ namespace FileManagerLib.Filer.Json
             }
             return false;
         }
+
+        public bool ExistedFile(int id)
+        {
+            return files.ContainsKey(id);
+        }
         #endregion
 
         #region Vacuum

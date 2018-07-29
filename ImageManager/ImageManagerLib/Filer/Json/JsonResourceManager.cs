@@ -7,7 +7,7 @@ namespace FileManagerLib.Filer.Json
 {
 	public class JsonResourceManager : AbstractJsonResourceManager
 	{
-		public JsonResourceManager(string filePath, bool newFile = false, bool isCheckHash = true, Func<string, bool> fileExistAct = null) : base(filePath, newFile, isCheckHash, fileExistAct)
+		public JsonResourceManager(string filePath, bool newFile = false, bool isCheckHash = true) : base(filePath, newFile, isCheckHash)
 		{
 		}
 

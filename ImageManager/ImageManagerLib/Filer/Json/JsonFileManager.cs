@@ -24,7 +24,7 @@ namespace FileManagerLib.Filer.Json
         public event ReadWriteProgressEventHandler WriteIntoResourceProgress;
 		#endregion
 
-		public JsonFileManager(string filePath, bool newFile = false, bool isCheckHash = true, Func<string, bool> fileExistAct = null) : base(filePath, newFile, isCheckHash, fileExistAct)
+		public JsonFileManager(string filePath, bool newFile = false, bool isCheckHash = true) : base(filePath, newFile, isCheckHash)
 		{
 		}
 
@@ -139,6 +139,7 @@ namespace FileManagerLib.Filer.Json
                 if (!Directory.Exists(outFilePath))
                     Directory.CreateDirectory(outFilePath);
 
+				//Array.Sort(dirs);
                 foreach (var dir in dirs)
                 {
                     string path;
@@ -187,10 +188,40 @@ namespace FileManagerLib.Filer.Json
             }
 			return false;
         }
-		#endregion
+        #endregion
+
+        #region Read
+        public byte[] GetBytes(string fullPath)
+        {
+            var (parent, fileName) = fullPath.GetFilenameAndParent();
+            int rootId = GetDirectoryId(parent);
+            if (jsonStructureManager.ExistedFile(rootId, fileName))
+            {
+                var file = jsonStructureManager.GetFileStructureFromParent(rootId, fileName);
+                return fManager.GetBytes(file.Location, LEN);
+            }
+            return null;
+        }
+
+        public byte[] GetBytes(int id)
+        {
+            if (jsonStructureManager.ExistedFile(id))
+            {
+                var file = jsonStructureManager.GetFileStructure(id);
+                return fManager.GetBytes(file.Location, LEN);
+            }
+            return null;
+        }
+
+        public string GetString(string fullPath)
+        {
+            var bytes = GetBytes(fullPath);
+            return Encoding.UTF8.GetString(bytes);
+        }
+        #endregion
 
 
-		public override string ToString()
+        public override string ToString()
 		{
 			return base.ToString();
 		}      

@@ -38,7 +38,23 @@ namespace FileManagerLib.Path
             return path;
         }
 
-        public string GetLast() => pathList[pathList.Count - 1];
+        public string Pop()
+        {
+            if (pathList.Count >= 1)
+            {
+                var item = pathList[pathList.Count - 1];
+                pathList.RemoveAt(pathList.Count - 1);
+                return item;
+            }
+            return null;
+        }
+
+        public string GetLast()
+        {
+            if (pathList.Count >= 1)
+                return pathList[pathList.Count - 1];
+            return null;
+        }
 
         public PathItem GetPathItemFrom(int start)
         {

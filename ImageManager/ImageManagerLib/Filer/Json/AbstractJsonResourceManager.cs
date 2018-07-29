@@ -20,11 +20,17 @@ namespace FileManagerLib.Filer.Json
 		#region Fields
 		protected JsonStructureManager jsonStructureManager;
 		protected DatFileManager fManager;
-		#endregion
+        #endregion
 
+        #region Properties
+        public string FilePath
+        {
+            get;
+        }
+        #endregion
 
-		#region Events
-		public class ReadWriteProgressEventArgs : EventArgs
+        #region Events
+        public class ReadWriteProgressEventArgs : EventArgs
 		{
 			public int CompletedNumber { get; }
 			public int FullNumber { get; }
@@ -53,18 +59,19 @@ namespace FileManagerLib.Filer.Json
 		#endregion
 
 
-		protected AbstractJsonResourceManager(string filePath, bool newFile = false, bool isCheckHash = true, Func<string, bool> fileExistAct = null)
+		protected AbstractJsonResourceManager(string filePath, bool newFile = false, bool isCheckHash = true)
         {
             if (newFile)
             {
-                if (File.Exists(filePath) && fileExistAct != null)
-                    newFile = fileExistAct.Invoke(filePath);
+                if (File.Exists(filePath))
+                    File.Delete(filePath);
             }
 
             fManager = new DatFileManager(filePath) { IsShiftJsonPosition = true };
             var json = newFile ? string.Empty : Encoding.UTF8.GetString(fManager.GetBytesFromEnd(JSON_LEN));
             jsonStructureManager = new JsonStructureManager(json, isCheckHash);
             fManager.IsCheckHash = jsonStructureManager.IsCheckHash;
+            FilePath = filePath;
         }    
 
 
@@ -171,32 +178,40 @@ namespace FileManagerLib.Filer.Json
 			return dirId;
 		}
 
-		public string[] GetFiles(int dirId)
+        public FileStructure[] GetFiles(string fullPath)
+        {
+            var (parent, dirName) = fullPath.GetFilenameAndParent();
+
+            int rootId = GetDirectoryId(parent);
+            int dirId = GetDirectoryId(dirName, rootId);
+
+            return jsonStructureManager.GetFileStructuresFromParent(dirId);
+        }
+		public FileStructure[] GetFiles(int dirId)
 		{
 			var files = jsonStructureManager.GetFileStructuresFromParent(dirId);
-			var fList = new List<string>();
-			foreach (var file in files)
-			{
-				fList.Add(file.Name);
-			}
-			return fList.ToArray();
+			return files;
 		}
 
-		public string[] GetDirectories(int dirId)
+		public DirectoryStructure[] GetDirectories(int dirId)
 		{
 			var dirs = jsonStructureManager.GetDirectoryStructuresFromParent(dirId);
-			var dList = new List<string>();
-			foreach (var dir in dirs)
-			{
-				dList.Add(dir.Name);
-			}
-			return dList.ToArray();
+			return dirs;
 		}
+        public DirectoryStructure[] GetDirectories(string fullPath)
+        {
+            var (parent, dirName) = fullPath.GetFilenameAndParent();
+
+            int rootId = GetDirectoryId(parent);
+            int dirId = GetDirectoryId(dirName, rootId);
+
+            return jsonStructureManager.GetDirectoryStructuresFromParent(dirId);
+        }
 
 
 
-		#region Trace
-		public static string GetDirectoryPath(JsonStructureManager jsonStructureManager, int id)
+        #region Trace
+        public static string GetDirectoryPath(JsonStructureManager jsonStructureManager, int id)
 		{
 			var pathList = new List<string>();
 
@@ -281,7 +296,7 @@ namespace FileManagerLib.Filer.Json
 				sb.AppendFormat("\t\tName:\t {0}\n", fItem.Name);
 				sb.AppendFormat("\t\tData:\t {0}\n", Convert.ToBase64String(data));
 				sb.AppendFormat("\t\tLength:\t {0}kb\n", len / 1024);
-				sb.AppendFormat("\t\tLocation:\t {0}\n", location);
+				sb.AppendFormat("\t\tLocate:\t {0}\n", location);
 				sb.AppendFormat("\t\tType:\t {0}\n", fItem.MimeType);
 				sb.AppendFormat("\t]\n");
 			}
@@ -306,7 +321,7 @@ namespace FileManagerLib.Filer.Json
 		{
 			DatFileManager makeDatFileManager(string f) => new DatFileManager(f) { IsCheckHash = fManager.IsCheckHash };
 
-			var tempFilePath = "{0}.temp".FormatString(this.fManager.FilePath);
+			var tempFilePath = "{0}_temp".FormatString(this.fManager.FilePath);
 			using (var tempfManager = makeDatFileManager(tempFilePath))
 			{
 				jsonStructureManager.Vacuum(fManager, tempfManager, LEN, (completedNumber, fullNumber, currentFilePath) =>
@@ -316,7 +331,7 @@ namespace FileManagerLib.Filer.Json
 			}
 
 			var filePath = fManager.FilePath;
-			fManager = fManager.Rename(".temp");
+			fManager = fManager.Rename("_temp");
 		}
 		#endregion
 
