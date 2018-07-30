@@ -31,8 +31,8 @@ namespace FileManagerLib.Path
 
         public string GetPath(int index)
         {
-            if (index < 0)
-                return string.Empty;
+            if (index < 0 || pathList.Count - 1 < index)
+                return null;
 
             string path = pathList[index];
             return path;
@@ -87,6 +87,20 @@ namespace FileManagerLib.Path
             //var paths = pathArray.Except(pathItemArray).ToArray();
 
             return new PathItem(list.ToArray());
+        }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is PathItem pathItem)
+            {
+                return pathList.SequenceEqual(pathItem.pathList);
+            }
+            return false;
         }
 
         public string[] ToArray() => pathList.ToArray();
