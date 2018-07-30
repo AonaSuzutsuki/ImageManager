@@ -7,13 +7,12 @@ namespace FileManagerLib.Crypto
 {
     public class Sha256
     {
-		public static string GetSha256(Stream stream, Action<Stream> disposeAction = null)
+		public static string GetSha256(Stream stream)
 		{
 			var bufferedStream = new BufferedStream(stream, 10485760);
             var sha = new SHA256Managed();
 			byte[] checksum = sha.ComputeHash(bufferedStream);
             stream.Seek(0, SeekOrigin.Begin);
-			disposeAction?.Invoke(bufferedStream);
             return BitConverter.ToString(checksum).Replace("-", String.Empty);
 		}
 
