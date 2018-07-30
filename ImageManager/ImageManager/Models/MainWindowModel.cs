@@ -159,9 +159,9 @@ namespace ImageManager.Models
             CanForward = cnt != null && cnt > 0;
         }
 
-        public void MoveDirectory(string nextPath, bool isTextBoxChanged = false)
+        public void MoveDirectory(string nextPath, bool isFromTextBox = false)
         {
-            if (isTextBoxChanged)
+            if (isFromTextBox)
                 pathItemsForForward.Push(PathSplitter.SplitPath(pathItem.ToString()));
 
             pathItem.AddPath(nextPath);
