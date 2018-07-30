@@ -66,7 +66,7 @@ namespace FileManagerLib.Filer.Json
                 }
                 else
                 {
-                    var data = ImageLoader.FromImageFile(stream).Data;
+                    var data = ByteLoader.FromFile(stream);
                     if (data != null)
                         CreateFile(fileName, parent, data, mimeType, hash);
                 }

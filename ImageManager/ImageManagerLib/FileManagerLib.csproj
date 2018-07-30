@@ -80,7 +80,7 @@
     <Compile Include="Dat\DatFileManager.cs" />
     <Compile Include="Extensions\Imager\ImageExtension.cs" />
     <Compile Include="Extensions\Path\PathItemExtensions.cs" />
-    <Compile Include="Filer\ImageLoader.cs" />
+    <Compile Include="Filer\ByteLoader.cs" />
     <Compile Include="MimeType\MimeTypeMap.cs" />
     <Compile Include="Path\PathItem.cs" />
     <Compile Include="Path\PathSplitter.cs" />
