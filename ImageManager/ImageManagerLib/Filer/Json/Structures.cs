@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Text;
 using Newtonsoft.Json;
 
@@ -44,15 +45,19 @@ namespace FileManagerLib.Filer.Json
         public string Name { get; set; }
         [JsonProperty("location")]
 		public long Location { get; set; }
-        [JsonProperty("mimetype")]
-        public string MimeType { get; set; }
+        //[JsonProperty("mimetype")]
+        //public string MimeType { get; set; }
 		[JsonProperty("hash")]
 		public string Hash { get; set; }
+
+        [JsonProperty("additional")]
+        public Dictionary<string, string> Additional { get; set; }
+
 
         public override string ToString()
         {
             var sb = new StringBuilder();
-			sb.AppendFormat("[FileStructure\t\tId = {0}, Parent = {1}, Name = {2}, Location = {3}, MimeType = {4}, Hash = {5} ]", Id, Parent, Name, Location, MimeType, Hash);
+			sb.AppendFormat("[FileStructure\t\tId = {0}, Parent = {1}, Name = {2}, Location = {3}, Hash = {4} ]", Id, Parent, Name, Location, Hash);
             return sb.ToString();
         }
     }

@@ -128,7 +128,10 @@ namespace ImageManager.Models
             }
             foreach (var file in files)
             {
-                var mime = file.MimeType;
+                string mime = null;
+                if (file.Additional.ContainsKey("MimeType"))
+                    mime = file.Additional["MimeType"];
+
                 var item = new FileDirectoryItem
                 {
                     Id = file.Id,

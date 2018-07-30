@@ -10,7 +10,7 @@ using FileManagerLib.Path;
 
 namespace FileManagerLib.Filer.Json
 {
-	public class JsonFileManager : AbstractJsonResourceManager, IFileManager
+	public class JsonFileManager : AbstractJsonResourceManager
 	{
 
 		#region Constants
@@ -28,11 +28,13 @@ namespace FileManagerLib.Filer.Json
 		{
 		}
 
-		public void CreateFile(string fileName, string parent, byte[] data, string mimeType, string hash)
+
+        #region File
+        public void CreateFile(string fileName, string parent, byte[] data, string mimeType, string hash)
 		{
 			var (nextId, parentId) = ResolveTermParameters(fileName, parent);         
 			var start = fManager.Write(data, LEN);         
-			jsonStructureManager.CreateFile(nextId, parentId, fileName, start, mimeType, hash);
+			jsonStructureManager.CreateFile(nextId, parentId, fileName, start, hash, new Dictionary<string, string> { { "MimeType", mimeType } });
 		}
         
 		public void CreateFile(string fileName, string parent, string inFilePath)
@@ -60,7 +62,7 @@ namespace FileManagerLib.Filer.Json
 							writeStream.Write(bs, 0, readSize);
                         }
                     }, LEN);
-					jsonStructureManager.CreateFile(nextId, parentId, fileName, start, mimeType, hash);
+					jsonStructureManager.CreateFile(nextId, parentId, fileName, start, hash, new Dictionary<string, string> { { "MimeType", mimeType } });
                 }
                 else
                 {
@@ -96,8 +98,9 @@ namespace FileManagerLib.Filer.Json
 				WriteIntoResourceProgress?.Invoke(this, new ReadWriteProgressEventArgs(file.i + 1, filePathArray.Length, path, true));
 			}
 		}
+        #endregion
 
-		private static string[] ResolveAbsolutePath(string basePath, string parent, string[] dirPathArray)
+        private static string[] ResolveAbsolutePath(string basePath, string parent, string[] dirPathArray)
 		{
 			string func(string path, string referencePath)
 			{
@@ -113,7 +116,7 @@ namespace FileManagerLib.Filer.Json
 			return list.ToArray();
 		}
 
-		#region Writer
+		#region File Writer
 		public bool WriteToFile(string filePath, string outFilePath)
 		{
             var (parent, fileName) = filePath.GetFilenameAndParent();
@@ -189,38 +192,7 @@ namespace FileManagerLib.Filer.Json
 			return false;
         }
         #endregion
-
-        #region Read
-        public byte[] GetBytes(string fullPath)
-        {
-            var (parent, fileName) = fullPath.GetFilenameAndParent();
-            int rootId = GetDirectoryId(parent);
-            if (jsonStructureManager.ExistedFile(rootId, fileName))
-            {
-                var file = jsonStructureManager.GetFileStructureFromParent(rootId, fileName);
-                return fManager.GetBytes(file.Location, LEN);
-            }
-            return null;
-        }
-
-        public byte[] GetBytes(int id)
-        {
-            if (jsonStructureManager.ExistedFile(id))
-            {
-                var file = jsonStructureManager.GetFileStructure(id);
-                return fManager.GetBytes(file.Location, LEN);
-            }
-            return null;
-        }
-
-        public string GetString(string fullPath)
-        {
-            var bytes = GetBytes(fullPath);
-            return Encoding.UTF8.GetString(bytes);
-        }
-        #endregion
-
-
+        
         public override string ToString()
 		{
 			return base.ToString();

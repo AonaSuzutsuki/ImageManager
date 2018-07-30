@@ -7,6 +7,7 @@ using Clusterable.IO;
 using CommonExtensionLib.Extensions;
 using FileManagerLib.Dat;
 using FileManagerLib.Extensions.Collections;
+using Newtonsoft.Json;
 
 namespace FileManagerLib.Filer.Json
 {
@@ -37,7 +38,7 @@ namespace FileManagerLib.Filer.Json
 
 		public JsonStructureManager(string text, bool isCheckhHash)
 		{
-			var table = Database.Json.JsonSerializer.ToObject<TableStructure>(text);
+			var table = JsonConvert.DeserializeObject<TableStructure>(text);
             IsCheckHash = table == null ? isCheckhHash : table.IsCheckHash;
             table?.Directory?.ForEach((obj) => directories.Add(obj.Id, obj));
 			table?.File?.ForEach((obj) => files.Add(obj.Id, obj));
@@ -166,7 +167,7 @@ namespace FileManagerLib.Filer.Json
             IsChenged = true;
 		}
 
-		public void CreateFile(int id, int parent, string name, long location, string mtype, string hash)
+		public void CreateFile(int id, int parent, string name, long location, string hash, Dictionary<string, string> additionals = null)
 		{
 			var fileStructure = new FileStructure
 			{
@@ -174,10 +175,18 @@ namespace FileManagerLib.Filer.Json
 				Parent = parent,
 				Name = name,
 				Location = location,
-				MimeType = mtype,
-				Hash = hash
+				Hash = hash,
 			};
-			CreateFile(fileStructure);
+
+            if (additionals != null)
+            {
+                fileStructure.Additional = new Dictionary<string, string>();
+                var zip = additionals.Keys.Zip(additionals.Values, (_key, _value) => new { key = _key, value = _value });
+                foreach (var val in zip)
+                    fileStructure.Additional.Add(val.key, val.value);
+            }
+
+            CreateFile(fileStructure);
 		}
 
 		public FileStructure GetFileStructure(int id)
@@ -294,7 +303,7 @@ namespace FileManagerLib.Filer.Json
                     Parent = dataFileInfo.v.Parent,
                     Name = dataFileInfo.v.Name,
                     Location = nloc,
-                    MimeType = dataFileInfo.v.MimeType,
+                    Additional = dataFileInfo.v.Additional,
                     Hash = dataFileInfo.v.Hash
                 });
                 action?.Invoke(dataFileInfo.i + 1, files.Length, dataFileInfo.v.Name);
@@ -313,7 +322,7 @@ namespace FileManagerLib.Filer.Json
 				File = files.Values.ToArray(),
                 IsCheckHash = IsCheckHash
 			};
-			var json = Database.Json.JsonSerializer.ToJson(tableStructure);
+			var json = JsonConvert.SerializeObject(tableStructure);
 			return json;
 		}
 
