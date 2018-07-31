@@ -9,6 +9,7 @@ namespace FileManagerLib.MimeType
     public class MimeTypeMap
     {
         private static Dictionary<string, string> mimeTypeTable;
+        private static HashSet<string> imageHashSet;
         private const string NoneType = "application/octet-stream";
 
         private static Dictionary<string, string> InitializeTable()
@@ -580,6 +581,19 @@ namespace FileManagerLib.MimeType
             return mimeTypeTable;
         }
 
+        private static HashSet<string> InitializeHashSet()
+        {
+            if (imageHashSet == null)
+                imageHashSet = new HashSet<string>()
+                {
+                    "image/jpeg",
+                    "image/png",
+                    "image/bmp",
+                    "image/gif"
+                };
+            return imageHashSet;
+        }
+
         public static string GetMimeTypeFromExtension(string extension)
         {
             var table = InitializeTable();
@@ -593,6 +607,12 @@ namespace FileManagerLib.MimeType
         {
             var extension = System.IO.Path.GetExtension(filepath);
             return GetMimeTypeFromExtension(extension);
+        }
+
+        public static bool IsImage(string mimeType)
+        {
+            var hashSet = InitializeHashSet();
+            return hashSet.Contains(mimeType);
         }
     }
 }

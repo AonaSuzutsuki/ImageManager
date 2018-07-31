@@ -14,13 +14,13 @@ namespace Clusterable.IO.Tests
     {
         private byte[] exceptedData = new byte[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 };
 
-        public ClusterableFileStream MakeFileStream(string filename, FileMode mode, long splitSize = 0, string asmDirPath = null)
+        public ClusterableFileStream MakeFileStream(string filename, FileMode mode, long splitSize = 2, string asmDirPath = null)
         {
             ClusterableFileStream fs;
-            if (splitSize > 0)
+            //if (splitSize > 0)
                 fs = new ClusterableFileStream(filename, mode, FileAccess.ReadWrite, FileShare.None, splitSize, asmDirPath);
-            else
-                fs = new ClusterableFileStream(filename, mode, FileAccess.ReadWrite, FileShare.None, asmDirPath);
+            //else
+            //    fs = new ClusterableFileStream(filename, mode, FileAccess.ReadWrite, FileShare.None, splitSize, asmDirPath);
             return fs;
         }
 

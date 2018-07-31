@@ -3,15 +3,15 @@ using System;
 using System.IO;
 using System.Linq;
 
-namespace Dat
+namespace FileManagerLib.Dat
 {
     public class DatFileManager : IDisposable
     {
-        
-		private const int LEN = 4;
 
-		#region Fields
-		private Clusterable.IO.ClusterableFileStream fileStream;
+        private const int LEN = 4;
+
+        #region Fields
+        private ClusterableFileStream fileStream;
         private long lastPositionWithoutJson = 0;
         #endregion
 
@@ -31,6 +31,8 @@ namespace Dat
 			get => lastPositionWithoutJson > 0 ? 0 : lastPositionWithoutJson;
 			set => lastPositionWithoutJson = value;
 		}
+
+        public bool IsCheckHash { get; set; } = true;
         #endregion
 
         public DatFileManager(string filePath)
@@ -39,14 +41,14 @@ namespace Dat
             fileStream = new ClusterableFileStream(filePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read); //18077000
         }
 
-		public byte[] GetBytes(long start)
+		public byte[] GetBytes(long start, int identifierLength = LEN)
 		{
 			byte[] data = null;
 
 			if (fileStream != null)
 			{
 				//id = GetIntAndSeek(fileStream, start, ID_LEN);
-				var length = GetIntAndSeek(fileStream, start, LEN);
+				var length = GetIntAndSeek(fileStream, start, identifierLength);
 
 				data = new byte[length];
 				fileStream.Read(data, 0, data.Length);
@@ -55,13 +57,13 @@ namespace Dat
 			return data;
 		}
 
-		public byte[] GetBytesFromEnd()
+		public byte[] GetBytesFromEnd(int identifierLength = LEN)
 		{
 			byte[] data = null;
 
 			if (fileStream != null)
             {
-				var idArray = new byte[LEN];
+				var idArray = new byte[identifierLength];
 				fileStream.Seek(-idArray.Length, SeekOrigin.End);
 				var rc = fileStream.Read(idArray, 0, idArray.Length);
 				var length = BitConverter.ToInt32(idArray, 0);
@@ -76,14 +78,14 @@ namespace Dat
             return data;
 		}
 
-        public (uint, byte[]) GetPartialBytes(long start, long length)
+        public (uint, byte[]) GetPartialBytes(long start, long length, int identifierLength = LEN)
         {
             uint len = 0;
             byte[] data = null;
 
             if (fileStream != null)
             {
-                len = (uint)GetIntAndSeek(fileStream, start, LEN);
+                len = (uint)GetIntAndSeek(fileStream, start, identifierLength);
 
                 data = new byte[length];
                 fileStream.Read(data, 0, data.Length);
@@ -91,14 +93,15 @@ namespace Dat
 
             return (len, data);
         }
-
-		public void WriteToFile(long start, string outFilePath)
+        
+		public bool WriteToFile(long start, string outFilePath, string expHash, int identifierLength = LEN)
 		{
+            bool isOk = false;
             if (fileStream != null)
             {
                 using (var fs = new FileStream(outFilePath, FileMode.Create, FileAccess.Write, FileShare.None))
                 {
-                    var length = GetIntAndSeek(fileStream, start, LEN);
+                    var length = GetIntAndSeek(fileStream, start, identifierLength);
                     if (length > SplitSize)
                     {
                         while (true)
@@ -122,7 +125,20 @@ namespace Dat
                         fs.Write(data, 0, data.Length);
                     }
                 }
-            }
+    
+                if (IsCheckHash)
+                {
+                    using (var stream = new FileStream(outFilePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+                    {
+                        var hash = Crypto.Sha256.GetSha256(stream);
+                        if (expHash.Equals(hash))
+                            isOk = true;
+                        else
+                            isOk = false;
+                    }
+                }
+			}
+            return IsCheckHash ? isOk : true;
         }
 
 		public void Dispose()
@@ -130,13 +146,13 @@ namespace Dat
 			((IDisposable)fileStream).Dispose();
 		}
 
-        public void Rename(string suffix)
+        public DatFileManager Rename(string suffix)
         {
 			var splitSize = fileStream.SplitSize;
             var filenames = fileStream.Delete();
 			fileStream.Dispose();
 
-            var prefs = new ClusterableFileStream(filenames[0] + suffix, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read);
+            var prefs = new ClusterableFileStream(filenames[0] + suffix, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read, splitSize);
             var srcFilenames = prefs.Filenames;
             prefs.Dispose();
 
@@ -145,31 +161,33 @@ namespace Dat
 				var dest = filenames[item.index];
 				File.Move(item.value, dest);
             }
-            fileStream = new ClusterableFileStream(filenames[0], FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read);
+            var datFileManager = new DatFileManager(filenames[0]);
+            return datFileManager;
+            //fileStream = new ClusterableFileStream(filenames[0], FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read);
         }
 
-        public long Write(byte[] data)
+        public long Write(byte[] data, int identifierLength = LEN)
         {
             var len = data.Length;
             var lenArray = BitConverter.GetBytes(len);
             
-            var pos = fileStream.Position;
 			fileStream.Seek(LastPositionWithoutJson, SeekOrigin.End);
-            fileStream.Write(lenArray, 0, LEN);
+            var pos = fileStream.Position;
+            fileStream.Write(lenArray, 0, identifierLength);
             fileStream.Write(data, 0, data.Length);
-			LastPositionWithoutJson += len;
+			LastPositionWithoutJson += (len + lenArray.Length);
 
             return pos;
         }
 
-		public long Write(Stream stream, Action<Clusterable.IO.ClusterableFileStream> writeAction)
+		public long Write(Stream stream, Action<Clusterable.IO.ClusterableFileStream> writeAction, int identifierLength = LEN)
 		{
 			var len = stream.Length;
             var lenArray = BitConverter.GetBytes(len);
-
-            var pos = fileStream.Position;
+   
 			fileStream.Seek(LastPositionWithoutJson, SeekOrigin.End);
-            fileStream.Write(lenArray, 0, LEN);
+            var pos = fileStream.Position;
+            fileStream.Write(lenArray, 0, identifierLength);
 
 			writeAction?.Invoke(fileStream);
 
@@ -178,9 +196,9 @@ namespace Dat
             return pos;
 		}
 
-		public long WriteToEnd(byte[] data)
+		public long WriteToEnd(byte[] data, int identifierLength = LEN)
 		{
-			var len = data.Length;
+			var len = data.LongLength;
             var lenArray = BitConverter.GetBytes(len);
 			var pos = fileStream.Position;
 
@@ -190,12 +208,14 @@ namespace Dat
                 fileStream.Seek(0, SeekOrigin.End);
 
             fileStream.Write(data, 0, data.Length);
-			fileStream.Write(lenArray, 0, LEN);
+			fileStream.Write(lenArray, 0, identifierLength);
+   
+			LastPositionWithoutJson = 0 - (len + lenArray.LongLength);
 
 			return pos;
 		}
 
-		private static uint GetIntAndSeek(Clusterable.IO.ClusterableFileStream stream, long start, long length)
+		private static uint GetIntAndSeek(ClusterableFileStream stream, long start, long length)
 		{
 			var idLenArray = new byte[length];
 			stream.Seek(start, SeekOrigin.Begin);
@@ -206,19 +226,19 @@ namespace Dat
 			return (uint)idLength;
 		}
 
-        public long WriteToTemp(long loc, DatFileManager dest)
+        public long WriteToTemp(long loc, DatFileManager dest, int identifierLength = LEN)
         {
             var srcStream = this.fileStream;
             var destStream = dest.fileStream;
 
             srcStream.Seek(loc, SeekOrigin.Begin);
-            uint length = GetIntAndSeek(srcStream, loc, LEN);
+            uint length = GetIntAndSeek(srcStream, loc, identifierLength);
 
             var data = new byte[length];
             srcStream.Read(data, 0, data.Length);
 
             long retloc = destStream.Position;
-            destStream.Write(BitConverter.GetBytes(length), 0, LEN);
+            destStream.Write(BitConverter.GetBytes(length), 0, identifierLength);
             destStream.Write(data, 0, data.Length);
             return retloc;
 

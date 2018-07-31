@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClusterableFileStream", "Cl
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClusterableFileStreamTests", "ClusterableFileStreamTests\ClusterableFileStreamTests.csproj", "{9C50F995-EC7E-4FB8-9A7C-6C74FF6685D8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileManagerLibTests", "FileManagerLibTests\FileManagerLibTests.csproj", "{945DC093-6601-4616-9FE5-F61B6849F9D0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -83,6 +85,18 @@ Global
 		{9C50F995-EC7E-4FB8-9A7C-6C74FF6685D8}.Release|x64.Build.0 = Release|Any CPU
 		{9C50F995-EC7E-4FB8-9A7C-6C74FF6685D8}.Release|x86.ActiveCfg = Release|Any CPU
 		{9C50F995-EC7E-4FB8-9A7C-6C74FF6685D8}.Release|x86.Build.0 = Release|Any CPU
+		{945DC093-6601-4616-9FE5-F61B6849F9D0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{945DC093-6601-4616-9FE5-F61B6849F9D0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{945DC093-6601-4616-9FE5-F61B6849F9D0}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{945DC093-6601-4616-9FE5-F61B6849F9D0}.Debug|x64.Build.0 = Debug|Any CPU
+		{945DC093-6601-4616-9FE5-F61B6849F9D0}.Debug|x86.ActiveCfg = Debug|x86
+		{945DC093-6601-4616-9FE5-F61B6849F9D0}.Debug|x86.Build.0 = Debug|x86
+		{945DC093-6601-4616-9FE5-F61B6849F9D0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{945DC093-6601-4616-9FE5-F61B6849F9D0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{945DC093-6601-4616-9FE5-F61B6849F9D0}.Release|x64.ActiveCfg = Release|Any CPU
+		{945DC093-6601-4616-9FE5-F61B6849F9D0}.Release|x64.Build.0 = Release|Any CPU
+		{945DC093-6601-4616-9FE5-F61B6849F9D0}.Release|x86.ActiveCfg = Release|Any CPU
+		{945DC093-6601-4616-9FE5-F61B6849F9D0}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

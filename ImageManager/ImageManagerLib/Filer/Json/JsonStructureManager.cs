@@ -1,7 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Text;
+using Clusterable.IO;
+using CommonExtensionLib.Extensions;
+using FileManagerLib.Dat;
 using FileManagerLib.Extensions.Collections;
+using Newtonsoft.Json;
 
 namespace FileManagerLib.Filer.Json
 {
@@ -28,10 +34,13 @@ namespace FileManagerLib.Filer.Json
 			private set;
 		}
 
-		public JsonStructureManager(string text)
+        public bool IsCheckHash { get; }
+
+		public JsonStructureManager(string text, bool isCheckhHash)
 		{
-			var table = Database.Json.JsonSerializer.ToObject<TableStructure>(text);
-			table?.Directory?.ForEach((obj) => directories.Add(obj.Id, obj));
+			var table = JsonConvert.DeserializeObject<TableStructure>(text);
+            IsCheckHash = table == null ? isCheckhHash : table.IsCheckHash;
+            table?.Directory?.ForEach((obj) => directories.Add(obj.Id, obj));
 			table?.File?.ForEach((obj) => files.Add(obj.Id, obj));
 			if (table == null)
 				IsChenged = true;
@@ -158,7 +167,7 @@ namespace FileManagerLib.Filer.Json
             IsChenged = true;
 		}
 
-		public void CreateFile(int id, int parent, string name, long location, string mtype)
+		public void CreateFile(int id, int parent, string name, long location, string hash, Dictionary<string, string> additionals = null)
 		{
 			var fileStructure = new FileStructure
 			{
@@ -166,9 +175,18 @@ namespace FileManagerLib.Filer.Json
 				Parent = parent,
 				Name = name,
 				Location = location,
-				MimeType = mtype
+				Hash = hash,
 			};
-			CreateFile(fileStructure);
+
+            if (additionals != null)
+            {
+                fileStructure.Additional = new Dictionary<string, string>();
+                var zip = additionals.Keys.Zip(additionals.Values, (_key, _value) => new { key = _key, value = _value });
+                foreach (var val in zip)
+                    fileStructure.Additional.Add(val.key, val.value);
+            }
+
+            CreateFile(fileStructure);
 		}
 
 		public FileStructure GetFileStructure(int id)
@@ -262,6 +280,36 @@ namespace FileManagerLib.Filer.Json
             }
             return false;
         }
+
+        public bool ExistedFile(int id)
+        {
+            return files.ContainsKey(id);
+        }
+        #endregion
+
+        #region Vacuum
+        public void Vacuum(DatFileManager srcfileManager, DatFileManager destfileManager, int identifierLength, Action<int, int, string> action)
+        {
+            var files = GetFileStructures();
+            foreach (var dataFileInfo in files.Select((v, i) => new { v, i }))
+            {
+                var id = dataFileInfo.v.Id;
+                var loc = dataFileInfo.v.Location;
+                var nloc = srcfileManager.WriteToTemp(loc, destfileManager, identifierLength);
+
+                ChangeFile(id, new FileStructure
+                {
+                    Id = dataFileInfo.v.Id,
+                    Parent = dataFileInfo.v.Parent,
+                    Name = dataFileInfo.v.Name,
+                    Location = nloc,
+                    Additional = dataFileInfo.v.Additional,
+                    Hash = dataFileInfo.v.Hash
+                });
+                action?.Invoke(dataFileInfo.i + 1, files.Length, dataFileInfo.v.Name);
+            }
+            IsChenged = true;
+        }
         #endregion
 
 
@@ -271,9 +319,10 @@ namespace FileManagerLib.Filer.Json
 			var tableStructure = new TableStructure
 			{
 				Directory = directories.Values.ToArray(),
-				File = files.Values.ToArray()
+				File = files.Values.ToArray(),
+                IsCheckHash = IsCheckHash
 			};
-			var json = Database.Json.JsonSerializer.ToJson(tableStructure);
+			var json = JsonConvert.SerializeObject(tableStructure);
 			return json;
 		}
 
@@ -285,7 +334,12 @@ namespace FileManagerLib.Filer.Json
 		}
 		#endregion
 
-
         
+		public void WriteJson(DatFileManager fileManager, int len)
+		{
+			var json = ToString();
+			fileManager?.WriteToEnd(Encoding.UTF8.GetBytes(json), len);
+			IsChenged = false;
+		}
 	}
 }

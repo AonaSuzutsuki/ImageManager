@@ -10,6 +10,9 @@ using CommonExtensionLib.Extensions;
 
 namespace Clusterable.IO
 {
+    /// <summary>
+    /// FileStreamを用いて指定されたサイズ分に分割したファイルアクセスを提供します。
+    /// </summary>
     public class ClusterableFileStream : IDisposable
     {
 
@@ -64,6 +67,15 @@ namespace Clusterable.IO
         }
         #endregion
 
+        /// <summary>
+        /// FileStreamを用いて指定されたサイズ分に分割したファイルアクセスを提供します。
+        /// </summary>
+        /// <param name="path">書き込むあるいは読み込むファイルのパスを指定します。</param>
+        /// <param name="mode">ファイルを開く方法を指定します。</param>
+        /// <param name="access">ファイルへのアクセス制限を指定します。</param>
+        /// <param name="share">その他のインスタンスに対してアクセス制限を指定します。</param>
+        /// <param name="splitSize">ファイルの分割サイズをバイト単位で指定します。</param>
+        /// <param name="assemblyDirPath">実行ファイルのディレクトリパスを指定します。</param>
         public ClusterableFileStream(string path, FileMode mode, FileAccess access, FileShare share, long splitSize = 1073741824, string assemblyDirPath = null)
         {
             this.baseFilePath = path;
@@ -101,7 +113,7 @@ namespace Clusterable.IO
                         var num = string.IsNullOrEmpty(numstr) ? 0 : numstr.ToInt();
                         var _stream = new FileStream(file, mode, access, share);
                         sorted.Add(num, _stream);
-                        position += _stream.Length;
+                        //position += _stream.Length;
                     }
                 }
                 streams.AddRange(sorted.Values);
@@ -114,13 +126,17 @@ namespace Clusterable.IO
             }
         }
 
-        public ClusterableFileStream(string path, FileMode mode, FileAccess access, FileShare share, string assemblyDirPath, long splitSize = 1073741824) : this(path, mode, access, share, splitSize, assemblyDirPath)
-        {
-            
-        }
+        //public ClusterableFileStream(string path, FileMode mode, FileAccess access, FileShare share, string assemblyDirPath, long splitSize = 1073741824) : this(path, mode, access, share, splitSize, assemblyDirPath)
+        //{
+        //}
 
-
-
+        
+        /// <summary>
+        /// ストリームにバイトのブロックを書き込みます。
+        /// </summary>
+        /// <param name="data"></param>
+        /// <param name="offset"></param>
+        /// <param name="length"></param>
         public void Write(byte[] data, int offset, long length)
 		{
 			var startIndex = (int)Math.Floor((double)position / (double)SplitSize);
@@ -147,15 +163,17 @@ namespace Clusterable.IO
 				Write(data, offset + writeLen, remLen);
 		}
 
-        List<Stream> prestreams = new List<Stream>();
-        List<int> remLens = new List<int>();
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="buffer"></param>
+        /// <param name="offset"></param>
+        /// <param name="length"></param>
+        /// <returns></returns>
 		public int Read(byte[] buffer, int offset, int length)
 		{
-            //var prestreams = new List<Stream>();
-            //var remLens = new List<int>();
-            prestreams.Clear();
-            remLens.Clear();
+            var prestreams = new List<Stream>();
+            var remLens = new List<int>();
             var startIndex = (int)Math.Floor((double)position / (double)SplitSize);
 			var pres = Math.Floor(((double)position + (double)length) / (double)SplitSize) - startIndex;
 			var requres = (int)Math.Ceiling((double)length / (double)SplitSize) + (int)pres;

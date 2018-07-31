@@ -6,6 +6,11 @@ namespace FileManagerLib.Filer
 {
     public static class DirectorySearcher
     {
+		/// <summary>
+        /// Gets all nested directories.
+        /// </summary>
+        /// <returns>The all directories.</returns>
+        /// <param name="path">Directory path.</param>
 		public static string[] GetAllDirectories(string path)
 		{
 			var topDirArray = Directory.GetDirectories(path);
@@ -17,6 +22,11 @@ namespace FileManagerLib.Filer
 			return dList.ToArray();
 		}
 
+        /// <summary>
+		/// Gets all nested files.
+        /// </summary>
+        /// <returns>The all files.</returns>
+		/// <param name="path">Directory path.</param>
 		public static string[] GetAllFiles(string path)
 		{
 			var fList = new List<string>(Directory.GetFiles(path));
