@@ -3,8 +3,10 @@ using CommonStyleLib.ExMessageBox;
 using CommonStyleLib.File;
 using CommonStyleLib.Models;
 using FileManagerLib.Filer.Json;
+using FileManagerLib.MimeType;
 using FileManagerLib.Path;
 using ImageManager.ImageLoader;
+using ImageManager.Thumbnail;
 using ImageManager.Views;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using Microsoft.WindowsAPICodePack.Dialogs.Controls;
@@ -14,8 +16,11 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Media.Imaging;
+using System.Windows.Threading;
 
 namespace ImageManager.Models
 {
@@ -25,13 +30,17 @@ namespace ImageManager.Models
         private readonly Window window;
 
         private JsonFileManager fileManager;
+        private ThumbnailManager thumbnailManager;
         private PathItem pathItem;
         private Stack<PathItem> pathItemsForForward;
+        
+        private bool isCancelRequested = false;
+        private BoolCollector boolCollector;
 
         private ObservableCollection<FileDirectoryItem> fileDirectoryItems = new ObservableCollection<FileDirectoryItem>();
         private string pathText;
         private string underMessageLabelText;
-
+        
         private bool canBack = false;
         private bool canForward = false;
         #endregion
@@ -81,9 +90,6 @@ namespace ImageManager.Models
             {
                 fileManager = new JsonFileManager(fileName, true, true);
                 Initialize();
-                pathItem = new PathItem();
-                pathItemsForForward = new Stack<PathItem>();
-                FileDirectoryItems = new ObservableCollection<FileDirectoryItem>();
 
                 UnderMessageLabelText = "{0}を読み込みました。".FormatString(fileName);
             }
@@ -96,8 +102,6 @@ namespace ImageManager.Models
             {
                 fileManager = new JsonFileManager(fileName, false, true);
                 Initialize();
-                pathItem = new PathItem();
-                pathItemsForForward = new Stack<PathItem>();
                 DrawItems("/");
 
                 UnderMessageLabelText = "{0}を読み込みました。".FormatString(fileName);
@@ -106,6 +110,12 @@ namespace ImageManager.Models
 
         public void Initialize()
         {
+            isCancelRequested = false;
+            
+            thumbnailManager = new ThumbnailManager();
+            pathItem = new PathItem();
+            pathItemsForForward = new Stack<PathItem>();
+
             fileManager.WriteToFilesProgress += FileManager_WriteToFilesProgress;
             fileManager.WriteIntoResourceProgress += FileManager_WriteIntoResourceProgress; ;
         }
@@ -115,42 +125,95 @@ namespace ImageManager.Models
         {
             var dirs = fileManager.GetDirectories(path);
             var files = fileManager.GetFiles(path);
+            
+            boolCollector = new BoolCollector();
+            var fileDirectoryItems = new ObservableCollection<FileDirectoryItem>();
 
-            FileDirectoryItems = new ObservableCollection<FileDirectoryItem>();
-            foreach (var dir in dirs)
+            Action drawListAct = () =>
             {
-                FileDirectoryItems.Add(new FileDirectoryItem
+                foreach (var dir in dirs)
                 {
-                    Id = dir.Id,
-                    IsDirectory = true,
-                    Text = dir.Name,
-                });
-            }
-            foreach (var file in files)
-            {
-                string mime = null;
-                if (file.Additional.ContainsKey("MimeType"))
-                    mime = file.Additional["MimeType"];
+                    if (isCancelRequested)
+                        break;
 
-                var item = new FileDirectoryItem
-                {
-                    Id = file.Id,
-                    IsDirectory = false,
-                    Text = file.Name,
-                    Hash = file.Hash,
-                    Mimetype = mime,
-                };
-
-                if (mime.Equals("image/jpeg") || mime.Equals("image/png"))
-                {
-                    byte[] bytes = fileManager.GetBytes(file.Id);
-                    if (bytes != null)
-                        item.SetImageSourceAndCache(file.Hash, bytes);
+                    var item = new FileDirectoryItem
+                    {
+                        Id = dir.Id,
+                        IsDirectory = true,
+                        Text = dir.Name,
+                    };
+                    fileDirectoryItems.Add(item);
                 }
+                foreach (var file in files)
+                {
+                    if (isCancelRequested)
+                        break;
 
-                FileDirectoryItems.Add(item);
-            }
-            GC.Collect();
+                    string mime = string.Empty;
+                    if (file.Additional != null && file.Additional.ContainsKey("MimeType"))
+                        mime = file.Additional["MimeType"];
+
+                    var item = new FileDirectoryItem
+                    {
+                        Id = file.Id,
+                        IsDirectory = false,
+                        Text = file.Name,
+                        Hash = file.Hash,
+                        Mimetype = mime,
+                    };
+                    fileDirectoryItems.Add(item);
+                }
+                FileDirectoryItems = fileDirectoryItems;
+            };
+            var task = Task.Factory.StartNew(drawListAct).ContinueWith((t) =>
+            {
+                boolCollector.ChangeBool(drawListAct, true);
+            });
+
+            Action drawImageAct = () =>
+            {
+                task.Wait();
+                foreach (var file in FileDirectoryItems)
+                {
+                    if (isCancelRequested)
+                        break;
+
+                    if (!file.IsDirectory)
+                    {
+                        if (MimeTypeMap.IsImage(file.Mimetype))
+                        {
+
+                            lock (fileManager)
+                            {
+                                BitmapImage image = null;
+                                lock (thumbnailManager)
+                                    image = thumbnailManager.GetThumbnail(file.Hash, () => fileManager.GetBytes(file.Id));
+                                if (image != null)
+                                {
+                                    image.Freeze();
+                                    file.ImageSource = image;
+                                }
+                                //byte[] bytes = fileManager.GetBytes(file.Id);
+                                //using (var stream = new MemoryStream(bytes))
+                                //{
+                                //    var image = ImageConverter.GetBitmapImage(stream);
+                                //    image.Freeze();
+                                //    if (image != null)
+                                //        file.SetImageSourceAndCache(file.Hash, image, window);
+                                //}
+                            }
+                        }
+                    }
+                }
+                GC.Collect();
+            };
+            var imageTask = Task.Factory.StartNew(drawImageAct).ContinueWith((t) =>
+            {
+                boolCollector.ChangeBool(drawImageAct, true);
+            });
+
+            boolCollector.ChangeBool(drawListAct, false);
+            boolCollector.ChangeBool(drawImageAct, false);
 
             PathText = path;
 
@@ -277,7 +340,21 @@ namespace ImageManager.Models
 
         public void Dispose()
         {
-            fileManager?.Dispose();
+            isCancelRequested = true;
+
+            if (fileManager != null)
+            {
+                Task.Factory.StartNew(() =>
+                {
+                    if (boolCollector != null)
+                        while (!boolCollector.Value) ;
+                    lock (fileManager)
+                        fileManager.Dispose();
+                    if (thumbnailManager != null)
+                        lock (thumbnailManager)
+                            thumbnailManager.Dispose();
+                });
+            }
         }
         #endregion
     }

@@ -1,24 +1,30 @@
 ﻿using ImageManager.ImageLoader;
+using Prism.Mvvm;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
 namespace ImageManager.Models
 {
-    public class FileDirectoryItem
+    public class FileDirectoryItem : BindableBase
     {
         private static BitmapSource bitmapSource = null;
-
-        private static Dictionary<string, BitmapSource> caches = new Dictionary<string, BitmapSource>();
+        
+        private BitmapSource imageSource;
 
         public int Id { get; set; } = 0;
         public bool IsDirectory { get; set; } = false;
-        public BitmapSource ImageSource { get; set; }
+        public BitmapSource ImageSource
+        {
+            get => imageSource;
+            set => SetProperty(ref imageSource, value);
+        }
         public string Text { get; set; } = string.Empty;
         public string Hash { get; set; } = string.Empty;
         public string Mimetype { get; set; } = string.Empty;
@@ -30,31 +36,12 @@ namespace ImageManager.Models
                 var assembly = System.Reflection.Assembly.GetExecutingAssembly();
                 using (var stream = assembly.GetManifestResourceStream("ImageManager.Images.no-image.png"))
                 {
-                    bitmapSource = ImageConverter.GetImage(stream);
+                    bitmapSource = ImageConverter.GetBitmapImage(stream);
+                    bitmapSource.Freeze();
                 }
             }
 
             ImageSource = bitmapSource;
-        }
-
-        public void SetImageSourceAndCache(string hash, byte[] array)
-        {
-            if (caches.ContainsKey(hash))
-            {
-                ImageSource = caches[hash];
-            }
-            else
-            {
-                if (array != null)
-                {
-                    using (var stream = new MemoryStream(array))
-                    {
-                        var image = ImageConverter.GetImage(stream);
-                        caches[hash] = image;
-                        ImageSource = image;
-                    }
-                }
-            }
         }
 
         public override string ToString()

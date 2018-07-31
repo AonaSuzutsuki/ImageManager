@@ -196,6 +196,13 @@ namespace FileManagerLib.Filer.Json
 
 		}
 
+        public bool ExistFile(string fullPath)
+        {
+            var (parent, fileName) = fullPath.GetFilenameAndParent();
+            int rootId = GetDirectoryId(parent);
+            return jsonStructureManager.ExistedFile(rootId, fileName);
+        }
+
         public FileStructure[] GetFiles(string fullPath)
         {
             var (parent, dirName) = fullPath.GetFilenameAndParent();
