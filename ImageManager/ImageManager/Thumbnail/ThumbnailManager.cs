@@ -34,10 +34,15 @@ namespace ImageManager.Thumbnail
 
             byte[] array;
             if (fileManager.ExistFile(hash))
+            {
                 array = fileManager.GetBytes(hash);
+            }
+            else
+            {
+                var data = func();
+                array = ImageConverter.GetThumbnailBytes(data, 50, 50);
+            }
 
-            var data = func();
-            array = ImageConverter.GetThumbnailBytes(data, 50, 50);
             fileManager.WriteBytes(hash, array);
             var image = ImageConverter.GetBitmapImage(array);
             thumbCache.Add(hash, image);
