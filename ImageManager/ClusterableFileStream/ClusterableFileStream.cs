@@ -163,9 +163,6 @@ namespace Clusterable.IO
 				Write(data, offset + writeLen, remLen);
 		}
 
-        List<Stream> prestreams = new List<Stream>();
-        List<int> remLens = new List<int>();
-
         /// <summary>
         /// 
         /// </summary>
@@ -175,10 +172,8 @@ namespace Clusterable.IO
         /// <returns></returns>
 		public int Read(byte[] buffer, int offset, int length)
 		{
-            //var prestreams = new List<Stream>();
-            //var remLens = new List<int>();
-            prestreams.Clear();
-            remLens.Clear();
+            var prestreams = new List<Stream>();
+            var remLens = new List<int>();
             var startIndex = (int)Math.Floor((double)position / (double)SplitSize);
 			var pres = Math.Floor(((double)position + (double)length) / (double)SplitSize) - startIndex;
 			var requres = (int)Math.Ceiling((double)length / (double)SplitSize) + (int)pres;
