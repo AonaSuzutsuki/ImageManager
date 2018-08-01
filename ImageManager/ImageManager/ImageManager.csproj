@@ -200,7 +200,6 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
-  <ItemGroup />
   <ItemGroup>
     <EmbeddedResource Include="Images\no-image.png" />
     <Content Include="SQLite.Interop.dll">
