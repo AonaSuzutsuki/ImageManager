@@ -31,6 +31,7 @@ namespace ImageManager.ViewModels
             CreateArchiveBtClicked = new DelegateCommand(CreateArchiveBt_Clicked);
             OpenArchiveBtClicked = new DelegateCommand(OpenArchiveBt_Clicked);
             FileCloseBtClicked = new DelegateCommand(FileCloseBt_Clicked);
+            DeleteCacheBtClicked = new DelegateCommand(DeleteCacheBt_Clicked);
 
             BackBtClicked = new DelegateCommand(BackBt_Clicked);
             ForwardBtClicked = new DelegateCommand(ForwardBt_Clicked);
@@ -70,6 +71,7 @@ namespace ImageManager.ViewModels
         public ICommand CreateArchiveBtClicked { get; set; }
         public ICommand OpenArchiveBtClicked { get; set; }
         public ICommand FileCloseBtClicked { get; set; }
+        public ICommand DeleteCacheBtClicked { get; set; }
 
         public ICommand BackBtClicked { get; set; }
         public ICommand ForwardBtClicked { get; set; }
@@ -103,6 +105,10 @@ namespace ImageManager.ViewModels
         public void FileCloseBt_Clicked()
         {
             model.Close();
+        }
+        private void DeleteCacheBt_Clicked()
+        {
+            model.RemakeThumbnail();
         }
 
         public void BackBt_Clicked()

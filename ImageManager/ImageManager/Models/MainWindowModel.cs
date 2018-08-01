@@ -33,7 +33,8 @@ namespace ImageManager.Models
         private ThumbnailManager thumbnailManager;
         private PathItem pathItem;
         private Stack<PathItem> pathItemsForForward;
-        
+
+        private bool isOpened = false;
         private bool isCancelRequested = false;
         private BoolCollector boolCollector;
 
@@ -111,13 +112,24 @@ namespace ImageManager.Models
         public void Initialize()
         {
             isCancelRequested = false;
-            
+            isOpened = true;
+
             thumbnailManager = new ThumbnailManager();
             pathItem = new PathItem();
             pathItemsForForward = new Stack<PathItem>();
 
             fileManager.WriteToFilesProgress += FileManager_WriteToFilesProgress;
             fileManager.WriteIntoResourceProgress += FileManager_WriteIntoResourceProgress; ;
+        }
+
+        public void RemakeThumbnail()
+        {
+            thumbnailManager?.Dispose();
+            var thumbPath = ThumbnailManager.ThumbnailChachePath;
+            if (File.Exists(thumbPath))
+                File.Delete(thumbPath);
+            if (isOpened)
+                thumbnailManager = new ThumbnailManager();
         }
         
 
@@ -341,6 +353,7 @@ namespace ImageManager.Models
         public void Dispose()
         {
             isCancelRequested = true;
+            isOpened = false;
 
             if (fileManager != null)
             {

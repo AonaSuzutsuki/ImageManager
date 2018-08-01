@@ -17,9 +17,11 @@ namespace ImageManager.Thumbnail
         private readonly JsonResourceManager fileManager;
         private Dictionary<string, BitmapImage> thumbCache = new Dictionary<string, BitmapImage>();
 
+        public const string ThumbnailChachePath = "thumb.dat";
+
         public ThumbnailManager()
         {
-            var thumbPath = "{0}/{1}".FormatString(CommonStyleLib.AppInfo.GetAppPath(), "thumb.dat");
+            var thumbPath = "{0}/{1}".FormatString(CommonStyleLib.AppInfo.GetAppPath(), ThumbnailChachePath);
 
             if (File.Exists(thumbPath))
                 fileManager = new JsonResourceManager(thumbPath);

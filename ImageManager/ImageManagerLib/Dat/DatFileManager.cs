@@ -143,7 +143,7 @@ namespace FileManagerLib.Dat
 
 		public void Dispose()
 		{
-			((IDisposable)fileStream).Dispose();
+            fileStream.Dispose();
 		}
 
         public DatFileManager Rename(string suffix)
