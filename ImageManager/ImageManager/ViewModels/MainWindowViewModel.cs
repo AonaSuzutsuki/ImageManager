@@ -31,6 +31,7 @@ namespace ImageManager.ViewModels
             CreateArchiveBtClicked = new DelegateCommand(CreateArchiveBt_Clicked);
             OpenArchiveBtClicked = new DelegateCommand(OpenArchiveBt_Clicked);
             FileCloseBtClicked = new DelegateCommand(FileCloseBt_Clicked);
+            DeleteCacheBtClicked = new DelegateCommand(DeleteCacheBt_Clicked);
 
             BackBtClicked = new DelegateCommand(BackBt_Clicked);
             ForwardBtClicked = new DelegateCommand(ForwardBt_Clicked);
@@ -49,6 +50,7 @@ namespace ImageManager.ViewModels
             ForwardBtIsEnabled = model.ToReactivePropertyAsSynchronized(m => m.CanForward);
             PathText = model.ToReactivePropertyAsSynchronized(m => m.PathText);
             FileDirectoryItems = model.ToReactivePropertyAsSynchronized(m => m.FileDirectoryItems);
+            IsOpened = model.ToReactivePropertyAsSynchronized(m => m.IsOpened);
             UnderMessageLabelText = model.ToReactivePropertyAsSynchronized(m => m.UnderMessageLabelText);
             #endregion
 
@@ -63,6 +65,8 @@ namespace ImageManager.ViewModels
         public ReactiveProperty<ObservableCollection<FileDirectoryItem>> FileDirectoryItems { get; set; }
         public FileDirectoryItem SelectedItem { get; set; }
 
+        public ReactiveProperty<bool> IsOpened { get; set; }
+
         public ReactiveProperty<string> UnderMessageLabelText { get; set; }
         #endregion
 
@@ -70,6 +74,7 @@ namespace ImageManager.ViewModels
         public ICommand CreateArchiveBtClicked { get; set; }
         public ICommand OpenArchiveBtClicked { get; set; }
         public ICommand FileCloseBtClicked { get; set; }
+        public ICommand DeleteCacheBtClicked { get; set; }
 
         public ICommand BackBtClicked { get; set; }
         public ICommand ForwardBtClicked { get; set; }
@@ -103,6 +108,10 @@ namespace ImageManager.ViewModels
         public void FileCloseBt_Clicked()
         {
             model.Close();
+        }
+        private void DeleteCacheBt_Clicked()
+        {
+            model.RemakeThumbnail();
         }
 
         public void BackBt_Clicked()
@@ -139,6 +148,10 @@ namespace ImageManager.ViewModels
             if (arg.IsDirectory)
             {
                 model.MoveDirectory(arg.Text);
+            }
+            else
+            {
+                model.FileDoubleClicked(arg);
             }
         }
         public void ListBox_SelectionChanged(FileDirectoryItem arg)

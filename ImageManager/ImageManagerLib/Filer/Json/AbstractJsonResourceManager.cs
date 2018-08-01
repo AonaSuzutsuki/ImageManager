@@ -6,6 +6,7 @@ using System.Text;
 using CommonExtensionLib.Extensions;
 using FileManagerLib.Dat;
 using FileManagerLib.Extensions.Path;
+using FileManagerLib.Filer.Exceptions;
 using FileManagerLib.MimeType;
 using FileManagerLib.Path;
 
@@ -87,7 +88,7 @@ namespace FileManagerLib.Filer.Json
 			var dirs = jsonStructureManager.GetFileStructureFromParent(parentRootId, fileName);
 			//var dirs = sqlite.GetValues(TABLE_FILES, "Parent = {0} and Name = '{1}'".FormatString(parentRootId, fileName));
 			if (dirs != null)
-				throw new Exception("Existed {0} on {1}".FormatString(fileName, parent));
+				throw new FileExistedException("Existed {0} on {1}".FormatString(fileName, parent));
 			if (parentRootId < 0)
 				throw new DirectoryNotFoundException("Not found {0}".FormatString(parent));
 
