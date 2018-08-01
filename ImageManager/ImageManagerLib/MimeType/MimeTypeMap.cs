@@ -225,6 +225,7 @@ namespace FileManagerLib.MimeType
                     {".latex", "application/x-latex"},
                     {".library-ms", "application/windows-library+xml"},
                     {".lit", "application/x-ms-reader"},
+                    { ".lnk", "application/x-ms-shortcut" },
                     {".loadtest", "application/xml"},
                     {".lpk", "application/octet-stream"},
                     {".lsf", "video/x-la-asf"},
