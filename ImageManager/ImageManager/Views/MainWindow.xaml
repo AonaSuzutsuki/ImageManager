@@ -72,7 +72,7 @@
                     <MenuItem Header="ファイル(_F)">
                         <MenuItem Header="新規作成" Command="{Binding CreateArchiveBtClicked}" />
                         <MenuItem Header="開く" Command="{Binding OpenArchiveBtClicked}" />
-                        <MenuItem Header="閉じる" Command="{Binding FileCloseBtClicked}" />
+                        <MenuItem Header="閉じる" Command="{Binding FileCloseBtClicked}" IsEnabled="{Binding IsOpened.Value}" />
                         <Separator Style="{DynamicResource MLB_Separator}" />
                         <MenuItem Header="キャッシュの削除" Command="{Binding DeleteCacheBtClicked}" />
                         <Separator Style="{DynamicResource MLB_Separator}" />
@@ -135,12 +135,12 @@
 
                     <ListBox.ContextMenu>
                         <ContextMenu>
-                            <MenuItem Header="Add File" Command="{Binding AddFileBtClicked}" />
-                            <MenuItem Header="Add Files In Directory" Command="{Binding AddFilesInDirectoryBtClicked}" />
+                            <MenuItem Header="Add File" Command="{Binding AddFileBtClicked}" IsEnabled="{Binding IsOpened.Value}" />
+                            <MenuItem Header="Add Files In Directory" Command="{Binding AddFilesInDirectoryBtClicked}" IsEnabled="{Binding IsOpened.Value}" />
                             <Separator Style="{DynamicResource MLB_Separator}" />
-                            <MenuItem Header="Create Directory" Command="{Binding CreateDirectoryBtClicked}" />
+                            <MenuItem Header="Create Directory" Command="{Binding CreateDirectoryBtClicked}" IsEnabled="{Binding IsOpened.Value}" />
                             <Separator Style="{DynamicResource MLB_Separator}" />
-                            <MenuItem Header="Extract files on directory" Command="{Binding ExtractFilesOnDirClicked}" />
+                            <MenuItem Header="Extract files on directory" Command="{Binding ExtractFilesOnDirClicked}" IsEnabled="{Binding IsOpened.Value}" />
                         </ContextMenu>
                     </ListBox.ContextMenu>
                     

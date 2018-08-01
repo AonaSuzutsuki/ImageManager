@@ -52,6 +52,12 @@ namespace ImageManager.Models
             get => fileDirectoryItems;
             set => SetProperty(ref fileDirectoryItems, value);
         }
+        
+        public bool IsOpened
+        {
+            get => isOpened;
+            set => SetProperty(ref isOpened, value);
+        }
 
         public string PathText
         {
@@ -112,7 +118,7 @@ namespace ImageManager.Models
         public void Initialize()
         {
             isCancelRequested = false;
-            isOpened = true;
+            IsOpened = true;
 
             thumbnailManager = new ThumbnailManager();
             pathItem = new PathItem();
@@ -128,7 +134,7 @@ namespace ImageManager.Models
             var thumbPath = ThumbnailManager.ThumbnailChachePath;
             if (File.Exists(thumbPath))
                 File.Delete(thumbPath);
-            if (isOpened)
+            if (IsOpened)
                 thumbnailManager = new ThumbnailManager();
         }
         
@@ -266,6 +272,16 @@ namespace ImageManager.Models
             }
         }
 
+        #region Read
+        public void FileDoubleClicked(FileDirectoryItem fileDirectoryItem)
+        {
+            if (fileDirectoryItem.Mimetype.Equals("text/plain"))
+            {
+                var bytes = fileManager.GetBytes(fileDirectoryItem.Id);
+                Console.WriteLine(Encoding.UTF8.GetString(bytes));
+            }
+        }
+        #endregion
 
         #region Create
         public void MakeDirectory()
@@ -291,19 +307,26 @@ namespace ImageManager.Models
         {
             var open = new CommonOpenFileDialog()
             {
-                IsFolderPicker = true
+                IsFolderPicker = true,
+                Multiselect = true
             };
             
             if (open.ShowDialog() == CommonFileDialogResult.Ok)
             {
-                var fileName = open.FileName;
-
+                var fileNames = open.FileNames;
                 var currentDirectory = pathItem.ToString();
                 var task = Task.Factory.StartNew(() =>
                 {
-                    fileManager.CreateFiles(currentDirectory, fileName);
+                    foreach (var fileName in fileNames)
+                    {
+                        string dirPath = "/{0}".FormatString(Path.GetFileName(fileName));
+                        if (!currentDirectory.Equals("/"))
+                            dirPath = "{0}/{1}".FormatString(currentDirectory, Path.GetFileName(fileName));
+                        fileManager.CreateDirectory(dirPath);
+                        fileManager.CreateFiles(dirPath, fileName);
 
-                    window.Dispatcher.Invoke(() => DrawItems(currentDirectory));
+                        window.Dispatcher.Invoke(() => DrawItems(currentDirectory));
+                    }
                 });
             }
         }
@@ -353,7 +376,7 @@ namespace ImageManager.Models
         public void Dispose()
         {
             isCancelRequested = true;
-            isOpened = false;
+            IsOpened = false;
 
             if (fileManager != null)
             {
