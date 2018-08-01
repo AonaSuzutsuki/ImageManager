@@ -41,6 +41,10 @@ namespace FileManagerLib.Filer.Json
 		{
 			if (!File.Exists(inFilePath))
 				return;
+
+            var pId = GetDirectoryId(PathSplitter.SplitPath(parent));
+            if (jsonStructureManager.ExistedFile(pId, fileName))
+                return;
    
 			var mimeType = MimeType.MimeTypeMap.GetMimeType(inFilePath);
 			using (var stream = new FileStream(inFilePath, FileMode.Open, FileAccess.Read, FileShare.Read))
