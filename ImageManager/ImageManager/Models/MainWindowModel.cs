@@ -35,6 +35,7 @@ namespace ImageManager.Models
         private Stack<PathItem> pathItemsForForward;
 
         private bool isOpened = false;
+        private bool isOpenedAndFileSelected = false;
         private bool isCancelRequested = false;
         private BoolCollector boolCollector;
 
@@ -57,6 +58,12 @@ namespace ImageManager.Models
         {
             get => isOpened;
             set => SetProperty(ref isOpened, value);
+        }
+
+        public bool IsOpenedAndFileSelected
+        {
+            get => isOpenedAndFileSelected && isOpened;
+            set => SetProperty(ref isOpenedAndFileSelected, value);
         }
 
         public string PathText
@@ -123,9 +130,6 @@ namespace ImageManager.Models
             thumbnailManager = new ThumbnailManager();
             pathItem = new PathItem();
             pathItemsForForward = new Stack<PathItem>();
-
-            fileManager.WriteToFilesProgress += FileManager_WriteToFilesProgress;
-            fileManager.WriteIntoResourceProgress += FileManager_WriteIntoResourceProgress; ;
         }
 
         public void RemakeThumbnail()
@@ -294,12 +298,22 @@ namespace ImageManager.Models
         public void AddFile()
         {
             var files = FileSelector.GetFilePaths(CommonStyleLib.AppInfo.GetAppPath(), "すべてのファイル(*.*)|*.*", "");
-
-            var currentDirectory = pathItem.ToString();
-            foreach (var file in files)
+            if (files != null)
             {
-                var filename = Path.GetFileName(file);
-                fileManager.CreateFile(filename, currentDirectory, file);
+                var currentDirectory = pathItem.ToString();
+                Task.Factory.StartNew(() =>
+                {
+
+                    Action<int, string, bool> act = (index, currentFilePath, isComplete) =>
+                    {
+                        WriteIntoResourceProgress(
+                            new AbstractJsonResourceManager.ReadWriteProgressEventArgs(index + 1, files.Length, currentFilePath, isComplete)
+                        );
+                    };
+
+                    fileManager.CreateFiles(currentDirectory, files, act);
+                    window.Dispatcher.Invoke(() => DrawItems(currentDirectory));
+                });
             }
         }
 
@@ -317,13 +331,21 @@ namespace ImageManager.Models
                 var currentDirectory = pathItem.ToString();
                 var task = Task.Factory.StartNew(() =>
                 {
+
+                    Action<int, int, string, bool> act = (index, count, currentFilePath, isComplete) =>
+                    {
+                        WriteIntoResourceProgress(
+                            new AbstractJsonResourceManager.ReadWriteProgressEventArgs(index + 1, count, currentFilePath, isComplete)
+                        );
+                    };
+
                     foreach (var fileName in fileNames)
                     {
                         string dirPath = "/{0}".FormatString(Path.GetFileName(fileName));
                         if (!currentDirectory.Equals("/"))
                             dirPath = "{0}/{1}".FormatString(currentDirectory, Path.GetFileName(fileName));
                         fileManager.CreateDirectory(dirPath);
-                        fileManager.CreateFiles(dirPath, fileName);
+                        fileManager.CreateFiles(dirPath, fileName, act);
 
                         window.Dispatcher.Invoke(() => DrawItems(currentDirectory));
                     }
@@ -333,7 +355,7 @@ namespace ImageManager.Models
         #endregion
 
         #region Extract
-        public void ExtractFilesOnDirectory()
+        public void ExtractSelectedFiles(List<FileDirectoryItem> fileDirectoryItems)
         {
             var open = new CommonOpenFileDialog()
             {
@@ -342,22 +364,55 @@ namespace ImageManager.Models
 
             if (open.ShowDialog() == CommonFileDialogResult.Ok)
             {
-                var fileName = open.FileName;
+                var dirPath = open.FileName;
+                //if (!Directory.Exists(dirPath))
+                //    dirPath = Path.GetDirectoryName(dirPath);
 
                 var currentDirectory = pathItem.ToString();
-                Task.Factory.StartNew(() => fileManager.WriteToDir(currentDirectory, fileName));
+                currentDirectory = currentDirectory.Equals("/") ? "" : currentDirectory;
+                if (fileDirectoryItems.Count > 0)
+                {
+
+                    Task.Factory.StartNew(() => {
+                        var index = 1;
+                        var cnt = 0;
+
+                        foreach (var item in fileDirectoryItems)
+                        {
+                            if (item.IsDirectory)
+                                cnt += fileManager.GetAllFilesCount("{0}/{1}".FormatString(currentDirectory, item.Text));
+                            else
+                                cnt++;
+                        }
+
+                        foreach (var item in fileDirectoryItems)
+                        {
+                            Action<string, bool> act = (currentFilePath, isComplete) =>
+                            {
+                                WriteIntoResourceProgress(
+                                    new AbstractJsonResourceManager.ReadWriteProgressEventArgs(index, cnt, currentFilePath, isComplete)
+                                );
+                                index++;
+                            };
+
+                            if (item.IsDirectory)
+                                fileManager.WriteToDir("{0}/{1}".FormatString(currentDirectory, item.Text), "{0}/{1}".FormatString(dirPath, item.Text), act);
+                            else
+                                fileManager.WriteToFile("{0}/{1}".FormatString(currentDirectory, item.Text), "{0}/{1}".FormatString(dirPath, item.Text), act);
+                        }
+                    });
+                }
             }
         }
         #endregion
 
 
         #region EventMethods
-        private void FileManager_WriteToFilesProgress(object sender, AbstractJsonResourceManager.ReadWriteProgressEventArgs eventArgs)
+        private void WriteToFilesProgress(AbstractJsonResourceManager.ReadWriteProgressEventArgs eventArgs)
         {
             UnderMessageLabelText = "書き込み中 {0}/{1} ({2}%)".FormatString(eventArgs.CompletedNumber, eventArgs.FullNumber, eventArgs.Percentage);
         }
-
-        private void FileManager_WriteIntoResourceProgress(object sender, AbstractJsonResourceManager.ReadWriteProgressEventArgs eventArgs)
+        private void WriteIntoResourceProgress(AbstractJsonResourceManager.ReadWriteProgressEventArgs eventArgs)
         {
             UnderMessageLabelText = "読み込み中 {0}/{1} ({2}%)".FormatString(eventArgs.CompletedNumber, eventArgs.FullNumber, eventArgs.Percentage);
         }

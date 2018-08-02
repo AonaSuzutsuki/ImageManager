@@ -104,7 +104,7 @@
                     <RowDefinition Height="25" />
                 </Grid.RowDefinitions>
 
-                <ListBox Grid.Row="0" SelectionMode="Extended" ItemsSource="{Binding FileDirectoryItems.Value}" SelectedItem="{Binding SelectedItem}" Background="Transparent" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                <ListBox Name="FileDirectoryListBox" Grid.Row="0" SelectionMode="Extended" ItemsSource="{Binding FileDirectoryItems.Value}" SelectedItem="{Binding SelectedItem}" Background="Transparent" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                     <ListBox.ItemContainerStyle>
                         <Style TargetType="ListBoxItem">
                             <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
@@ -129,7 +129,7 @@
                             <i:InvokeCommandAction Command="{Binding ListBoxDoubleClicked}" CommandParameter="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListBox} }, Path=SelectedItem}" />
                         </i:EventTrigger>
                         <i:EventTrigger EventName="SelectionChanged">
-                            <i:InvokeCommandAction Command="{Binding ListBoxSelectionChanged}" CommandParameter="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListBox} }, Path=SelectedItem}" />
+                            <i:InvokeCommandAction Command="{Binding ListBoxSelectionChanged}" CommandParameter="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListBox} }, Path=SelectedItems}" />
                         </i:EventTrigger>
                     </i:Interaction.Triggers>
 
@@ -140,7 +140,9 @@
                             <Separator Style="{DynamicResource MLB_Separator}" />
                             <MenuItem Header="Create Directory" Command="{Binding CreateDirectoryBtClicked}" IsEnabled="{Binding IsOpened.Value}" />
                             <Separator Style="{DynamicResource MLB_Separator}" />
-                            <MenuItem Header="Extract files on directory" Command="{Binding ExtractFilesOnDirClicked}" IsEnabled="{Binding IsOpened.Value}" />
+                            <MenuItem Header="Delete" Command="{Binding DeleteBtClicked}" IsEnabled="{Binding IsOpenedAndFileSelected.Value}" />
+                            <Separator Style="{DynamicResource MLB_Separator}" />
+                            <MenuItem Header="Extract selected files" Command="{Binding ExtractSelectedFilesClicked}" IsEnabled="{Binding IsOpenedAndFileSelected.Value}"  />
                         </ContextMenu>
                     </ListBox.ContextMenu>
                     

@@ -83,7 +83,18 @@ namespace FileManagerLib.Filer.Json
 			CreateFile(fileName, parent.ToString(), inFilePath);
 		}
 
-		public void CreateFiles(string parent, string dirPath)
+        public void CreateFiles(string parent, string[] filePaths, Action<int, string, bool> action = null)
+        {
+            foreach (var tuple in filePaths.Select((v, i) => new { v, i }))
+            {
+                var filename = System.IO.Path.GetFileName(tuple.v);
+                CreateFile(filename, parent, tuple.v);
+                action?.Invoke(tuple.i, tuple.v, true);
+                WriteIntoResourceProgress?.Invoke(this, new ReadWriteProgressEventArgs(tuple.i + 1, filePaths.Length, tuple.v, true));
+            }
+        }
+
+        public void CreateFiles(string parent, string dirPath, Action<int, int, string, bool> action = null)
 		{
 			var filePathArray = DirectorySearcher.GetAllFiles(dirPath);
 			var dirPathArray = DirectorySearcher.GetAllDirectories(dirPath);
@@ -99,7 +110,8 @@ namespace FileManagerLib.Filer.Json
 				var path = file.v;
 				var par = System.IO.Path.GetDirectoryName(internalFilePathArray[file.i]);
 				CreateFile(System.IO.Path.GetFileName(path), System.IO.Path.GetDirectoryName(internalFilePathArray[file.i]), path);
-				WriteIntoResourceProgress?.Invoke(this, new ReadWriteProgressEventArgs(file.i + 1, filePathArray.Length, path, true));
+                action?.Invoke(file.i, filePathArray.Length, path, true);
+                WriteIntoResourceProgress?.Invoke(this, new ReadWriteProgressEventArgs(file.i + 1, filePathArray.Length, path, true));
 			}
 		}
         #endregion
@@ -121,19 +133,21 @@ namespace FileManagerLib.Filer.Json
 		}
 
 		#region File Writer
-		public bool WriteToFile(string filePath, string outFilePath)
+		public bool WriteToFile(string filePath, string outFilePath, Action<string, bool> action = null)
 		{
             var (parent, fileName) = filePath.GetFilenameAndParent();
             int rootId = GetDirectoryId(parent);
+            bool isComp = false;
             if (jsonStructureManager.ExistedFile(rootId, fileName))
             {
                 var file = jsonStructureManager.GetFileStructureFromParent(rootId, fileName);
-                return WriteToFile(file, outFilePath);
+                isComp = WriteToFile(file, outFilePath);
             }
-			return false;
+            action?.Invoke(filePath, isComp);
+            return isComp;
         }
 
-		public void WriteToDir(string filePath, string outFilePath)
+		public void WriteToDir(string filePath, string outFilePath, Action<string, bool> action = null)
         {
             var (parent, fileName) = filePath.GetFilenameAndParent();
             int rootId = GetDirectoryId(parent);
@@ -168,8 +182,9 @@ namespace FileManagerLib.Filer.Json
                     else
                         path = outFilePath + pathItem.GetPathItemFrom(filePath).ToString();
 
-					var isOk = WriteToFile(item.value, path);               
+					var isOk = WriteToFile(item.value, path);
 					WriteToFilesProgress?.Invoke(this, new ReadWriteProgressEventArgs(item.index + 1, files.Length, item.value.Name, isOk));
+                    action?.Invoke(item.value.Name, isOk);
                 }
             }
         }
@@ -196,6 +211,19 @@ namespace FileManagerLib.Filer.Json
 			return false;
         }
         #endregion
+
+        public int GetAllFilesCount(string dirPath)
+        {
+            var (parent, fileName) = dirPath.GetFilenameAndParent();
+            int rootId = GetDirectoryId(parent);
+            if (jsonStructureManager.ExistedDirectory(rootId, fileName))
+            {
+                var dirId = GetDirectoryId(PathSplitter.SplitPath(dirPath));
+                var files = jsonStructureManager.GetFileAllStructuresFromParent(dirId);
+                return files.Length;
+            }
+            return 0;
+        }
         
         public override string ToString()
 		{
