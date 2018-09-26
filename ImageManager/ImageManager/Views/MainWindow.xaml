@@ -64,15 +64,16 @@
                         VerticalAlignment="Top">
                 <Button Name="MainWindowMinimumBT" Content="{Binding MainWindowMinimumBTContent}" Style="{DynamicResource CaptionButtonStyleKey}" Command="{Binding MainWindowMinimumBTClick}" />
                 <Button Name="MainMaximumBT" Content="{Binding MainWindowMaximumBTContent}" Style="{DynamicResource CaptionButtonStyleKey}" Command="{Binding MainWindowMaximumBTClick}" />
-                <Button Name="MainWindowCloseBT" Content="{Binding MainWindowCloseBTContent}" Style="{DynamicResource CaptionButtonStyleKey}" Command="{Binding MainWindowCloseBTClick}" />
+                <Button Name="MainWindowCloseBT" Content="{Binding MainWindowCloseBTContent}" Style="{DynamicResource CaptionButtonStyleKey}" IsEnabled="{Binding IsBusy.Value, Converter={StaticResource InverseBooleanConverter}}" Command="{Binding MainWindowCloseBTClick}" />
             </StackPanel>
 
             <StackPanel Margin="1,25,1,0" HorizontalAlignment="Stretch" VerticalAlignment="Top">
                 <Menu IsMainMenu="True" Name="Menu" Height="25" Padding="3" VerticalAlignment="Top">
-                    <MenuItem Header="ファイル(_F)">
+                    <MenuItem Header="ファイル(_F)" IsEnabled="{Binding IsBusy.Value, Converter={StaticResource InverseBooleanConverter}}">
                         <MenuItem Header="新規作成" Command="{Binding CreateArchiveBtClicked}" />
                         <MenuItem Header="開く" Command="{Binding OpenArchiveBtClicked}" />
                         <MenuItem Header="閉じる" Command="{Binding FileCloseBtClicked}" IsEnabled="{Binding IsOpened.Value}" />
+                        <MenuItem Header="データを再構成" Command="{Binding RebuildDataBtClicked}" IsEnabled="{Binding IsOpened.Value}" />
                         <Separator Style="{DynamicResource MLB_Separator}" />
                         <MenuItem Header="キャッシュの削除" Command="{Binding DeleteCacheBtClicked}" />
                         <Separator Style="{DynamicResource MLB_Separator}" />

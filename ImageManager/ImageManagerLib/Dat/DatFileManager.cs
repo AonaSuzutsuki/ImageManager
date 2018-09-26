@@ -2,6 +2,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Text;
 
 namespace FileManagerLib.Dat
 {
@@ -57,7 +58,30 @@ namespace FileManagerLib.Dat
 			return data;
 		}
 
-		public byte[] GetBytesFromEnd(int identifierLength = LEN)
+        public void ActionBytes(long start, int size, Action<byte[], int> action, int identifierLength = LEN)
+        {
+            if (fileStream != null)
+            {
+                long length = GetIntAndSeek(fileStream, start, identifierLength);
+
+                while (true)
+                {
+                    var data = new byte[size];
+                    int readSize = fileStream.Read(data, 0, data.Length);
+                    if (length <= readSize)
+                    {
+                        int arglen = length < 0 ? 0 : (int)length;
+                        action?.Invoke(data, arglen);
+                        break;
+                    }
+
+                    action?.Invoke(data, readSize);
+                    length -= (uint)readSize;
+                }
+            }
+        }
+
+        public byte[] GetBytesFromEnd(int identifierLength = LEN)
 		{
 			byte[] data = null;
 
@@ -67,8 +91,7 @@ namespace FileManagerLib.Dat
 				fileStream.Seek(-idArray.Length, SeekOrigin.End);
 				var rc = fileStream.Read(idArray, 0, idArray.Length);
 				var length = BitConverter.ToInt32(idArray, 0);
-
-
+                
 				fileStream.Seek(-(length + idArray.Length), SeekOrigin.End);
                 data = new byte[length];
                 fileStream.Read(data, 0, data.Length);
@@ -159,7 +182,7 @@ namespace FileManagerLib.Dat
 			foreach (var item in srcFilenames.Select((value, index) => new { index, value }))
             {
 				var dest = filenames[item.index];
-				File.Move(item.value, dest);
+                System.IO.File.Move(item.value, dest);
             }
             var datFileManager = new DatFileManager(filenames[0]);
             return datFileManager;

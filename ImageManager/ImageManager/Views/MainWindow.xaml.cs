@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 
 namespace ImageManager.Views
 {
@@ -20,11 +21,20 @@ namespace ImageManager.Views
     /// </summary>
     public partial class MainWindow : Window
     {
+
+        public static Dispatcher CurrentDispacher
+        {
+            get;
+            private set;
+        }
+
         public MainWindow()
         {
             InitializeComponent();
 
-            var model = new Models.MainWindowModel(this);
+            MainWindow.CurrentDispacher = this.Dispatcher;
+
+            var model = new Models.MainWindowModel();
             var vm = new ViewModels.MainWindowViewModel(this, model);
             DataContext = vm;
         }

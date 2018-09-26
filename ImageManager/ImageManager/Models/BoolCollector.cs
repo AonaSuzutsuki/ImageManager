@@ -26,10 +26,12 @@ namespace ImageManager.Models
 
         public void ChangeBool(object key, bool value)
         {
-            if (bools.ContainsKey(key))
-                bools[key] = value;
-            else
-                bools.Add(key, value);
+            lock (bools)
+                if (bools != null)
+                    if (bools.ContainsKey(key))
+                        bools[key] = value;
+                    else
+                        bools.Add(key, value);
         }
     }
 }

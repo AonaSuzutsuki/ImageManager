@@ -1,11 +1,11 @@
 ﻿using CommonExtensionLib.Extensions;
 using ImageManagerCUI.Parser;
 using System;
-using FileManagerLib.Filer;
+using FileManagerLib.File;
 using System.IO;
 using System.Linq;
 using System.Diagnostics;
-using FileManagerLib.Filer.Json;
+using FileManagerLib.File.Json;
 using FileManagerLib.Extensions.Path;
 using System.Text;
 
@@ -15,7 +15,7 @@ namespace ImageManagerCUI
     {
         public static void Main(string[] args)
         {
-			AbstractProgram program = new JsonProgram();
+			AbstractProgram program = new JsonDataProgram();
 
             while (true)
             {
@@ -390,9 +390,15 @@ namespace ImageManagerCUI
         public void GetData(CmdParser parser)
         {
             var fullPath = parser.GetAttribute("name") ?? parser.GetAttribute(0);
-            
-            var text = fileManager.GetString(fullPath);
-            Console.WriteLine(text);
+
+            //var text = fileManager.GetString(fullPath);
+            //Console.WriteLine(text);
+            fileManager.ActionBytes(fullPath, 16, (array, len) =>
+            {
+                //for (int i = 0; i < len; i++)
+                //    Console.Write(array[i]);
+                Console.WriteLine(Encoding.UTF8.GetString(array, 0, len));
+            });
         }
 
 

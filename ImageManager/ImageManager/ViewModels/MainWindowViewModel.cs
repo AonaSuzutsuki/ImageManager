@@ -31,6 +31,7 @@ namespace ImageManager.ViewModels
             CreateArchiveBtClicked = new DelegateCommand(CreateArchiveBt_Clicked);
             OpenArchiveBtClicked = new DelegateCommand(OpenArchiveBt_Clicked);
             FileCloseBtClicked = new DelegateCommand(FileCloseBt_Clicked);
+            RebuildDataBtClicked = new DelegateCommand(RebuildDataBt_Clicked);
             DeleteCacheBtClicked = new DelegateCommand(DeleteCacheBt_Clicked);
 
             BackBtClicked = new DelegateCommand(BackBt_Clicked);
@@ -52,6 +53,7 @@ namespace ImageManager.ViewModels
             PathText = model.ToReactivePropertyAsSynchronized(m => m.PathText);
             FileDirectoryItems = model.ToReactivePropertyAsSynchronized(m => m.FileDirectoryItems);
             IsOpened = model.ToReactivePropertyAsSynchronized(m => m.IsOpened);
+            IsBusy = model.ToReactivePropertyAsSynchronized(m => m.IsBusy);
             IsOpenedAndFileSelected = model.ToReactivePropertyAsSynchronized(m => m.IsOpenedAndFileSelected);
             UnderMessageLabelText = model.ToReactivePropertyAsSynchronized(m => m.UnderMessageLabelText);
             #endregion
@@ -68,6 +70,7 @@ namespace ImageManager.ViewModels
         public FileDirectoryItem SelectedItem { get; set; }
         public List<FileDirectoryItem> SelectedItems { get; set; }
 
+        public ReactiveProperty<bool> IsBusy { get; }
         public ReactiveProperty<bool> IsOpened { get; set; }
         public ReactiveProperty<bool> IsOpenedAndFileSelected { get; set; }
 
@@ -78,6 +81,7 @@ namespace ImageManager.ViewModels
         public ICommand CreateArchiveBtClicked { get; set; }
         public ICommand OpenArchiveBtClicked { get; set; }
         public ICommand FileCloseBtClicked { get; set; }
+        public ICommand RebuildDataBtClicked { get; set; }
         public ICommand DeleteCacheBtClicked { get; set; }
 
         public ICommand BackBtClicked { get; set; }
@@ -114,6 +118,10 @@ namespace ImageManager.ViewModels
         {
             model.Close();
         }
+        public void RebuildDataBt_Clicked()
+        {
+            model.RebuildData();
+        }
         public void DeleteCacheBt_Clicked()
         {
             model.RemakeThumbnail();
@@ -142,7 +150,7 @@ namespace ImageManager.ViewModels
         }
         public void DeleteBt_Clicked()
         {
-
+            model.Delete(SelectedItems);
         }
         public void ExtractSelectedFiles_Clicked()
         {
