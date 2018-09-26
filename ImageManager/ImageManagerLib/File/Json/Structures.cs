@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Newtonsoft.Json;
 
-namespace FileManagerLib.Filer.Json
+namespace FileManagerLib.File.Json
 {
 	[JsonObject("table")]
     public class TableStructure

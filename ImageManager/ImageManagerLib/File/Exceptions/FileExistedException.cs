@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FileManagerLib.Filer.Exceptions
+namespace FileManagerLib.File.Exceptions
 {
     public class FileExistedException : IOException
     {

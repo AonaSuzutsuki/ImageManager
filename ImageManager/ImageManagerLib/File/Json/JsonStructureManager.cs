@@ -9,7 +9,7 @@ using FileManagerLib.Dat;
 using FileManagerLib.Extensions.Collections;
 using Newtonsoft.Json;
 
-namespace FileManagerLib.Filer.Json
+namespace FileManagerLib.File.Json
 {
 	public class JsonStructureManager
 	{
@@ -44,9 +44,9 @@ namespace FileManagerLib.Filer.Json
 			table?.File?.ForEach((obj) => files.Add(obj.Id, obj));
 			if (table == null)
 				IsChenged = true;
-
-			NextDirectoryId = directories.Count + 1;
-			NextFileId = files.Count + 1;
+;
+            NextDirectoryId = directories.Count > 0 ? directories.Last().Value.Id + 1 : 1;
+			NextFileId = files.Count > 0 ? files.Last().Value.Id + 1 : 1;
 		}
 
 

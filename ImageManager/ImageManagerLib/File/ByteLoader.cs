@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FileManagerLib.Filer
+namespace FileManagerLib.File
 {
     public class ByteLoader
     {

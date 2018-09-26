@@ -3,7 +3,7 @@ using System.Text;
 using FileManagerLib.Extensions.Path;
 using FileManagerLib.MimeType;
 
-namespace FileManagerLib.Filer.Json
+namespace FileManagerLib.File.Json
 {
 	public class JsonResourceManager : AbstractJsonResourceManager
 	{

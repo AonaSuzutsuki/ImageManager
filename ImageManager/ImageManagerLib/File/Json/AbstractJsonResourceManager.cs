@@ -6,11 +6,11 @@ using System.Text;
 using CommonExtensionLib.Extensions;
 using FileManagerLib.Dat;
 using FileManagerLib.Extensions.Path;
-using FileManagerLib.Filer.Exceptions;
+using FileManagerLib.File.Exceptions;
 using FileManagerLib.MimeType;
 using FileManagerLib.Path;
 
-namespace FileManagerLib.Filer.Json
+namespace FileManagerLib.File.Json
 {
 	public abstract class AbstractJsonResourceManager : IDisposable
 	{
@@ -66,8 +66,8 @@ namespace FileManagerLib.Filer.Json
         {
             if (newFile)
             {
-                if (File.Exists(filePath))
-                    File.Delete(filePath);
+                if (System.IO.File.Exists(filePath))
+                    System.IO.File.Delete(filePath);
             }
 
             fManager = new DatFileManager(filePath) { IsShiftJsonPosition = true };
@@ -190,11 +190,15 @@ namespace FileManagerLib.Filer.Json
         #region File
         public void DeleteFile(string fullPath)
 		{
+            var (parent, fileName) = fullPath.GetFilenameAndParent();
+            int rootId = GetDirectoryId(parent);
+            var fileStructure = jsonStructureManager.GetFileStructureFromParent(rootId, fileName);
 
-		}
+            jsonStructureManager.DeleteFile(fileStructure.Id);
+        }
 		public void DeleteFile(int id)
 		{
-
+            jsonStructureManager.DeleteFile(id);
 		}
 
         public bool ExistFile(string fullPath)
@@ -231,6 +235,17 @@ namespace FileManagerLib.Filer.Json
                 return fManager.GetBytes(file.Location, LEN);
             }
             return null;
+        }
+
+        public void ActionBytes(string fullPath, int size, Action<byte[], int> action)
+        {
+            var (parent, fileName) = fullPath.GetFilenameAndParent();
+            int rootId = GetDirectoryId(parent);
+            if (jsonStructureManager.ExistedFile(rootId, fileName))
+            {
+                var file = jsonStructureManager.GetFileStructureFromParent(rootId, fileName);
+                fManager.ActionBytes(file.Location, size, action, LEN);
+            }
         }
 
         public byte[] GetBytes(int id)

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 
-namespace FileManagerLib.Filer
+namespace FileManagerLib.File
 {
     public static class DirectorySearcher
     {

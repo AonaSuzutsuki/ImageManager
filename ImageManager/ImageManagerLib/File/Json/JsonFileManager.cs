@@ -8,7 +8,7 @@ using FileManagerLib.Dat;
 using FileManagerLib.Extensions.Path;
 using FileManagerLib.Path;
 
-namespace FileManagerLib.Filer.Json
+namespace FileManagerLib.File.Json
 {
 	public class JsonFileManager : AbstractJsonResourceManager
 	{
@@ -39,7 +39,7 @@ namespace FileManagerLib.Filer.Json
         
 		public void CreateFile(string fileName, string parent, string inFilePath)
 		{
-			if (!File.Exists(inFilePath))
+			if (!System.IO.File.Exists(inFilePath))
 				return;
 
             var pId = GetDirectoryId(PathSplitter.SplitPath(parent));
@@ -94,7 +94,7 @@ namespace FileManagerLib.Filer.Json
             }
         }
 
-        public void CreateFiles(string parent, string dirPath, Action<int, int, string, bool> action = null)
+        public void CreateFiles(string parent, string dirPath, Action<int, string, bool> action = null)
 		{
 			var filePathArray = DirectorySearcher.GetAllFiles(dirPath);
 			var dirPathArray = DirectorySearcher.GetAllDirectories(dirPath);
@@ -110,7 +110,7 @@ namespace FileManagerLib.Filer.Json
 				var path = file.v;
 				var par = System.IO.Path.GetDirectoryName(internalFilePathArray[file.i]);
 				CreateFile(System.IO.Path.GetFileName(path), System.IO.Path.GetDirectoryName(internalFilePathArray[file.i]), path);
-                action?.Invoke(file.i, filePathArray.Length, path, true);
+                action?.Invoke(file.i, path, true);
                 WriteIntoResourceProgress?.Invoke(this, new ReadWriteProgressEventArgs(file.i + 1, filePathArray.Length, path, true));
 			}
 		}
