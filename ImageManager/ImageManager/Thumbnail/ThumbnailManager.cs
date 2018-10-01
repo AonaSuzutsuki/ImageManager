@@ -14,7 +14,7 @@ namespace ImageManager.Thumbnail
     public class ThumbnailManager : IDisposable
     {
 
-        private readonly JsonResourceManager fileManager;
+        private readonly AbstractJsonResourceManager fileManager;
         private Dictionary<string, BitmapImage> thumbCache = new Dictionary<string, BitmapImage>();
 
         public const string ThumbnailChachePath = "thumb.dat";
@@ -24,9 +24,9 @@ namespace ImageManager.Thumbnail
             var thumbPath = "{0}/{1}".FormatString(CommonStyleLib.AppInfo.GetAppPath(), ThumbnailChachePath);
 
             if (File.Exists(thumbPath))
-                fileManager = new JsonResourceManager(thumbPath);
+                fileManager = new JsonFileManager(thumbPath);
             else
-                fileManager = new JsonResourceManager(thumbPath, true);
+                fileManager = new JsonFileManager(thumbPath, true);
         }
 
         public BitmapImage GetThumbnail(string hash, Func<byte[]> func)

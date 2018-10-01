@@ -7,8 +7,8 @@ using System.Threading.Tasks;
 
 namespace FileManagerLib.File.Exceptions
 {
-    public class FileExistedException : IOException
+    public class FileDirectoryExistedException : IOException
     {
-        public FileExistedException(string message) : base(message) { }
+        public FileDirectoryExistedException(string message) : base(message) { }
     }
 }

@@ -321,7 +321,7 @@ namespace ImageManagerCUI
 	public class JsonDataProgram : AbstractProgram
 	{
   
-		JsonResourceManager fileManager;
+		AbstractJsonResourceManager fileManager;
 
 		public override bool Parse(string cmd)
 		{         
@@ -366,7 +366,7 @@ namespace ImageManagerCUI
             var checkHash = parser.GetAttribute("hash") ?? parser.GetAttribute(1);
             var isCheckHash = checkHash == null ? true : false;
 
-            fileManager = new JsonResourceManager(dbFilename, true, isCheckHash);
+            fileManager = new JsonFileManager(dbFilename, true, isCheckHash);
             Initialize();
             Console.WriteLine("Loaded {0}.", dbFilename);
         }
@@ -374,7 +374,7 @@ namespace ImageManagerCUI
         public void LoadDatabase(CmdParser parser)
         {
             var dbFilename = parser.GetAttribute("file") ?? parser.GetAttribute(0);
-			fileManager = new JsonResourceManager(dbFilename, false);
+			fileManager = new JsonFileManager(dbFilename, false);
             Initialize();
             Console.WriteLine("Loaded {0}.", dbFilename);
         }

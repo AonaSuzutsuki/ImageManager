@@ -116,6 +116,13 @@ namespace FileManagerLib.File.Json
 		}
         #endregion
 
+        /// <summary>
+        /// Convert path on file system to internal path.
+        /// </summary>
+        /// <param name="basePath">dir path on file system</param>
+        /// <param name="parent">internal parent directory path</param>
+        /// <param name="dirPathArray">filepaths on file system</param>
+        /// <returns></returns>
         private static string[] ResolveAbsolutePath(string basePath, string parent, string[] dirPathArray)
 		{
 			string func(string path, string referencePath)
@@ -123,7 +130,7 @@ namespace FileManagerLib.File.Json
 				//var fileUri = new Uri(path);
 				//var referenceUri = new Uri(referencePath);
 				//return parent + referenceUri.MakeRelativeUri(fileUri).ToString();
-				return parent.Remove(0, 1) + path.Replace(referencePath, "");
+                return (parent.Remove(0, 1) + path.Replace(referencePath, "")).Replace("/", "\\");
 			}
 
 			var list = new List<string>();

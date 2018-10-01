@@ -83,8 +83,8 @@ namespace Clusterable.IO
             this.access = access;
             this.share = share;
 
-            bool v = mode == FileMode.Create || !File.Exists(path);
-            if (v)
+            bool isNewFile = mode == FileMode.Create || !File.Exists(path);
+            if (isNewFile)
             {
                 var stream = new FileStream(path, mode, access, share);
                 streams.Add(stream);

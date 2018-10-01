@@ -112,7 +112,6 @@
     <Compile Include="File\DirectorySearcher.cs" />
     <Compile Include="Crypto\Sha256.cs" />
     <Compile Include="File\Json\AbstractJsonResourceManager.cs" />
-    <Compile Include="File\Json\JsonResourceManager.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

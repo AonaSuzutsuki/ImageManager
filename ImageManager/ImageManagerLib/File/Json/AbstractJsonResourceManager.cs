@@ -88,7 +88,7 @@ namespace FileManagerLib.File.Json
 			var dirs = jsonStructureManager.GetFileStructureFromParent(parentRootId, fileName);
 			//var dirs = sqlite.GetValues(TABLE_FILES, "Parent = {0} and Name = '{1}'".FormatString(parentRootId, fileName));
 			if (dirs != null)
-				throw new FileExistedException("Existed {0} on {1}".FormatString(fileName, parent));
+				throw new FileDirectoryExistedException("Existed {0} on {1}".FormatString(fileName, parent));
 			if (parentRootId < 0)
 				throw new DirectoryNotFoundException("Not found {0}".FormatString(parent));
 
@@ -111,7 +111,7 @@ namespace FileManagerLib.File.Json
 					isExisted = true;
 
 			if (isExisted)
-				throw new Exception("Existed {0} on {1}".FormatString(dirName, parent));
+				throw new FileDirectoryExistedException("Existed {0} on {1}".FormatString(dirName, parent));
 			if (parentRootId < 0)
 				throw new DirectoryNotFoundException("Not found {0}".FormatString(parent));
 
@@ -264,7 +264,29 @@ namespace FileManagerLib.File.Json
             return Encoding.UTF8.GetString(bytes);
         }
         #endregion
-        
+
+        #region Byte Write
+        public void WriteBytes(string fullPath, byte[] bytes)
+        {
+            var (parent, fileName) = fullPath.GetFilenameAndParent();
+            int rootId = GetDirectoryId(parent);
+            if (!jsonStructureManager.ExistedFile(rootId, fileName))
+            {
+                var nextId = jsonStructureManager.NextFileId;
+                var hash = Crypto.Sha256.GetSha256(bytes);
+
+                var start = fManager.Write(bytes, LEN);
+                jsonStructureManager.CreateFile(nextId, rootId, fileName, start, hash);
+            }
+        }
+
+        public void WriteString(string fullPath, string text)
+        {
+            var bytes = Encoding.UTF8.GetBytes(text);
+            WriteBytes(fullPath, bytes);
+        }
+        #endregion
+
         #region Trace
         public static string GetDirectoryPath(JsonStructureManager jsonStructureManager, int id)
 		{
