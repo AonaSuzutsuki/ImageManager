@@ -6,6 +6,9 @@ using System.Text;
 
 namespace FileManagerLib.Dat
 {
+	/// <summary>
+    /// データファイルの管理方法を提供します。
+    /// </summary>
     public class DatFileManager : IDisposable
     {
 

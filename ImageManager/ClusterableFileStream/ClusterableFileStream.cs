@@ -11,7 +11,7 @@ using CommonExtensionLib.Extensions;
 namespace Clusterable.IO
 {
     /// <summary>
-    /// FileStreamを用いて指定されたサイズ分に分割したファイルアクセスを提供します。
+    /// FileStreamを用いて指定されたサイズに分割したファイルアクセスを提供します。
     /// </summary>
     public class ClusterableFileStream : IDisposable
     {
@@ -31,6 +31,10 @@ namespace Clusterable.IO
 		#endregion
 
 		#region Properties
+        /// <summary>
+        /// 分割ファイルを一つのファイルとみなした仮想的なストリームの現在位置を取得します。
+        /// </summary>
+        /// <value>現在の</value>
 		public long Position
 		{
 			get
@@ -42,6 +46,10 @@ namespace Clusterable.IO
 			}
 		}
 
+        /// <summary>
+        /// 分割ファイルを一つのファイルとみなした仮想的なファイル合計サイズを取得します。
+        /// </summary>
+        /// <value>仮想的なファイルサイズ</value>
 		public long Length
         {
             get
@@ -53,6 +61,10 @@ namespace Clusterable.IO
             }
         }
 
+        /// <summary>
+        /// 分割するファイルサイズをバイト単位で取得します。
+        /// </summary>
+        /// <value>分割するファイルサイズ</value>
 		public long SplitSize { get; } //1073741824:1gb 10485760:10mb
 
         public string[] Filenames
@@ -134,9 +146,9 @@ namespace Clusterable.IO
         /// <summary>
         /// ストリームにバイトのブロックを書き込みます。
         /// </summary>
-        /// <param name="data"></param>
-        /// <param name="offset"></param>
-        /// <param name="length"></param>
+        /// <param name="data">書き込むデータ</param>
+        /// <param name="offset">書き込みを開始する現在地からの相対位置</param>
+        /// <param name="length">書き込むデータの長さ</param>
         public void Write(byte[] data, int offset, long length)
 		{
 			var startIndex = (int)Math.Floor((double)position / (double)SplitSize);
@@ -144,14 +156,15 @@ namespace Clusterable.IO
 			if (startIndex >= streams.Count)
 				streams.Add(new FileStream("{0}.{1}".FormatString(baseFilePath, streams.Count), mode, access, share));
 			var stream = streams[startIndex];
-            
-			Func<Stream, int> func = (stm) => {
-				var wLen = (int)(((startIndex + 1) * SplitSize) - position); // 書き込む長さ
-                wLen = wLen > (int)length ? (int)length : wLen;
-				return wLen;
-			};
 
-            var writeLen = func(stream);
+			int func(Stream stm)
+			{
+				var wLen = (int)(((startIndex + 1) * SplitSize) - position); // 書き込む長さ
+				wLen = wLen > (int)length ? (int)length : wLen;
+				return wLen;
+			}
+
+			var writeLen = func(stream);
 			var remLen = length - writeLen; // 残りの長さ
 
             int start = (int)(position - SplitSize * startIndex);
@@ -164,11 +177,11 @@ namespace Clusterable.IO
 		}
 
         /// <summary>
-        /// 
+        /// ストリームからバイトのブロックを読み込みます。
         /// </summary>
-        /// <param name="buffer"></param>
-        /// <param name="offset"></param>
-        /// <param name="length"></param>
+        /// <param name="buffer">データを書き込むバッファ領域</param>
+        /// <param name="offset">読み込みを開始する現在地からの相対位置</param>
+        /// <param name="length">読み込む長さ</param>
         /// <returns></returns>
 		public int Read(byte[] buffer, int offset, int length)
 		{
@@ -232,6 +245,11 @@ namespace Clusterable.IO
 			return readCount;
 		}
 
+        /// <summary>
+        /// ストリームの現在地を指定します。
+        /// </summary>
+        /// <param name="offset">SeekOriginに基づいた相対的なストリームの位置</param>
+        /// <param name="seekOrigin">オフセットをどこから開始するか</param>
 		public void Seek(long offset, SeekOrigin seekOrigin)
 		{
 			if (seekOrigin == SeekOrigin.Begin)
@@ -248,6 +266,11 @@ namespace Clusterable.IO
 			}
 		}
 
+        /// <summary>
+        /// ストリームに関連するファイル群を削除します。
+        /// </summary>
+        /// <returns>削除したファイルの名前</returns>
+        /// <param name="func">分割ファイルを削除する度に実行する処理</param>
         public string[] Delete(Func<string, string> func = null)
         {
             var filenames = new List<string>(streams.Count);
