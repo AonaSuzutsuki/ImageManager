@@ -10,8 +10,8 @@ using FileManagerLib.Path;
 
 namespace FileManagerLib.File.Json
 {
-	public class JsonFileManager : AbstractJsonResourceManager
-	{
+	public class JsonFileManager : JsonResourceManager
+    {
 
 		#region Constants
 		#endregion
@@ -114,6 +114,29 @@ namespace FileManagerLib.File.Json
                 WriteIntoResourceProgress?.Invoke(this, new ReadWriteProgressEventArgs(file.i + 1, filePathArray.Length, path, true));
 			}
 		}
+
+        public void DeleteFile(string fullPath)
+        {
+            base.DeleteResource(fullPath);
+        }
+        public void DeleteFile(int id)
+        {
+            base.DeleteResource(id);
+        }
+
+        public bool ExistFile(string fullPath)
+        {
+            return base.ExistResource(fullPath);
+        }
+
+        public FileStructure[] GetFiles(string fullPath)
+        {
+            return base.GetResources(fullPath);
+        }
+        public FileStructure[] GetFiles(int dirId)
+        {
+            return base.GetResources(dirId);
+        }
         #endregion
 
         /// <summary>

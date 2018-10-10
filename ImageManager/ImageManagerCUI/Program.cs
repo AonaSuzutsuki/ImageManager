@@ -307,7 +307,7 @@ namespace ImageManagerCUI
             }
         }
         
-		void FileManager_WriteProgress(object sender, AbstractJsonResourceManager.ReadWriteProgressEventArgs eventArgs)
+		void FileManager_WriteProgress(object sender, JsonResourceManager.ReadWriteProgressEventArgs eventArgs)
 		{
 			if (eventArgs.IsCompleted)
 				Console.WriteLine("{0}/{1} ({2}%)\t{3}".FormatString(eventArgs.CompletedNumber, eventArgs.FullNumber, eventArgs.Percentage, eventArgs.CurrentFilepath));
@@ -320,8 +320,8 @@ namespace ImageManagerCUI
 
 	public class JsonDataProgram : AbstractProgram
 	{
-  
-		AbstractJsonResourceManager fileManager;
+
+        JsonResourceManager fileManager;
 
 		public override bool Parse(string cmd)
 		{         

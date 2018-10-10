@@ -12,7 +12,7 @@ using FileManagerLib.Path;
 
 namespace FileManagerLib.File.Json
 {
-	public abstract class AbstractJsonResourceManager : IDisposable
+	public class JsonResourceManager : IDisposable
 	{
 
 		#region Constants
@@ -62,7 +62,7 @@ namespace FileManagerLib.File.Json
 		#endregion
 
 
-		protected AbstractJsonResourceManager(string filePath, bool newFile = false, bool isCheckHash = true)
+		protected JsonResourceManager(string filePath, bool newFile = false, bool isCheckHash = true)
         {
             if (newFile)
             {
@@ -188,7 +188,7 @@ namespace FileManagerLib.File.Json
         #endregion
 
         #region File
-        public void DeleteFile(string fullPath)
+        public void DeleteResource(string fullPath)
 		{
             var (parent, fileName) = fullPath.GetFilenameAndParent();
             int rootId = GetDirectoryId(parent);
@@ -196,19 +196,19 @@ namespace FileManagerLib.File.Json
 
             jsonStructureManager.DeleteFile(fileStructure.Id);
         }
-		public void DeleteFile(int id)
+		public void DeleteResource(int id)
 		{
             jsonStructureManager.DeleteFile(id);
 		}
 
-        public bool ExistFile(string fullPath)
+        public bool ExistResource(string fullPath)
         {
             var (parent, fileName) = fullPath.GetFilenameAndParent();
             int rootId = GetDirectoryId(parent);
             return jsonStructureManager.ExistedFile(rootId, fileName);
         }
 
-        public FileStructure[] GetFiles(string fullPath)
+        public FileStructure[] GetResources(string fullPath)
         {
             var (parent, dirName) = fullPath.GetFilenameAndParent();
 
@@ -217,7 +217,7 @@ namespace FileManagerLib.File.Json
 
             return jsonStructureManager.GetFileStructuresFromParent(dirId);
         }
-        public FileStructure[] GetFiles(int dirId)
+        public FileStructure[] GetResources(int dirId)
         {
             var files = jsonStructureManager.GetFileStructuresFromParent(dirId);
             return files;

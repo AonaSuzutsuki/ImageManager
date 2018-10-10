@@ -37,5 +37,13 @@ namespace FileManagerLib.File
 			}
 			return fList.ToArray();
 		}
+
+        public static int CountFiles(IEnumerable<string> dirArray)
+        {
+            int cnt = 0;
+            foreach (var dirName in dirArray)
+                cnt += GetAllFiles(dirName).Length;
+            return cnt;
+        }
     }
 }

@@ -311,7 +311,7 @@ namespace ImageManager.Models
                     void act(int index, string currentFilePath, bool isComplete)
                     {
                         WriteToFilesProgress(
-                            new AbstractJsonResourceManager.ReadWriteProgressEventArgs(index + 1, files.Length, currentFilePath, isComplete)
+                            new JsonResourceManager.ReadWriteProgressEventArgs(index + 1, files.Length, currentFilePath, isComplete)
                         );
                     }
 
@@ -338,21 +338,15 @@ namespace ImageManager.Models
                 var task = Task.Factory.StartNew(() =>
                 {
 
-                    var count = 0;
+                    var count = DirectorySearcher.CountFiles(fileNames);
                     var dindex = 0;
                     void act(int index, string currentFilePath, bool isComplete)
                     {
-                        dindex++;
                         WriteToFilesProgress(
-                            new AbstractJsonResourceManager.ReadWriteProgressEventArgs(dindex, count, currentFilePath, isComplete)
+                            new JsonResourceManager.ReadWriteProgressEventArgs(++dindex, count, currentFilePath, isComplete)
                         );
                     }
-
-                    foreach (var fileName in fileNames)
-                    {
-                        count += DirectorySearcher.GetAllFiles(fileName).Length;
-                    }
-
+                    
                     foreach (var fileName in fileNames)
                     {
                         string dirPath = "/{0}".FormatString(Path.GetFileName(fileName));
@@ -382,7 +376,7 @@ namespace ImageManager.Models
                 else
                     fileManager.DeleteFile(item.v.Id);
                 DeleteProgress(
-                    new AbstractJsonResourceManager.ReadWriteProgressEventArgs(item.i + 1, fileDirectoryItems.Count, item.v.Text, true)
+                    new JsonResourceManager.ReadWriteProgressEventArgs(item.i + 1, fileDirectoryItems.Count, item.v.Text, true)
                 );
                 FileDirectoryItems.Remove(item.v);
             }
@@ -427,7 +421,7 @@ namespace ImageManager.Models
                             void act(string currentFilePath, bool isComplete)
                             {
                                 WriteIntoResourceProgress(
-                                    new AbstractJsonResourceManager.ReadWriteProgressEventArgs(index, cnt, currentFilePath, isComplete)
+                                    new JsonResourceManager.ReadWriteProgressEventArgs(index, cnt, currentFilePath, isComplete)
                                 );
                                 index++;
                             }
@@ -445,20 +439,20 @@ namespace ImageManager.Models
 
 
         #region EventMethods
-        private void FileManager_VacuumProgress(object sender, AbstractJsonResourceManager.ReadWriteProgressEventArgs eventArgs)
+        private void FileManager_VacuumProgress(object sender, JsonResourceManager.ReadWriteProgressEventArgs eventArgs)
         {
             UnderMessageLabelText = "再構成中 {0}/{1} ({2}%)".FormatString(eventArgs.CompletedNumber, eventArgs.FullNumber, eventArgs.Percentage);
         }
 
-        private void DeleteProgress(AbstractJsonResourceManager.ReadWriteProgressEventArgs eventArgs)
+        private void DeleteProgress(JsonResourceManager.ReadWriteProgressEventArgs eventArgs)
         {
             UnderMessageLabelText = "削除中 {0}/{1} ({2}%)".FormatString(eventArgs.CompletedNumber, eventArgs.FullNumber, eventArgs.Percentage);
         }
-        private void WriteToFilesProgress(AbstractJsonResourceManager.ReadWriteProgressEventArgs eventArgs)
+        private void WriteToFilesProgress(JsonResourceManager.ReadWriteProgressEventArgs eventArgs)
         {
             UnderMessageLabelText = "書き込み中 {0}/{1} ({2}%)".FormatString(eventArgs.CompletedNumber, eventArgs.FullNumber, eventArgs.Percentage);
         }
-        private void WriteIntoResourceProgress(AbstractJsonResourceManager.ReadWriteProgressEventArgs eventArgs)
+        private void WriteIntoResourceProgress(JsonResourceManager.ReadWriteProgressEventArgs eventArgs)
         {
             UnderMessageLabelText = "読み込み中 {0}/{1} ({2}%)".FormatString(eventArgs.CompletedNumber, eventArgs.FullNumber, eventArgs.Percentage);
         }
