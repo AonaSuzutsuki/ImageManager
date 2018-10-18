@@ -26,8 +26,14 @@ namespace FileManagerLib.Dat
             private set;
         }
 
+        /// <summary>
+        /// 内部で分割するファイルのファイル毎の最大サイズを取得します。
+        /// </summary>
 		public int SplitSize { get; } = 134217728; //536870912
 
+        /// <summary>
+        /// すでにあるJSONをスキップして書き込むか上書きするかどうか
+        /// </summary>
         public bool IsShiftJsonPosition { get; set; } = false;
 
 		private long LastPositionWithoutJson
