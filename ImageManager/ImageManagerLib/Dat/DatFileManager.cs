@@ -27,21 +27,27 @@ namespace FileManagerLib.Dat
         }
 
         /// <summary>
-        /// 内部で分割するファイルのファイル毎の最大サイズを取得します。
+        /// ファイルへの書き込みの際に分割読み込みをするしきい値
         /// </summary>
 		public int SplitSize { get; } = 134217728; //536870912
 
         /// <summary>
-        /// すでにあるJSONをスキップして書き込むか上書きするかどうか
+        /// 既に書き込まれているJSONをスキップして書き込むか上書きするかどうか
         /// </summary>
         public bool IsShiftJsonPosition { get; set; } = false;
 
+        /// <summary>
+        /// 取り除くべき既に書き込まれているJSONのサイズを負数ベースで返します。
+        /// </summary>
 		private long LastPositionWithoutJson
 		{
 			get => lastPositionWithoutJson > 0 ? 0 : lastPositionWithoutJson;
 			set => lastPositionWithoutJson = value;
 		}
 
+        /// <summary>
+        /// ハッシュ計算によるデータの整合性を確認するかどうかを設定あるいは取得します。
+        /// </summary>
         public bool IsCheckHash { get; set; } = true;
         #endregion
 
@@ -51,6 +57,12 @@ namespace FileManagerLib.Dat
             fileStream = new ClusterableFileStream(filePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read); //18077000
         }
 
+        /// <summary>
+        /// 指定された位置からデータの長さを除いたデータをバイト配列で返します。
+        /// </summary>
+        /// <param name="start">データの開始位置</param>
+        /// <param name="identifierLength">データの長さを格納するバイトサイズ</param>
+        /// <returns>実データのバイト配列</returns>
 		public byte[] GetBytes(long start, int identifierLength = LEN)
 		{
 			byte[] data = null;
@@ -66,7 +78,7 @@ namespace FileManagerLib.Dat
 
 			return data;
 		}
-
+        
         public void ActionBytes(long start, int size, Action<byte[], int> action, int identifierLength = LEN)
         {
             if (fileStream != null)
@@ -90,6 +102,11 @@ namespace FileManagerLib.Dat
             }
         }
 
+        /// <summary>
+        /// 末尾から実データの長さを除いたデータをバイト配列で返します。
+        /// </summary>
+        /// <param name="identifierLength">データの長さを格納するバイトサイズ</param>
+        /// <returns>実データのバイト配列</returns>
         public byte[] GetBytesFromEnd(int identifierLength = LEN)
 		{
 			byte[] data = null;
@@ -110,6 +127,13 @@ namespace FileManagerLib.Dat
             return data;
 		}
 
+        /// <summary>
+        /// 指定された位置からデータの長さを除いたデータの部分をバイト配列で返します。
+        /// </summary>
+        /// <param name="start">データの開始位置</param>
+        /// <param name="length">取得したいデータの長さ</param>
+        /// <param name="identifierLength">データの長さを格納するバイトサイズ</param>
+        /// <returns>実データの部分バイト配列</returns>
         public (uint, byte[]) GetPartialBytes(long start, long length, int identifierLength = LEN)
         {
             uint len = 0;
