@@ -40,7 +40,7 @@ namespace ImageManager.Thumbnail
             else
                 array = ImageConverter.GetThumbnailBytes(func(), 50, 50);
 
-            fileManager.WriteBytes(hash, array);
+            fileManager.WriteBytesWithoutException(hash, array);
             var image = ImageConverter.GetBitmapImage(array);
             thumbCache.Add(hash, image);
             return image;

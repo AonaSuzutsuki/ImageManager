@@ -30,13 +30,6 @@ namespace FileManagerLib.File.Json
 
 
         #region File
-        public void CreateFile(string fileName, string parent, byte[] data, string mimeType, string hash)
-		{
-			var (nextId, parentId) = ResolveTermParameters(fileName, parent);         
-			var start = fManager.Write(data, LEN);         
-			jsonStructureManager.CreateFile(nextId, parentId, fileName, start, hash, new Dictionary<string, string> { { "MimeType", mimeType } });
-		}
-        
 		public void CreateFile(string fileName, string parent, string inFilePath)
 		{
 			if (!System.IO.File.Exists(inFilePath))
@@ -55,24 +48,26 @@ namespace FileManagerLib.File.Json
 
                 if (stream.Length > fManager.SplitSize)
                 {
-                    var (nextId, parentId) = ResolveTermParameters(fileName, parent);
-                    var start = fManager.Write(stream, (writeStream) => {
-                        while (true)
+                    WriteBytes(fileName, parent, hash, () =>
+                    {
+                        return fManager.Write(stream, (writeStream) =>
                         {
-                            byte[] bs = new byte[fManager.SplitSize];
-                            int readSize = stream.Read(bs, 0, bs.Length);
-                            if (readSize == 0)
-                                break;
-							writeStream.Write(bs, 0, readSize);
-                        }
-                    }, LEN);
-					jsonStructureManager.CreateFile(nextId, parentId, fileName, start, hash, new Dictionary<string, string> { { "MimeType", mimeType } });
+                            while (true)
+                            {
+                                byte[] bs = new byte[fManager.SplitSize];
+                                int readSize = stream.Read(bs, 0, bs.Length);
+                                if (readSize == 0)
+                                    break;
+                                writeStream.Write(bs, 0, readSize);
+                            }
+                        }, LEN);
+                    }, new Dictionary<string, string> { { "MimeType", mimeType } });
                 }
                 else
                 {
                     var data = ByteLoader.FromFile(stream);
                     if (data != null)
-                        CreateFile(fileName, parent, data, mimeType, hash);
+                        WriteBytes(fileName, parent, data, hash, new Dictionary<string, string> { { "MimeType", mimeType } });
                 }
 			}         
 		}

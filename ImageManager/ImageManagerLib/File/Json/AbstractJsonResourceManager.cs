@@ -266,7 +266,7 @@ namespace FileManagerLib.File.Json
         #endregion
 
         #region Byte Write
-        public void WriteBytes(string fullPath, byte[] bytes)
+        public void WriteBytesWithoutException(string fullPath, byte[] bytes)
         {
             var (parent, fileName) = fullPath.GetFilenameAndParent();
             int rootId = GetDirectoryId(parent);
@@ -279,6 +279,41 @@ namespace FileManagerLib.File.Json
                 jsonStructureManager.CreateFile(nextId, rootId, fileName, start, hash);
             }
         }
+
+        public void WriteBytes(string fullPath, byte[] data)
+        {
+            var (parent, fileName) = fullPath.GetFilenameAndParent();
+            //var (nextId, rootId) = ResolveTermParameters(fileName, parent.ToString());
+            var hash = Crypto.Sha256.GetSha256(data);
+            WriteBytes(fileName, parent.ToString(), data, hash);
+            //if (!jsonStructureManager.ExistedFile(rootId, fileName))
+            //{
+            //    var hash = Crypto.Sha256.GetSha256(data);
+            //    var start = fManager.Write(data, LEN);
+            //    jsonStructureManager.CreateFile(nextId, rootId, fileName, start, hash);
+            //}
+        }
+
+        public void WriteBytes(string fileName, string parent, byte[] data, string hash, Dictionary<string, string> options = null)
+        {
+            var (nextId, rootId) = ResolveTermParameters(fileName, parent);
+            if (!jsonStructureManager.ExistedFile(rootId, fileName))
+            {
+                var start = fManager.Write(data, LEN);
+                jsonStructureManager.CreateFile(nextId, rootId, fileName, start, hash, options);
+            }
+        }
+
+        public void WriteBytes(string fileName, string parent, string hash, Func<long> func, Dictionary<string, string> options = null)
+        {
+            var (nextId, rootId) = ResolveTermParameters(fileName, parent);
+            if (!jsonStructureManager.ExistedFile(rootId, fileName))
+            {
+                var start = func();
+                jsonStructureManager.CreateFile(nextId, rootId, fileName, start, hash, options);
+            }
+        }
+
 
         public void WriteString(string fullPath, string text)
         {
