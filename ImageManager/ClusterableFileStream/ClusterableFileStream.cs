@@ -13,7 +13,7 @@ namespace Clusterable.IO
     /// <summary>
     /// FileStreamを用いて指定されたサイズに分割したファイルアクセスを提供します。
     /// </summary>
-    public class ClusterableFileStream : IDisposable
+    public class ClusterableFileStream : IClusterableStream
     {
 
         #region Constants

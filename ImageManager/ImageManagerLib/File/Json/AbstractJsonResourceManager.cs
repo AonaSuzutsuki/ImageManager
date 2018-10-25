@@ -134,9 +134,11 @@ namespace FileManagerLib.File.Json
 			jsonStructureManager.DeleteDirectory(id);
 		}
 
-        public bool ExistDirectory()
+        public bool ExistDirectory(string fullPath)
         {
-            return false;
+            var (parent, fileName) = fullPath.GetFilenameAndParent();
+            int rootId = GetDirectoryId(parent);
+            return jsonStructureManager.ExistedDirectory(rootId, fileName);
         }
 
         public int GetDirectoryId(string dirName, int rootId)

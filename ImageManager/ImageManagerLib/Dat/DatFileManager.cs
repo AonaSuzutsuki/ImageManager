@@ -15,7 +15,7 @@ namespace FileManagerLib.Dat
         private const int LEN = 4;
 
         #region Fields
-        private ClusterableFileStream fileStream;
+        private IClusterableStream fileStream;
         private long lastPositionWithoutJson = 0;
         #endregion
 
@@ -236,7 +236,7 @@ namespace FileManagerLib.Dat
             return pos;
         }
 
-		public long Write(Stream stream, Action<Clusterable.IO.ClusterableFileStream> writeAction, int identifierLength = LEN)
+		public long Write(Stream stream, Action<IClusterableStream> writeAction, int identifierLength = LEN)
 		{
 			var len = stream.Length;
             var lenArray = BitConverter.GetBytes(len);
@@ -271,7 +271,7 @@ namespace FileManagerLib.Dat
 			return pos;
 		}
 
-		private static uint GetIntAndSeek(ClusterableFileStream stream, long start, long length)
+		private static uint GetIntAndSeek(IClusterableStream stream, long start, long length)
 		{
 			var idLenArray = new byte[length];
 			stream.Seek(start, SeekOrigin.Begin);
