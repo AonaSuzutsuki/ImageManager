@@ -131,6 +131,12 @@ namespace ImageManager.Models
             pathItemsForForward = new Stack<PathItem>();
 
             fileManager.VacuumProgress += FileManager_VacuumProgress;
+            fileManager.WriteIntoResourceProgress += FileManager_WriteIntoResourceProgress;
+        }
+
+        private void FileManager_WriteIntoResourceProgress(object sender, JsonResourceManager.ReadWriteProgressEventArgs eventArgs)
+        {
+            UnderMessageLabelText = "書き込み中 {0}/{1} ({2}%)".FormatString(eventArgs.CompletedNumber, eventArgs.FullNumber, eventArgs.Percentage);
         }
 
         public void RemakeThumbnail()
@@ -307,15 +313,7 @@ namespace ImageManager.Models
                 var currentDirectory = pathItem.ToString();
                 Task.Factory.StartNew(() =>
                 {
-
-                    void act(int index, string currentFilePath, bool isComplete)
-                    {
-                        WriteToFilesProgress(
-                            new JsonResourceManager.ReadWriteProgressEventArgs(index + 1, files.Length, currentFilePath, isComplete)
-                        );
-                    }
-
-                    fileManager.CreateFiles(currentDirectory, files, act);
+                    fileManager.CreateFiles(currentDirectory, files);
                     MainWindow.CurrentDispacher.Invoke(() => DrawItems(currentDirectory));
                     IsBusy = false;
                 });
@@ -337,29 +335,11 @@ namespace ImageManager.Models
                 var currentDirectory = pathItem.ToString();
                 var task = Task.Factory.StartNew(() =>
                 {
-
-                    var count = DirectorySearcher.CountFiles(fileNames);
-                    var dindex = 0;
-                    void act(int index, string currentFilePath, bool isComplete)
-                    {
-                        WriteToFilesProgress(
-                            new JsonResourceManager.ReadWriteProgressEventArgs(++dindex, count, currentFilePath, isComplete)
-                        );
-                    }
-                    
-                    foreach (var fileName in fileNames)
-                    {
-                        string dirPath = "/{0}".FormatString(Path.GetFileName(fileName));
-                        if (!currentDirectory.Equals("/"))
-                            dirPath = "{0}/{1}".FormatString(currentDirectory, Path.GetFileName(fileName));
-                        try
-                        {
-                            fileManager.CreateDirectory(dirPath);
-                        } catch { }
-                        fileManager.CreateFiles(dirPath, fileName, act);
-
-                        MainWindow.CurrentDispacher.Invoke(() => DrawItems(currentDirectory));
-                    }
+                    string dirPath = "/";
+                    if (!currentDirectory.Equals("/"))
+                        dirPath = "{0}/".FormatString(currentDirectory);
+                    fileManager.CreateFilesOnDirectories(dirPath, fileNames.ToArray());
+                    MainWindow.CurrentDispacher.Invoke(() => DrawItems(currentDirectory));
                     IsBusy = false;
                 });
             }

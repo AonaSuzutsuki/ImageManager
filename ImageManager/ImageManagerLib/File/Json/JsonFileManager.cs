@@ -30,7 +30,7 @@ namespace FileManagerLib.File.Json
 
 
         #region File
-		public void CreateFile(string fileName, string parent, string inFilePath)
+        public void CreateFile(string fileName, string parent, string inFilePath, Action<string> action = null)
 		{
 			if (!System.IO.File.Exists(inFilePath))
 				return;
@@ -69,7 +69,13 @@ namespace FileManagerLib.File.Json
                     if (data != null)
                         WriteBytes(fileName, parent, data, hash, new Dictionary<string, string> { { "MimeType", mimeType } });
                 }
-			}         
+
+                if (action != null)
+                    action.Invoke(inFilePath);
+                else
+                    WriteIntoResourceProgress?.Invoke(this, new ReadWriteProgressEventArgs(1, 1, inFilePath, true));
+
+            }         
 		}
 
 		public void CreateFile(string fullPath, string inFilePath)
@@ -78,14 +84,17 @@ namespace FileManagerLib.File.Json
 			CreateFile(fileName, parent.ToString(), inFilePath);
 		}
 
-        public void CreateFiles(string parent, string[] filePaths, Action<int, string, bool> action = null)
+        public void CreateFiles(string parent, string[] filePaths)
         {
             foreach (var tuple in filePaths.Select((v, i) => new { v, i }))
             {
                 var filename = System.IO.Path.GetFileName(tuple.v);
-                CreateFile(filename, parent, tuple.v);
-                action?.Invoke(tuple.i, tuple.v, true);
-                WriteIntoResourceProgress?.Invoke(this, new ReadWriteProgressEventArgs(tuple.i + 1, filePaths.Length, tuple.v, true));
+                CreateFile(filename, parent, tuple.v,
+                    (fname) => WriteIntoResourceProgress?.Invoke(this, new ReadWriteProgressEventArgs(tuple.i + 1, filePaths.Length, fname, true)));
+                //if (action != null)
+                //    action?.Invoke(tuple.i, tuple.v, true);
+                //else
+                //    WriteIntoResourceProgress?.Invoke(this, new ReadWriteProgressEventArgs(tuple.i + 1, filePaths.Length, tuple.v, true));
             }
         }
 
@@ -104,11 +113,31 @@ namespace FileManagerLib.File.Json
 			{
 				var path = file.v;
 				var par = System.IO.Path.GetDirectoryName(internalFilePathArray[file.i]);
-				CreateFile(System.IO.Path.GetFileName(path), System.IO.Path.GetDirectoryName(internalFilePathArray[file.i]), path);
-                action?.Invoke(file.i, path, true);
-                WriteIntoResourceProgress?.Invoke(this, new ReadWriteProgressEventArgs(file.i + 1, filePathArray.Length, path, true));
-			}
+                if (action != null)
+                    CreateFile(System.IO.Path.GetFileName(path), System.IO.Path.GetDirectoryName(internalFilePathArray[file.i]), path,
+                        (fname) => action.Invoke(file.i, fname, true));
+                else
+                    CreateFile(System.IO.Path.GetFileName(path), System.IO.Path.GetDirectoryName(internalFilePathArray[file.i]), path);
+            }
 		}
+
+        public void CreateFilesOnDirectories(string fullPath, string[] inDirPaths)
+        {
+            var count = DirectorySearcher.CountFiles(inDirPaths);
+            var dindex = 0;
+            foreach (var target in inDirPaths)
+            {
+                string dirPath = "{0}/{1}".FormatString(fullPath, System.IO.Path.GetFileName(target));
+                try
+                {
+                    CreateDirectory(dirPath);
+                }
+                catch { }
+                CreateFiles(dirPath, target, (index, currentFilePath, isComplete) =>
+                    WriteIntoResourceProgress?.Invoke(this, new ReadWriteProgressEventArgs(++dindex, count, currentFilePath, isComplete))
+                );
+            }
+        }
 
         public void DeleteFile(string fullPath)
         {
