@@ -203,9 +203,6 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Images\no-image.png" />
-    <Content Include="SQLite.Interop.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ImageManagerLib\FileManagerLib.csproj">
