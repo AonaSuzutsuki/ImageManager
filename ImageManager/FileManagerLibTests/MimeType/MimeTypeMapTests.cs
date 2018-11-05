@@ -42,5 +42,18 @@ namespace FileManagerLib.MimeType.Tests
             Assert.AreEqual(exp2, act2);
             Assert.AreEqual(exp3, act3);
         }
+
+        [TestMethod()]
+        public void GetMimeTypeTest2()
+        {
+            var type1 = MimeTypeMap.GetMimeType("test.jpg");
+            var type2 = MimeTypeMap.GetMimeType("test.png");
+            var type3 = MimeTypeMap.GetMimeType("test.txt");
+
+
+            Assert.AreEqual(true, MimeTypeMap.IsImage(type1));
+            Assert.AreEqual(true, MimeTypeMap.IsImage(type2));
+            Assert.AreEqual(false, MimeTypeMap.IsImage(type3));
+        }
     }
 }
