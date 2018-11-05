@@ -52,18 +52,37 @@ namespace ImageManagerCUI
         public void Parse(string[] args)
         {
             var parser = new EnvArgumentParser(args);
-            if (parser.HasOutputFilepath())
+            if (parser.IsInsert())
             {
-                var outFilename = parser.GetOutputFilepath();
-                var targetFiles = parser.GetValues();
-
-                var fileManager = new JsonFileManager(outFilename, true);
-                fileManager.WriteIntoResourceProgress += FileManager_WriteIntoResourceProgress;
-
-                fileManager.CreateFilesOnDirectories("/", targetFiles);
-
-                fileManager.Dispose();
+                Insert(parser);
             }
+            else if (parser.IsExtract())
+            {
+                Extract(parser);
+            }
+        }
+
+        public void Insert(EnvArgumentParser parser)
+        {
+            var outFilename = parser.GetOutputFilepath();
+            var targetFiles = parser.GetValues();
+
+            var fileManager = new JsonFileManager(outFilename, true);
+            fileManager.WriteIntoResourceProgress += FileManager_WriteIntoResourceProgress;
+
+            fileManager.CreateFilesOnDirectories("/", targetFiles);
+
+            fileManager.Dispose();
+        }
+
+        public void Extract(EnvArgumentParser parser)
+        {
+            var outFilename = parser.GetOutputFilepath();
+            var targetFile = parser.GetValue();
+
+            var fileManager = new JsonFileManager(targetFile);
+            fileManager.WriteToFilesProgress += FileManager_WriteIntoResourceProgress;
+            fileManager.WriteToDir("/", outFilename);
         }
 
         private void FileManager_WriteIntoResourceProgress(object sender, JsonResourceManager.ReadWriteProgressEventArgs eventArgs)

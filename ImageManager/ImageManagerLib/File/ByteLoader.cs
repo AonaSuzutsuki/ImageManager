@@ -9,7 +9,7 @@ namespace FileManagerLib.File
 {
     public class ByteLoader
     {
-		public static byte[] FromFile(Stream stream)
+		public static byte[] FromStream(Stream stream)
         {
 			if (stream == null)
                 return null;

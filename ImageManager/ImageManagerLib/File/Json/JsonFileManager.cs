@@ -65,7 +65,7 @@ namespace FileManagerLib.File.Json
                 }
                 else
                 {
-                    var data = ByteLoader.FromFile(stream);
+                    var data = ByteLoader.FromStream(stream);
                     if (data != null)
                         WriteBytes(fileName, parent, data, hash, new Dictionary<string, string> { { "MimeType", mimeType } });
                 }

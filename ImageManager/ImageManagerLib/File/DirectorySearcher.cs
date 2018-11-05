@@ -38,6 +38,11 @@ namespace FileManagerLib.File
 			return fList.ToArray();
 		}
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="dirArray"></param>
+        /// <returns></returns>
         public static int CountFiles(IEnumerable<string> dirArray)
         {
             int cnt = 0;

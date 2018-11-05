@@ -29,17 +29,22 @@ namespace ImageManagerCUI.Parser
                 }
             }
         }
-        
-        public bool HasOutputFilepath(string option = "-o")
-        {
-            return parameters.ContainsKey(option);
-        }
 
         public string GetOutputFilepath(string option = "-o")
         {
-            if (HasOutputFilepath(option))
-                return parameters[option];
-            return null;
+            return GetOption(option);
+        }
+
+        public bool IsExtract(string option = "-m")
+        {
+            var mode = GetOption(option);
+            return mode.Equals("e");
+        }
+
+        public bool IsInsert(string option = "-m")
+        {
+            var mode = GetOption(option);
+            return mode.Equals("i");
         }
 
         public string GetOption(string option)
@@ -52,6 +57,13 @@ namespace ImageManagerCUI.Parser
         public string[] GetValues()
         {
             return values.ToArray();
+        }
+
+        public string GetValue()
+        {
+            if (values.Count > 0)
+                return values[0];
+            return null;
         }
     }
 }

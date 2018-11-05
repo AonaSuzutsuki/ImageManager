@@ -112,7 +112,7 @@ namespace FileManagerLib.File.Json
             IsChenged = true;
 		}
 
-		public void DeleteDirectory(int id)
+        public void DeleteDirectory(int id)
 		{
 			var dirs = GetDirectoryStructuresFromParent(id);
 			foreach (var dir in dirs)
@@ -176,15 +176,16 @@ namespace FileManagerLib.File.Json
 				Name = name,
 				Location = location,
 				Hash = hash,
-			};
+                Additional = additionals
+            };
 
-            if (additionals != null)
-            {
-                fileStructure.Additional = new Dictionary<string, string>();
-                var zip = additionals.Keys.Zip(additionals.Values, (_key, _value) => new { key = _key, value = _value });
-                foreach (var val in zip)
-                    fileStructure.Additional.Add(val.key, val.value);
-            }
+            //if (additionals != null)
+            //{
+            //    fileStructure.Additional = new Dictionary<string, string>();
+            //    var zip = additionals.Keys.Zip(additionals.Values, (_key, _value) => new { key = _key, value = _value });
+            //    foreach (var val in zip)
+            //        fileStructure.Additional.Add(val.key, val.value);
+            //}
 
             CreateFile(fileStructure);
 		}
@@ -249,7 +250,7 @@ namespace FileManagerLib.File.Json
             IsChenged = true;
 		}
 
-		public void DeleteFile(int id)
+        public void DeleteFile(int id)
 		{
 			files.Remove(id);
             IsChenged = true;
