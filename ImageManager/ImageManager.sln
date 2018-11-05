@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClusterableFileStreamTests"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileManagerLibTests", "FileManagerLibTests\FileManagerLibTests.csproj", "{945DC093-6601-4616-9FE5-F61B6849F9D0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ResxMeasurement", "ResxMeasurement\ResxMeasurement.csproj", "{FDC2A776-571C-4D63-819E-10166CF5F294}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -97,6 +99,18 @@ Global
 		{945DC093-6601-4616-9FE5-F61B6849F9D0}.Release|x64.Build.0 = Release|Any CPU
 		{945DC093-6601-4616-9FE5-F61B6849F9D0}.Release|x86.ActiveCfg = Release|Any CPU
 		{945DC093-6601-4616-9FE5-F61B6849F9D0}.Release|x86.Build.0 = Release|Any CPU
+		{FDC2A776-571C-4D63-819E-10166CF5F294}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FDC2A776-571C-4D63-819E-10166CF5F294}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FDC2A776-571C-4D63-819E-10166CF5F294}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{FDC2A776-571C-4D63-819E-10166CF5F294}.Debug|x64.Build.0 = Debug|Any CPU
+		{FDC2A776-571C-4D63-819E-10166CF5F294}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{FDC2A776-571C-4D63-819E-10166CF5F294}.Debug|x86.Build.0 = Debug|Any CPU
+		{FDC2A776-571C-4D63-819E-10166CF5F294}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FDC2A776-571C-4D63-819E-10166CF5F294}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FDC2A776-571C-4D63-819E-10166CF5F294}.Release|x64.ActiveCfg = Release|Any CPU
+		{FDC2A776-571C-4D63-819E-10166CF5F294}.Release|x64.Build.0 = Release|Any CPU
+		{FDC2A776-571C-4D63-819E-10166CF5F294}.Release|x86.ActiveCfg = Release|Any CPU
+		{FDC2A776-571C-4D63-819E-10166CF5F294}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
