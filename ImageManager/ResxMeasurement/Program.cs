@@ -15,8 +15,10 @@ namespace ResxMeasurement
         public static void Main(string[] args)
         {
             var program = new Program();
-            Console.WriteLine("{0}s {1}ms".FormatString(program.ConvertSeconds(program.ImageManagerMeasure()), program.ImageManagerMeasure()));
-            Console.WriteLine("{0}s {1}ms".FormatString(program.ConvertSeconds(program.ResXMeasure()), program.ResXMeasure()));
+			var time = program.ImageManagerMeasure();
+			Console.WriteLine("{0}s {1}ms".FormatString(program.ConvertSeconds(time), time));
+			time = program.ResXMeasure();
+			Console.WriteLine("{0}s {1}ms".FormatString(program.ConvertSeconds(time), time));
             Console.ReadLine();
         }
 
@@ -27,8 +29,11 @@ namespace ResxMeasurement
 
         public long ResXMeasure()
         {
-            var manager = new ResXResourceWriter("test.resx");
-            var files = Directory.GetFiles("TestData\\Images");
+			var fileName = "test.resx";
+			if (File.Exists(fileName))
+				File.Delete(fileName);
+			var manager = new ResXResourceWriter(fileName);
+            var files = Directory.GetFiles("TestData/Images");
 
             var stopWatch = new Stopwatch();
             stopWatch.Start();
@@ -49,7 +54,7 @@ namespace ResxMeasurement
         public long ImageManagerMeasure()
         {
             var manager = new FileManagerLib.File.Json.JsonFileManager("test.dat", true);
-            var files = Directory.GetFiles("TestData\\Images");
+            var files = Directory.GetFiles("TestData/Images");
 
             var stopWatch = new Stopwatch();
             stopWatch.Start();
@@ -59,7 +64,8 @@ namespace ResxMeasurement
                 {
                     var data = new byte[fs.Length];
                     fs.Read(data, 0, data.Length);
-                    manager.WriteBytes("/{0}".FormatString(file), data);
+					var base64 = Convert.ToBase64String(data);
+					manager.WriteBytes("/{0}".FormatString(file), System.Text.Encoding.UTF8.GetBytes(base64));
                 }
             }
             stopWatch.Stop();
