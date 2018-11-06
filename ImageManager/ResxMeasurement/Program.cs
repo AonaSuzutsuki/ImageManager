@@ -16,6 +16,7 @@ namespace ResxMeasurement
         {
             var program = new Program();
             Console.WriteLine("{0}s {1}ms".FormatString(program.ConvertSeconds(program.ImageManagerMeasure()), program.ImageManagerMeasure()));
+            Console.WriteLine("{0}s {1}ms".FormatString(program.ConvertSeconds(program.ResXMeasure()), program.ResXMeasure()));
             Console.ReadLine();
         }
 
@@ -24,11 +25,27 @@ namespace ResxMeasurement
             return (double)msec / (double)1000;
         }
 
-        public void ResXMeasure()
+        public long ResXMeasure()
         {
-            var manager = new ResxManager("test.resx");
-        }
+            var manager = new ResXResourceWriter("test.resx");
+            var files = Directory.GetFiles("TestData\\Images");
 
+            var stopWatch = new Stopwatch();
+            stopWatch.Start();
+            foreach (var file in files)
+            {
+                using (var fs = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.Read))
+                {
+                    var data = new byte[fs.Length];
+                    fs.Read(data, 0, data.Length);
+                    manager.AddResource("/{0}".FormatString(file), data);
+                }
+            }
+            stopWatch.Stop();
+            manager.Dispose();
+
+            return stopWatch.ElapsedMilliseconds;
+        }
         public long ImageManagerMeasure()
         {
             var manager = new FileManagerLib.File.Json.JsonFileManager("test.dat", true);
