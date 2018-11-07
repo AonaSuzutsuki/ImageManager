@@ -15,11 +15,33 @@ namespace ResxMeasurement
         public static void Main(string[] args)
         {
             var program = new Program();
-			var time = program.ImageManagerMeasure();
-			Console.WriteLine("{0}s {1}ms".FormatString(program.ConvertSeconds(time), time));
-			time = program.ResXMeasure();
-			Console.WriteLine("{0}s {1}ms".FormatString(program.ConvertSeconds(time), time));
+
+            Console.WriteLine("Enter to start.");
             Console.ReadLine();
+
+
+            Console.WriteLine("Write.");
+            var times = program.WriteImageManagerMeasure();
+            program.WriteTimes("ImageManagerMeasure", times);
+            times = program.WriteResXMeasure();
+            program.WriteTimes("ResXMeasure", times);
+
+
+            Console.WriteLine("Read.");
+            Console.ReadLine();
+        }
+
+        public void WriteTimes(string name, long[] times)
+        {
+            long avg = 0;
+            Console.WriteLine("{0}".FormatString(name));
+            foreach (var time in times)
+            {
+                avg += time;
+                Console.WriteLine("  {0}ms".FormatString(time));
+            }
+            avg = avg / times.Length;
+            Console.WriteLine("AVG: {0}ms".FormatString(avg));
         }
 
         public double ConvertSeconds(long msec)
@@ -27,69 +49,78 @@ namespace ResxMeasurement
             return (double)msec / (double)1000;
         }
 
-        public long ResXMeasure()
+        public long[] WriteResXMeasure()
         {
 			var fileName = "test.resx";
 			if (File.Exists(fileName))
 				File.Delete(fileName);
+
 			var manager = new ResXResourceWriter(fileName);
-            var files = Directory.GetFiles("TestData/Images");
+            var files = Directory.GetFiles("TestData/Zip");
+            var timeList = new List<long>();
 
-            var stopWatch = new Stopwatch();
-            stopWatch.Start();
-            foreach (var file in files)
+            foreach (var index in new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 })
             {
-                using (var fs = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.Read))
+                var stopWatch = new Stopwatch();
+                stopWatch.Start();
+
+                foreach (var file in files)
                 {
-                    var data = new byte[fs.Length];
-                    fs.Read(data, 0, data.Length);
-                    manager.AddResource("/{0}".FormatString(file), data);
+                    using (var fs = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.Read))
+                    {
+                        var data = new byte[fs.Length];
+                        fs.Read(data, 0, data.Length);
+                        manager.AddResource("{0}/{1}".FormatString(index, Path.GetFileName(file)), data);
+                    }
                 }
+
+                stopWatch.Stop();
+                timeList.Add(stopWatch.ElapsedMilliseconds);
             }
-            stopWatch.Stop();
             manager.Dispose();
 
-            return stopWatch.ElapsedMilliseconds;
+            return timeList.ToArray();
         }
-        public long ImageManagerMeasure()
+        public long[] WriteImageManagerMeasure()
         {
-            var manager = new FileManagerLib.File.Json.JsonFileManager("test.dat", true);
-            var files = Directory.GetFiles("TestData/Images");
-
-            var stopWatch = new Stopwatch();
-            stopWatch.Start();
-            foreach (var file in files)
+            var manager = new FileManagerLib.File.Json.JsonFileManager("test.dat", true, true);
+            var files = Directory.GetFiles("TestData/Zip");
+            var timeList = new List<long>();
+            
+            foreach (var index in new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 })
             {
-                using (var fs = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.Read))
+                var stopWatch = new Stopwatch();
+                stopWatch.Start();
+
+                manager.CreateDirectory("/{0}".FormatString(index));
+                foreach (var file in files)
                 {
-                    var data = new byte[fs.Length];
-                    fs.Read(data, 0, data.Length);
-					var base64 = Convert.ToBase64String(data);
-					manager.WriteBytes("/{0}".FormatString(file), System.Text.Encoding.UTF8.GetBytes(base64));
+                    using (var fs = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.Read))
+                    {
+                        var data = new byte[fs.Length];
+                        fs.Read(data, 0, data.Length);
+                        //var base64 = Encoding.UTF8.GetBytes(Convert.ToBase64String(data));
+                        manager.WriteBytes("{0}/{1}".FormatString(index, Path.GetFileName(file)), data);
+                    }
                 }
-            }
-            stopWatch.Stop();
+
+                stopWatch.Stop();
+                timeList.Add(stopWatch.ElapsedMilliseconds);
+            } 
             manager.Dispose();
 
-            return stopWatch.ElapsedMilliseconds;
-        }
-    }
-
-    public class ResxManager : IDisposable
-    {
-        private Stream stream;
-        private ResXResourceWriter resXResourceWriter;
-
-        public ResxManager(string filePath)
-        {
-            stream = new FileStream(filePath, FileMode.Create, FileAccess.ReadWrite, FileShare.None);
-            resXResourceWriter = new ResXResourceWriter(stream);
+            return timeList.ToArray();
         }
 
-        public void Dispose()
+        public long[] ReadResXMeasure()
         {
-            resXResourceWriter.Dispose();
-            stream.Dispose();
+            var manager = new ResXResourceReader("TestData/Dat/large.resx");
+            return null;
+        }
+
+        public long[] ReadImageManagerMeasure()
+        {
+            return null;
         }
     }
 }
