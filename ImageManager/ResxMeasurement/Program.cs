@@ -19,16 +19,31 @@ namespace ResxMeasurement
             Console.WriteLine("Enter to start.");
             Console.ReadLine();
 
+            long[] times;
 
-            Console.WriteLine("Write.");
-            var times = program.WriteImageManagerMeasure();
-            program.WriteTimes("ImageManagerMeasure", times);
-            times = program.WriteResXMeasure();
-            program.WriteTimes("ResXMeasure", times);
+            //Console.WriteLine("Write.");
+            //times = program.WriteImageManagerMeasure();
+            //program.WriteTimes("ImageManagerMeasure", times);
+            //times = program.WriteResXMeasure();
+            //program.WriteTimes("ResXMeasure", times);
 
 
             Console.WriteLine("Read.");
+            long start = Environment.WorkingSet;
+            times = program.ReadImageManagerMeasure();
+            program.WriteTimes("ImageManagerMeasure", times);
+            //times = program.ReadResXMeasure();
+            //program.WriteTimes("ResXMeasure", times);
+            GC.Collect();
+            program.ShowMmeory(start, Environment.WorkingSet);
             Console.ReadLine();
+        }
+
+        public void ShowMmeory(long start, long end)
+        {
+            double startd = start / 1024d / 1024d;
+            double endd = end / 1024d / 1024d;
+            Console.WriteLine("{0} - {1}", endd.ToString("N0"), startd.ToString("N0"));
         }
 
         public void WriteTimes(string name, long[] times)
@@ -56,10 +71,10 @@ namespace ResxMeasurement
 				File.Delete(fileName);
 
 			var manager = new ResXResourceWriter(fileName);
-            var files = Directory.GetFiles("TestData/Zip");
+            var files = Directory.GetFiles("TestData/Images");
             var timeList = new List<long>();
 
-            foreach (var index in new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 })
+            foreach (var index in new int[] { 0 })
             {
                 var stopWatch = new Stopwatch();
                 stopWatch.Start();
@@ -84,10 +99,10 @@ namespace ResxMeasurement
         public long[] WriteImageManagerMeasure()
         {
             var manager = new FileManagerLib.File.Json.JsonFileManager("test.dat", true, true);
-            var files = Directory.GetFiles("TestData/Zip");
+            var files = Directory.GetFiles("TestData/Images");
             var timeList = new List<long>();
             
-            foreach (var index in new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 })
+            foreach (var index in new int[] { 0 })
             {
                 var stopWatch = new Stopwatch();
                 stopWatch.Start();
@@ -114,13 +129,45 @@ namespace ResxMeasurement
 
         public long[] ReadResXMeasure()
         {
-            var manager = new ResXResourceReader("TestData/Dat/large.resx");
-            return null;
+            var instanceStopWatch = new Stopwatch();
+            instanceStopWatch.Start();
+            var manager = new ResXResourceSet("TestData/Dat/large.resx");
+            instanceStopWatch.Stop();
+            
+            var readStopWatch = new Stopwatch();
+            readStopWatch.Start();
+            foreach (var resource in manager)
+            {
+                var hash = resource.GetHashCode();
+            }
+            readStopWatch.Stop();
+
+            var times = new long[2] { instanceStopWatch.ElapsedMilliseconds, readStopWatch.ElapsedMilliseconds };
+
+            return times;
         }
 
         public long[] ReadImageManagerMeasure()
         {
-            return null;
+            var instanceStopWatch = new Stopwatch();
+            instanceStopWatch.Start();
+            var manager = new FileManagerLib.File.Json.JsonFileManager("TestData/Dat/large.dat");
+            instanceStopWatch.Stop();
+
+
+            var readStopWatch = new Stopwatch();
+            readStopWatch.Start();
+            var dirs = manager.GetDirectories("/");
+            foreach (var dir in dirs)
+            {
+                var files = manager.GetResources(dir.Name);
+                var hash = files.GetHashCode();
+            }
+            readStopWatch.Stop();
+
+            var times = new long[2] { instanceStopWatch.ElapsedMilliseconds, readStopWatch.ElapsedMilliseconds };
+
+            return times;
         }
     }
 }
