@@ -19,23 +19,24 @@ namespace ResxMeasurement
             Console.WriteLine("Enter to start.");
             Console.ReadLine();
 
-            long[] times;
-
             //Console.WriteLine("Write.");
-            //times = program.WriteImageManagerMeasure();
-            //program.WriteTimes("ImageManagerMeasure", times);
-            //times = program.WriteResXMeasure();
-            //program.WriteTimes("ResXMeasure", times);
-
-
-            Console.WriteLine("Read.");
             long start = Environment.WorkingSet;
-            times = program.ReadImageManagerMeasure();
-            program.WriteTimes("ImageManagerMeasure", times);
+            //var (times, memory) = program.WriteImageManagerMeasure();
+            //program.WriteTimes("ImageManagerMeasure", times);
+            //program.ShowMemories(start, memory);
+            var (times, memory) = program.WriteResXMeasure();
+            program.WriteTimes("ResXMeasure", times);
+            program.ShowMemories(start, memory);
+
+
+            //Console.WriteLine("Read.");
+            //long start = Environment.WorkingSet;
+            //times = program.ReadImageManagerMeasure();
+            //program.WriteTimes("ImageManagerMeasure", times);
             //times = program.ReadResXMeasure();
             //program.WriteTimes("ResXMeasure", times);
-            GC.Collect();
-            program.ShowMmeory(start, Environment.WorkingSet);
+            //GC.Collect();
+            //program.ShowMmeory(start, Environment.WorkingSet);
             Console.ReadLine();
         }
 
@@ -43,7 +44,13 @@ namespace ResxMeasurement
         {
             double startd = start / 1024d / 1024d;
             double endd = end / 1024d / 1024d;
-            Console.WriteLine("{0} - {1}", endd.ToString("N0"), startd.ToString("N0"));
+            Console.WriteLine("= {0} - {1}", endd.ToString("N0"), startd.ToString("N0"));
+        }
+
+        public void ShowMemories(long start, long[] memories)
+        {
+            foreach (var memory in memories)
+                ShowMmeory(start, memory);
         }
 
         public void WriteTimes(string name, long[] times)
@@ -53,7 +60,7 @@ namespace ResxMeasurement
             foreach (var time in times)
             {
                 avg += time;
-                Console.WriteLine("  {0}ms".FormatString(time));
+                Console.WriteLine("{0}".FormatString(time));
             }
             avg = avg / times.Length;
             Console.WriteLine("AVG: {0}ms".FormatString(avg));
@@ -64,7 +71,7 @@ namespace ResxMeasurement
             return (double)msec / (double)1000;
         }
 
-        public long[] WriteResXMeasure()
+        public (long[], long[]) WriteResXMeasure()
         {
 			var fileName = "test.resx";
 			if (File.Exists(fileName))
@@ -73,8 +80,9 @@ namespace ResxMeasurement
 			var manager = new ResXResourceWriter(fileName);
             var files = Directory.GetFiles("TestData/Images");
             var timeList = new List<long>();
+            var memory = new List<long>();
 
-            foreach (var index in new int[] { 0 })
+            foreach (var index in new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 })
             {
                 var stopWatch = new Stopwatch();
                 stopWatch.Start();
@@ -90,19 +98,22 @@ namespace ResxMeasurement
                 }
 
                 stopWatch.Stop();
+                GC.Collect();
+                memory.Add(Environment.WorkingSet);
                 timeList.Add(stopWatch.ElapsedMilliseconds);
             }
             manager.Dispose();
 
-            return timeList.ToArray();
+            return (timeList.ToArray(), memory.ToArray());
         }
-        public long[] WriteImageManagerMeasure()
+        public (long[], long[]) WriteImageManagerMeasure()
         {
             var manager = new FileManagerLib.File.Json.JsonFileManager("test.dat", true, true);
             var files = Directory.GetFiles("TestData/Images");
             var timeList = new List<long>();
-            
-            foreach (var index in new int[] { 0 })
+            var memory = new List<long>();
+
+            foreach (var index in new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 })
             {
                 var stopWatch = new Stopwatch();
                 stopWatch.Start();
@@ -120,11 +131,13 @@ namespace ResxMeasurement
                 }
 
                 stopWatch.Stop();
+                GC.Collect();
+                memory.Add(Environment.WorkingSet);
                 timeList.Add(stopWatch.ElapsedMilliseconds);
             } 
             manager.Dispose();
 
-            return timeList.ToArray();
+            return (timeList.ToArray(), memory.ToArray());
         }
 
         public long[] ReadResXMeasure()
