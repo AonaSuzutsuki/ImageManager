@@ -1,0 +1,210 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="author" content="Aona Suzutsuki">
+    <title>FileManagerLib.Dat.DatFileManager</title>
+    <link rel="stylesheet" href="../../../css/main.min.css" type="text/css" />
+    <link rel="stylesheet" href="../../../syntaxhighlighter/css/shCore.css" type="text/css" />
+    <link rel="stylesheet" href="../../../syntaxhighlighter/css/shThemeDefault.css" type="text/css" />
+    <script type="text/javascript" src="../../../js/main.js" charset="UTF-8"></script>
+    <script type="text/javascript" src="../../../js/menu.js" charset="UTF-8"></script>
+    <script type="text/javascript" src="../../../js/jquery-1.7.1.min.js"></script>
+    <script type="text/javascript" src="../../../syntaxhighlighter/js/shCore.js"></script>
+    <script type="text/javascript" src="../../../syntaxhighlighter/js/shBrushCSharp.js"></script>
+
+    <script type="text/javascript">
+        SyntaxHighlighter.defaults.toolbar = false;
+        SyntaxHighlighter.all();
+
+        $(function() {
+            $('#toc').append(createMenu());
+            $('#menu-toc').append(createSubMenu());
+        });
+
+    </script>
+    <style type="text/css">
+    </style>
+</head>
+<body onload="menus(3);">
+<div id="main-container">
+
+    <div id="menus" class="menu"></div>
+
+    <div id="body-container">
+        <h1>DatFileManager Class</h1>
+        <div id="namespaces">
+            Namespace:
+            <a href="../FileManagerLib.html">FileManagerLib</a>.<a href="Dat.html">Dat</a>
+        </div>
+
+        <div id="body">
+
+            <div id="menu-toc"></div>
+
+            <br />
+            <div id="toc"></div>
+
+            <br />
+            <div id="inheritance">
+                <h2>Inheritance</h2>
+
+                <div class="method-elem">
+                    <h3>IDisposable</h3>
+                </div>
+            </div>
+
+            <br />
+            <div id="properties">
+                <h2>Properties</h2>
+
+                <div class="method-elem">
+                    <h3 id="file-path">string FilePath</h3>
+                    <pre class="brush: csharp">
+                        public string FilePath { get; private set; }
+                    </pre>
+
+                    <div class="elem-content">
+                        書き込みに指定したファイルパスを取得します。
+                    </div>
+                </div>
+
+                <br />
+                <div class="method-elem">
+                    <h3 id="split-size">int SplitSize</h3>
+                    <pre class="brush: csharp">
+                        public int SplitSize { get; } = 134217728;
+                    </pre>
+
+                    <div class="elem-content">
+                        ファイルへの書き込みの際に分割読み込みをするしきい値を取得します。
+                    </div>
+                </div>
+
+                <br />
+                <div class="method-elem">
+                    <h3 id="is-shift-json-position">bool IsShiftJsonPosition</h3>
+                    <pre class="brush: csharp">
+                        public bool IsShiftJsonPosition { get; set; } = false;
+                    </pre>
+
+                    <div class="elem-content">
+                        既に書き込まれているJSONをスキップして書き込むか上書きするかどうかを設定または取得します。
+                    </div>
+                </div>
+
+                <br />
+                <div class="method-elem">
+                    <h3 id="is-check-hash">bool IsCheckHash</h3>
+                    <pre class="brush: csharp">
+                        public bool IsCheckHash { get; set; } = true;
+                    </pre>
+
+                    <div class="elem-content">
+                        ハッシュ計算によるデータの整合性を確認するかどうかを設定あるいは取得します。
+                    </div>
+                </div>
+            </div>
+
+            <br />
+            <div id="constractors">
+                <h2>Constractors</h2>
+
+                <div class="method-elem">
+                    <h3 id="DatFileManager-1">DatFileManager(string filePath)</h3>
+                    <pre class="brush: csharp">public DatFileManager(string filePath);</pre>
+
+                    <table class="parameter">
+                        <caption>パラメータ</caption>
+                        <tr>
+                            <th>string</th>
+                            <td class="name">filePath</td>
+                            <td>データを読み書きするファイルパス</td>
+                        </tr>
+                    </table>
+
+                    <div class="elem-content">
+                        データファイルの管理を提供します。
+                    </div>
+
+                    <div class="more">
+
+                    </div>
+                </div>
+
+            </div>
+
+            <br />
+            <div id="statics">
+                <h2>Statics</h2>
+
+                <div class="method-elem">
+                    <h3 id="GetSha256_1">GetIntAndSeek(IClusterableStream stream, long start, long length)</h3>
+                    <pre class="brush: csharp">private static uint GetIntAndSeek(IClusterableStream stream, long start, long length);</pre>
+
+                    <table class="parameter">
+                        <caption>パラメータ</caption>
+                        <tr>
+                            <th>IClusterableStream</th>
+                            <td class="name">stream</td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <th>long</th>
+                            <td class="name">start</td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <th>long</th>
+                            <td class="name">length</td>
+                            <td></td>
+                        </tr>
+                    </table>
+
+                    <div class="elem-content">
+
+                    </div>
+
+                    <div class="more">
+
+                    </div>
+                </div>
+            </div>
+
+            <br />
+            <div id="sample">
+                <h2>Examples</h2>
+
+                <h3 id="sample1">GetSha256 サンプル</h3>
+                <div class="method-elem">
+                    <pre class="brush: csharp">
+readonly byte[] testData = Encoding.UTF8.GetBytes("Hello,World!!");
+const string expectedHash = "899948C9C72B65EBB59A8D01EE4DB68BABCF91D55C6D93DE66637EA869A3EF1D";
+
+public void GetSha256Test1()
+{
+    var hash = "";
+    using (var stream = new MemoryStream(testData))
+    {
+        hash = Sha256.GetSha256(stream);
+    }
+    Assert.AreEqual(expectedHash, hash);
+}
+
+public void GetSha256Test2()
+{
+    var hash = Sha256.GetSha256(testData);
+    Assert.AreEqual(expectedHash, hash);
+}
+                    </pre>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+</body>
+</html>

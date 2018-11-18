@@ -1,0 +1,393 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="author" content="Aona Suzutsuki">
+    <title>ISE Girls 開発 マニュアル</title>
+    <link rel="stylesheet" href="../css/main.min.css" type="text/css" />
+    <link rel="stylesheet" href="../syntaxhighlighter/css/shCore.css" type="text/css" />
+    <link rel="stylesheet" href="../syntaxhighlighter/css/shThemeDefault.css" type="text/css" />
+    <script type="text/javascript" src="../js/menu.js" charset="UTF-8"></script>
+    <script type="text/javascript" src="../js/jquery-1.7.1.min.js"></script>
+    <script type="text/javascript" src="../syntaxhighlighter/js/shCore.js"></script>
+    <script type="text/javascript" src="../syntaxhighlighter/js/shBrushPhp.js"></script>
+    <script type="text/javascript" src="../syntaxhighlighter/js/shBrushJava.js"></script>
+
+    <script type="text/javascript">
+        SyntaxHighlighter.defaults.toolbar = false;
+        SyntaxHighlighter.all();
+    </script>
+    <style type="text/css">
+    </style>
+</head>
+<body onload="menus(1);">
+<div id="main-container">
+
+    <div id="menus" class="menu"></div>
+
+    <div id="body-container">
+        <h1>MVC Model 2</h1>
+
+        <div id="body">
+            ここではオブジェクト指向について要点を簡単に解説する。<br />
+            詳しい内容についてはソフトウェア工学IIやプログラミング言語の授業を受講することを推奨する。<br />
+
+            <ol>
+
+            </ol>
+
+
+            <br />
+            <h3>導入</h3>
+            <div>
+                GUIプログラミングのみならず、ウェブサイトのプログラミングを行う場合も画面表示と内部処理が複雑に絡み合ういわゆるスパゲッティプログラムになりがちだ。そこで考えられたのがMVCパターンだ。<br />
+                MVCパターンでは画面表示と内部処理を分割し、それぞれを独立して管理できるようになっている。しかしながら、MVCが活きるのは同一のコンピュータ上（メモリが共有できる環境）に限った話で、ウェブシステムではネットワークを介するため画面と内部処理を維持することが難しい。そこで考えられたのがMVC Model 2パターン(以下MVC2)である。<br />
+            </div>
+
+
+            <br />
+            <h3>MVC</h3>
+            <div>
+                MVC2の話に入る前に元来のMVCについて簡単におさらいしておこう。<br />
+                MVCはModel-View-Controllerの略称で、それぞれが独立したモジュールとして表現される。<br />
+                まずはModelだが、<strong>Modelではビジネスロジック（計算などの内部処理）</strong>を主に記述し、<strong>値の保持</strong>もModelが担う。<strong>MViewは名前の通り、描写関連の処理</strong>を主に記述する。具体的な話になると言語などによって異なるが、画面を構成する要素（例えばテキストボックス）をどのように描写するかなどを記述することとなる。そして<strong>Controllerではユーザからの操作（これをイベント言う）を受け付け、それを適切にモデルへ伝える</strong>役割を担う。<br />
+
+                <div class="img-center">
+                    <img src="img/mvc1.png" alt="mvc1" />
+                </div>
+
+                そして何よりも重要なのがそれぞれのモジュールは独立したものでなければならない。これを疎結合とも言うのだが、モジュールは取っ替え引っ替えできることが望ましい。例えば、Viewを別のものに置き換えてもModelやControllerの修正なくして正しく動作するのが理想だ。これはMVCなどのデザインパターンが生まれた所為でもあるのだが、モジュール同士が密に結合している状態では片方を修正すると他のモジュールも道連れで動作が大きく異なることがあり、バグのもとになりかねないため可能な限り避けたい。そこで、結合を疎にすることで一つのモジュールを書き換えてもその他に影響がでないようにする。これがMVC、ひいてはデザインパターンのゴールである。<br />
+                そのためにはインタフェース（言語機能ではなく、メソッドの引数と戻り値のこと）を正しく設計する必要があるのだが、ここではそこまで深くは追求しない。<br />
+
+                <br />
+
+                そんなMVCだが、画面の実の値はどこにあるのだろうか。<br />
+                <br />
+                ...<br />
+                <br />
+                実は画面の値はViewではなく、Modelが保持する。ではどうやってViewは値を知るのだろうか。Modelを直に保持してしまえば疎結合は失われてしまう。そこで用いられるのがオブサーバパターンといい、ModelはViewに対して値を更新したことを通知し、それを受けてViewは自身の値を更新する。<br />
+
+                <br />
+                <a href="javascript:void(0);" onclick="openAndClose('.source-code-1');">ソースコードの開閉</a><br />
+                <div class="source-code source-code-1">
+                    <h4>Main.java</h4>
+                    <pre class="brush: java">
+public class Main {
+    public static void main(String[] args) {
+        Controller controller = new Controller();
+        View view = new View(controller);
+        Model model = new Model(view);
+        controller.setModel(model);
+        view.show();
+    }
+}
+                </pre>
+
+                    <h4>Oveservable.java</h4>
+                    <pre class="brush: java">
+public interface Oveservable {
+    void update(String name, String value);
+}
+                </pre>
+
+                    <h4>Model.java</h4>
+                    <pre class="brush: java">
+public class Model {
+
+    private Oveservable oveservable;
+    private String text;
+
+    public Model(Oveservable oveservable) {
+        this.oveservable = oveservable;
+    }
+
+    /**
+     * テキストを変更します。
+     */
+    public void changeText() {
+        setText(String.format("Changed by %s\n", this.hashCode()));
+    }
+
+    /**
+     * Modelの内部値であるtextを変更します。
+     * @param text 変更する値
+     */
+    private void setText(String text) {
+        this.text = text;
+        this.oveservable.update("label", this.text);
+    }
+}
+                </pre>
+
+                    <h4>View.java</h4>
+                    <pre class="brush: java">
+
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.JLabel;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import java.util.HashMap;
+import java.util.Map;
+
+public class View implements Oveservable {
+
+    private JFrame frame;
+    private JLabel label;
+    private Map&lt;String, JComponent&gt; componentMap;
+
+
+    public View(Controller controller) {
+        initialize(controller);
+    }
+
+    /**
+     * 画面を初期化します。
+     * @param controller コントローラのインスタンス
+     */
+    public void initialize(Controller controller) {
+        componentMap = new HashMap&lt;&gt;();
+
+        frame = new JFrame("MVC Test");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(300, 300);
+        frame.setLocationRelativeTo(null);
+
+        JPanel panel = new JPanel();
+        label = new JLabel();
+
+        JButton button = new JButton("ボタン");
+        button.addActionListener(controller::actionPerformed);
+
+        panel.add(label);
+        panel.add(button);
+
+        frame.add(panel);
+
+        componentMap.put("label", label);
+    }
+
+    /**
+     * 画面を表示します。
+     */
+    public void show() {
+        frame.setVisible(true);
+    }
+
+    /**
+     * 画面を更新します。
+     */
+    @Override
+    public void update(String name, String value) {
+        if (componentMap.containsKey(name)) {
+            JComponent comp = componentMap.get(name);
+            if (comp instanceof JLabel)
+                ((JLabel) comp).setText(value);
+        }
+    }
+}
+                </pre>
+
+                    <h4>Controller.java</h4>
+                    <pre class="brush: java">
+
+import java.awt.event.ActionEvent;
+
+public class Controller {
+
+    private Model model;
+
+    public void setModel(Model model) {
+        this.model = model;
+    }
+
+    /**
+     * クリックイベントの処理メソッド
+     * @param event イベントのインスタンス
+     */
+    public void actionPerformed(ActionEvent event) {
+        model.changeText();
+    }
+}
+                </pre>
+                </div>
+                <br />
+
+                ちょっと長くなってしまったが、JavaでMVCパターンを簡単に実装するとこのような形となる。Controllerにてイベントを受け、それをModelへ伝える。そしてModelでは何らかの処理を行い、Viewへと通知する。あとはViewにてうまく値を処理して再描写すれば一連の流れは終了だ。<br />
+
+                <div class="img-center">
+                    <img src="img/mvc2.png" alt="mvc2"/>
+                </div>
+
+                このコード自体実用性はさほどないが、このようにしてMVCは実装することができる。<br />
+
+                <br />
+
+                しかしながら、MVCは同一のコンピュータあるいはメモリ共有ができる環境での話で、ウェブシステムではネットワーク越しに処理を行うため、Modelの維持が現実的ではない。そこで編み出されたのがMVC Model 2である。<br />
+
+            </div>
+
+
+            <br />
+            <h3>MVC Model 2</h3>
+            <div>
+                次にMVC2だが、こちらは従来のMVCからオブサーバパターンを取っ払い、コントローラがビューへの通知を担う形となる。<br />
+
+                <div class="img-center">
+                    <img src="img/mvc_model2.png" alt="mvc_model2"/>
+                </div>
+
+                具体的な実装は様々な方法があるが、簡単な例をここに示しておく。<br />
+
+                <br />
+                <a href="javascript:void(0);" onclick="openAndClose('.source-code-2');">ソースコードの開閉</a><br />
+                <div class="source-code source-code-2">
+                    <h4>index.php</h4>
+                    <pre class="brush: php">
+&lt;?php
+
+require_once(dirname(__FILE__) . '/Controller.php');
+require_once(dirname(__FILE__) . '/View.php');
+require_once(dirname(__FILE__) . '/Model.php');
+
+$view = new View();
+$model = new Model();
+$controller = new Controller($view, $model);
+$controller-&gt;load();
+
+                </pre>
+
+                    <h4>template.php</h4>
+                    <pre class="brush: php">
+&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;title&gt;MVC2 Test&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div&gt;&lt;?php echo $this-&gt;param['text']; ?&gt;&lt;/div&gt;
+&lt;form action="index.php" method="post"&gt;
+    &lt;input type="text" id="text_box" name="text_box" /&gt;
+    &lt;input type="submit" id="button" name="button" /&gt;
+&lt;/form&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+                </pre>
+
+                    <h4>Model.php</h4>
+                    <pre class="brush: php">
+&lt;?php
+class Model {
+    private $text = '';
+
+    /**
+     * テキストを加工し、設定します。
+     * @param $text
+     */
+    public function setText($text) {
+        $this-&gt;text = "Text is \"" . $text . "\" modified by Model.\n";
+    }
+
+    /**
+     * 設定されたテキストを返します。
+     * @return string
+     */
+    public function getText() {
+        return $this-&gt;text;
+    }
+}
+                </pre>
+
+                    <h4>View.php</h4>
+                    <pre class="brush: php">
+&lt;?php
+
+class View {
+    private $param = array();
+
+    /**
+     * テンプレートに描写する値を設定します。
+     * @param $key
+     * @param $value
+     */
+    public function assign($key, $value) {
+        $this-&gt;param[$key] = $value;
+    }
+
+    /**
+     * テンプレートを表示します。
+     */
+    public function show() {
+        include_once(dirname(__FILE__) . '/template.php');
+    }
+}
+                </pre>
+
+                    <h4>Controller.php</h4>
+                    <pre class="brush: php">
+&lt;?php
+class Controller {
+
+    /**
+     * @var View $view
+     */
+    private $view;
+
+    /**
+     * @var Model $model
+     */
+    private $model;
+
+    public function __construct($view, $model) {
+        $this-&gt;view = $view;
+        $this-&gt;model = $model;
+    }
+
+    /**
+     * 初期化処理
+     */
+    private function init() {
+        $this-&gt;view-&gt;assign('text', $this-&gt;model-&gt;getText());
+    }
+
+    /**
+     * 読み込み処理を開始します。
+     */
+    public function load() {
+        if (isset($_POST['button']) && isset($_POST['text_box'])) {
+            $this-&gt;model-&gt;setText($_POST['text_box']);
+        }
+
+        $this-&gt;init();
+        $this-&gt;view-&gt;show();
+    }
+}
+                </pre>
+                </div>
+                <br />
+
+                この例はただ単にユーザが入力したテキストをモデルに渡し、加工して表示するだけのプログラムだが、図にすると以下のようになる。<br />
+
+                <div class="img-center">
+                    <img src="img/mvc_model2_2.png" alt="mvc_model2_2" />
+                </div>
+
+                もう既におわかりだと思うが、Controllerがオブサーバの代わりを担っており、ModelのインスタンスやViewのインスタンスが常に保持されなくてもイベントに応じて生成し、コントローラにて状況を制御するため、ネットワーク越しでもうまく動作させることができる。
+
+            </div>
+
+
+            <br />
+            <h3>Model</h3>
+            <div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+</body>
+</html>
