@@ -31,6 +31,7 @@ namespace ImageManager.ViewModels
             CreateArchiveBtClicked = new DelegateCommand(CreateArchiveBt_Clicked);
             OpenArchiveBtClicked = new DelegateCommand(OpenArchiveBt_Clicked);
             FileCloseBtClicked = new DelegateCommand(FileCloseBt_Clicked);
+            RebuildDataBtClicked = new DelegateCommand(RebuildDataBt_Clicked);
             DeleteCacheBtClicked = new DelegateCommand(DeleteCacheBt_Clicked);
 
             BackBtClicked = new DelegateCommand(BackBt_Clicked);
@@ -39,10 +40,11 @@ namespace ImageManager.ViewModels
             AddFileBtClicked = new DelegateCommand(AddFileBt_Clicked);
             AddFilesInDirectoryBtClicked = new DelegateCommand(AddFilesInDirectoryBt_Clicked);
             CreateDirectoryBtClicked = new DelegateCommand(CreateDirectoryBt_Clicked);
-            ExtractFilesOnDirClicked = new DelegateCommand(ExtractFilesOnDir_Clicked);
+            DeleteBtClicked = new DelegateCommand(DeleteBt_Clicked);
+            ExtractSelectedFilesClicked = new DelegateCommand(ExtractSelectedFiles_Clicked);
 
             ListBoxDoubleClicked = new DelegateCommand<FileDirectoryItem>(ListBox_DoubleClicked);
-            ListBoxSelectionChanged = new DelegateCommand<FileDirectoryItem>(ListBox_SelectionChanged);
+            ListBoxSelectionChanged = new DelegateCommand<System.Collections.IList>(ListBox_SelectionChanged);
             #endregion
 
             #region Initialize Properties
@@ -51,6 +53,8 @@ namespace ImageManager.ViewModels
             PathText = model.ToReactivePropertyAsSynchronized(m => m.PathText);
             FileDirectoryItems = model.ToReactivePropertyAsSynchronized(m => m.FileDirectoryItems);
             IsOpened = model.ToReactivePropertyAsSynchronized(m => m.IsOpened);
+            IsBusy = model.ToReactivePropertyAsSynchronized(m => m.IsBusy);
+            IsOpenedAndFileSelected = model.ToReactivePropertyAsSynchronized(m => m.IsOpenedAndFileSelected);
             UnderMessageLabelText = model.ToReactivePropertyAsSynchronized(m => m.UnderMessageLabelText);
             #endregion
 
@@ -64,8 +68,11 @@ namespace ImageManager.ViewModels
 
         public ReactiveProperty<ObservableCollection<FileDirectoryItem>> FileDirectoryItems { get; set; }
         public FileDirectoryItem SelectedItem { get; set; }
+        public List<FileDirectoryItem> SelectedItems { get; set; }
 
+        public ReactiveProperty<bool> IsBusy { get; }
         public ReactiveProperty<bool> IsOpened { get; set; }
+        public ReactiveProperty<bool> IsOpenedAndFileSelected { get; set; }
 
         public ReactiveProperty<string> UnderMessageLabelText { get; set; }
         #endregion
@@ -74,6 +81,7 @@ namespace ImageManager.ViewModels
         public ICommand CreateArchiveBtClicked { get; set; }
         public ICommand OpenArchiveBtClicked { get; set; }
         public ICommand FileCloseBtClicked { get; set; }
+        public ICommand RebuildDataBtClicked { get; set; }
         public ICommand DeleteCacheBtClicked { get; set; }
 
         public ICommand BackBtClicked { get; set; }
@@ -82,7 +90,8 @@ namespace ImageManager.ViewModels
         public ICommand AddFileBtClicked { get; set; }
         public ICommand AddFilesInDirectoryBtClicked { get; set; }
         public ICommand CreateDirectoryBtClicked { get; set; }
-        public ICommand ExtractFilesOnDirClicked { get; set; }
+        public ICommand DeleteBtClicked { get; set; }
+        public ICommand ExtractSelectedFilesClicked { get; set; }
 
         public ICommand ListBoxDoubleClicked { get; set; }
         public ICommand ListBoxSelectionChanged { get; set; }
@@ -96,7 +105,7 @@ namespace ImageManager.ViewModels
         {
             model.Dispose();
         }
-
+        
         public void CreateArchiveBt_Clicked()
         {
             model.MakeNewArchive();
@@ -109,7 +118,11 @@ namespace ImageManager.ViewModels
         {
             model.Close();
         }
-        private void DeleteCacheBt_Clicked()
+        public void RebuildDataBt_Clicked()
+        {
+            model.RebuildData();
+        }
+        public void DeleteCacheBt_Clicked()
         {
             model.RemakeThumbnail();
         }
@@ -135,9 +148,13 @@ namespace ImageManager.ViewModels
         {
             model.MakeDirectory();
         }
-        public void ExtractFilesOnDir_Clicked()
+        public void DeleteBt_Clicked()
         {
-            model.ExtractFilesOnDirectory();
+            model.Delete(SelectedItems);
+        }
+        public void ExtractSelectedFiles_Clicked()
+        {
+            model.ExtractSelectedFiles(SelectedItems);
         }
 
         public void ListBox_DoubleClicked(FileDirectoryItem arg)
@@ -154,12 +171,16 @@ namespace ImageManager.ViewModels
                 model.FileDoubleClicked(arg);
             }
         }
-        public void ListBox_SelectionChanged(FileDirectoryItem arg)
+        public void ListBox_SelectionChanged(System.Collections.IList arg)
         {
             if (arg == null)
                 return;
-
-            Console.WriteLine(arg);
+            
+            var collection = arg.Cast<FileDirectoryItem>();
+            var fileDirectoryItems = new List<FileDirectoryItem>(collection);
+            SelectedItems = fileDirectoryItems;
+            
+            model.IsOpenedAndFileSelected = arg.Count > 0;
         }
         #endregion
     }

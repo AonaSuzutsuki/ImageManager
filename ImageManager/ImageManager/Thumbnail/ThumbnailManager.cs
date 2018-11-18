@@ -1,5 +1,5 @@
 ﻿using CommonExtensionLib.Extensions;
-using FileManagerLib.Filer.Json;
+using FileManagerLib.File.Json;
 using ImageManager.ImageLoader;
 using System;
 using System.Collections.Generic;
@@ -24,9 +24,9 @@ namespace ImageManager.Thumbnail
             var thumbPath = "{0}/{1}".FormatString(CommonStyleLib.AppInfo.GetAppPath(), ThumbnailChachePath);
 
             if (File.Exists(thumbPath))
-                fileManager = new JsonResourceManager(thumbPath);
+                fileManager = new JsonFileManager(thumbPath);
             else
-                fileManager = new JsonResourceManager(thumbPath, true);
+                fileManager = new JsonFileManager(thumbPath, true);
         }
 
         public BitmapImage GetThumbnail(string hash, Func<byte[]> func)
@@ -35,17 +35,12 @@ namespace ImageManager.Thumbnail
                 return thumbCache[hash];
 
             byte[] array;
-            if (fileManager.ExistFile(hash))
-            {
+            if (fileManager.ExistResource(hash))
                 array = fileManager.GetBytes(hash);
-            }
             else
-            {
-                var data = func();
-                array = ImageConverter.GetThumbnailBytes(data, 50, 50);
-            }
+                array = ImageConverter.GetThumbnailBytes(func(), 50, 50);
 
-            fileManager.WriteBytes(hash, array);
+            fileManager.WriteBytesWithoutException(hash, array);
             var image = ImageConverter.GetBitmapImage(array);
             thumbCache.Add(hash, image);
             return image;

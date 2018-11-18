@@ -1,11 +1,11 @@
 ﻿using CommonExtensionLib.Extensions;
 using ImageManagerCUI.Parser;
 using System;
-using FileManagerLib.Filer;
+using FileManagerLib.File;
 using System.IO;
 using System.Linq;
 using System.Diagnostics;
-using FileManagerLib.Filer.Json;
+using FileManagerLib.File.Json;
 using FileManagerLib.Extensions.Path;
 using System.Text;
 
@@ -15,56 +15,88 @@ namespace ImageManagerCUI
     {
         public static void Main(string[] args)
         {
-			AbstractProgram program = new JsonProgram();
-
-            while (true)
+            if (args.Length > 0)
             {
-                Console.Write("> ");
-                string cmd = Console.ReadLine();
-                //try
-                //{
-                //    if (!program.Parse(cmd))
-                //        break;
-                //}
-                //catch (Exception e)
-                //{
-                //    Console.WriteLine(e.Message);
-                //    Console.WriteLine(e.StackTrace);
-                //}
-                var sw = new Stopwatch();
-                sw.Start();
-				//try
-				//{
+                var program = new ArgumentsProgram();
+                program.Parse(args);
+            }
+            else
+            {
+                var program = new JsonProgram();
+                while (true)
+                {
+                    Console.Write("> ");
+                    string cmd = Console.ReadLine();
+                    var sw = new Stopwatch();
+                    sw.Start();
+                    //try
+                    //{
                     if (!program.Parse(cmd))
                         break;
-				//}
-				//catch (Exception e)
-				//{
-				//	Console.WriteLine(e.Message);
-				//}
-                sw.Stop();
-                var msec = sw.ElapsedMilliseconds;
-                Console.WriteLine("{0}ms".FormatString(msec));
+                    //}
+                    //catch (Exception e)
+                    //{
+                    //	Console.WriteLine(e.Message);
+                    //}
+                    sw.Stop();
+                    var msec = sw.ElapsedMilliseconds;
+                    Console.WriteLine("{0}ms".FormatString(msec));
+                }
             }
+        }
+    }
+   
+
+    public class ArgumentsProgram
+    {
+        public void Parse(string[] args)
+        {
+            var parser = new EnvArgumentParser(args);
+            if (parser.IsInsert())
+            {
+                Insert(parser);
+            }
+            else if (parser.IsExtract())
+            {
+                Extract(parser);
+            }
+        }
+
+        public void Insert(EnvArgumentParser parser)
+        {
+            var outFilename = parser.GetOutputFilepath();
+            var targetFiles = parser.GetValues();
+
+            var fileManager = new JsonFileManager(outFilename, true);
+            fileManager.WriteIntoResourceProgress += FileManager_WriteIntoResourceProgress;
+
+            fileManager.CreateFilesOnDirectories("/", targetFiles);
+
+            fileManager.Dispose();
+        }
+
+        public void Extract(EnvArgumentParser parser)
+        {
+            var outFilename = parser.GetOutputFilepath();
+            var targetFile = parser.GetValue();
+
+            var fileManager = new JsonFileManager(targetFile);
+            fileManager.WriteToFilesProgress += FileManager_WriteIntoResourceProgress;
+            fileManager.WriteToDir("/", outFilename);
+        }
+
+        private void FileManager_WriteIntoResourceProgress(object sender, JsonResourceManager.ReadWriteProgressEventArgs eventArgs)
+        {
+            Console.WriteLine("{0}/{1}", eventArgs.CompletedNumber, eventArgs.FullNumber);
         }
     }
 
 
-	public abstract class AbstractProgram
-	{
-		public abstract bool Parse(string cmd);
-
-		protected virtual void Initialize()
-		{
-			
-		}
-	}
-
-	public class JsonProgram : AbstractProgram
+	public class JsonProgram
 	{
 		JsonFileManager fileManager;
 
-		public override bool Parse(string cmd)
+		public bool Parse(string cmd)
 		{
 			var parser = new CmdParser(cmd);
             switch (parser.Command)
@@ -145,7 +177,7 @@ namespace ImageManagerCUI
             Console.WriteLine("Loaded {0}.", dbFilename);
         }
 
-		protected override void Initialize()
+		protected void Initialize()
 		{
 			fileManager.WriteIntoResourceProgress += FileManager_WriteProgress;
 			fileManager.WriteToFilesProgress += FileManager_WriteProgress;
@@ -307,7 +339,7 @@ namespace ImageManagerCUI
             }
         }
         
-		void FileManager_WriteProgress(object sender, AbstractJsonResourceManager.ReadWriteProgressEventArgs eventArgs)
+		void FileManager_WriteProgress(object sender, JsonResourceManager.ReadWriteProgressEventArgs eventArgs)
 		{
 			if (eventArgs.IsCompleted)
 				Console.WriteLine("{0}/{1} ({2}%)\t{3}".FormatString(eventArgs.CompletedNumber, eventArgs.FullNumber, eventArgs.Percentage, eventArgs.CurrentFilepath));
@@ -316,104 +348,4 @@ namespace ImageManagerCUI
 		}
 
 	}
-
-
-	public class JsonDataProgram : AbstractProgram
-	{
-  
-		JsonResourceManager fileManager;
-
-		public override bool Parse(string cmd)
-		{         
-			var parser = new CmdParser(cmd);
-            switch (parser.Command)
-            {
-                case "exit":
-                    fileManager?.Dispose();
-                    return false;
-                case "gc":
-                    GC.Collect();
-                    break;
-                case "close":
-                    fileManager?.Dispose();
-                    break;
-                case "make":
-                    MakeDatabase(parser);
-                    break;
-                case "open":
-                    LoadDatabase(parser);
-                    break;
-                case "adddata":
-                    AddData(parser);
-                    break;
-                case "getdata":
-                    GetData(parser);
-                    break;
-                case "vacuum":
-                    fileManager.DataVacuum();
-                    break;
-                case "trace":
-                    Trace(parser);
-                    break;
-            }
-            return true;
-		}
-
-
-		public void MakeDatabase(CmdParser parser)
-        {
-            var dbFilename = parser.GetAttribute("file") ?? parser.GetAttribute(0);
-            var checkHash = parser.GetAttribute("hash") ?? parser.GetAttribute(1);
-            var isCheckHash = checkHash == null ? true : false;
-
-            fileManager = new JsonResourceManager(dbFilename, true, isCheckHash);
-            Initialize();
-            Console.WriteLine("Loaded {0}.", dbFilename);
-        }
-
-        public void LoadDatabase(CmdParser parser)
-        {
-            var dbFilename = parser.GetAttribute("file") ?? parser.GetAttribute(0);
-			fileManager = new JsonResourceManager(dbFilename, false);
-            Initialize();
-            Console.WriteLine("Loaded {0}.", dbFilename);
-        }
-
-        public void AddData(CmdParser parser)
-        {
-            var text = parser.GetAttribute("text") ?? parser.GetAttribute(0);
-            var fullPath = parser.GetAttribute("name") ?? parser.GetAttribute(1);
-
-            fileManager.WriteString(fullPath, text);
-        }
-
-        public void GetData(CmdParser parser)
-        {
-            var fullPath = parser.GetAttribute("name") ?? parser.GetAttribute(0);
-            
-            var text = fileManager.GetString(fullPath);
-            Console.WriteLine(text);
-        }
-
-
-
-        public void Trace(CmdParser parser)
-        {
-            var type = parser.GetAttribute("type") ?? parser.GetAttribute(0);
-
-            switch (type)
-            {
-                case "d":
-                    Console.WriteLine(fileManager.TraceDirs());
-                    break;
-                case "f":
-                    Console.WriteLine(fileManager.TraceFiles());
-                    break;
-                default:
-                    Console.WriteLine(fileManager);
-                    break;
-            }
-        }
-    }
-
 }

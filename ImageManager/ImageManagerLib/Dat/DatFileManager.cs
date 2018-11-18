@@ -2,16 +2,20 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Text;
 
 namespace FileManagerLib.Dat
 {
+	/// <summary>
+    /// データファイルの管理方法を提供します。
+    /// </summary>
     public class DatFileManager : IDisposable
     {
 
         private const int LEN = 4;
 
         #region Fields
-        private ClusterableFileStream fileStream;
+        private IClusterableStream fileStream;
         private long lastPositionWithoutJson = 0;
         #endregion
 
@@ -22,16 +26,28 @@ namespace FileManagerLib.Dat
             private set;
         }
 
+        /// <summary>
+        /// ファイルへの書き込みの際に分割読み込みをするしきい値
+        /// </summary>
 		public int SplitSize { get; } = 134217728; //536870912
 
+        /// <summary>
+        /// 既に書き込まれているJSONをスキップして書き込むか上書きするかどうか
+        /// </summary>
         public bool IsShiftJsonPosition { get; set; } = false;
 
+        /// <summary>
+        /// 取り除くべき既に書き込まれているJSONのサイズを負数ベースで返します。
+        /// </summary>
 		private long LastPositionWithoutJson
 		{
 			get => lastPositionWithoutJson > 0 ? 0 : lastPositionWithoutJson;
 			set => lastPositionWithoutJson = value;
 		}
 
+        /// <summary>
+        /// ハッシュ計算によるデータの整合性を確認するかどうかを設定あるいは取得します。
+        /// </summary>
         public bool IsCheckHash { get; set; } = true;
         #endregion
 
@@ -41,6 +57,12 @@ namespace FileManagerLib.Dat
             fileStream = new ClusterableFileStream(filePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read); //18077000
         }
 
+        /// <summary>
+        /// 指定された位置からデータの長さを除いたデータをバイト配列で返します。
+        /// </summary>
+        /// <param name="start">データの開始位置</param>
+        /// <param name="identifierLength">データの長さを格納するバイトサイズ</param>
+        /// <returns>実データのバイト配列</returns>
 		public byte[] GetBytes(long start, int identifierLength = LEN)
 		{
 			byte[] data = null;
@@ -56,8 +78,36 @@ namespace FileManagerLib.Dat
 
 			return data;
 		}
+        
+        public void ActionBytes(long start, int size, Action<byte[], int> action, int identifierLength = LEN)
+        {
+            if (fileStream != null)
+            {
+                long length = GetIntAndSeek(fileStream, start, identifierLength);
 
-		public byte[] GetBytesFromEnd(int identifierLength = LEN)
+                while (true)
+                {
+                    var data = new byte[size];
+                    int readSize = fileStream.Read(data, 0, data.Length);
+                    if (length <= readSize)
+                    {
+                        int arglen = length < 0 ? 0 : (int)length;
+                        action?.Invoke(data, arglen);
+                        break;
+                    }
+
+                    action?.Invoke(data, readSize);
+                    length -= (uint)readSize;
+                }
+            }
+        }
+
+        /// <summary>
+        /// 末尾から実データの長さを除いたデータをバイト配列で返します。
+        /// </summary>
+        /// <param name="identifierLength">データの長さを格納するバイトサイズ</param>
+        /// <returns>実データのバイト配列</returns>
+        public byte[] GetBytesFromEnd(int identifierLength = LEN)
 		{
 			byte[] data = null;
 
@@ -67,8 +117,7 @@ namespace FileManagerLib.Dat
 				fileStream.Seek(-idArray.Length, SeekOrigin.End);
 				var rc = fileStream.Read(idArray, 0, idArray.Length);
 				var length = BitConverter.ToInt32(idArray, 0);
-
-
+                
 				fileStream.Seek(-(length + idArray.Length), SeekOrigin.End);
                 data = new byte[length];
                 fileStream.Read(data, 0, data.Length);
@@ -78,6 +127,13 @@ namespace FileManagerLib.Dat
             return data;
 		}
 
+        /// <summary>
+        /// 指定された位置からデータの長さを除いたデータの部分をバイト配列で返します。
+        /// </summary>
+        /// <param name="start">データの開始位置</param>
+        /// <param name="length">取得したいデータの長さ</param>
+        /// <param name="identifierLength">データの長さを格納するバイトサイズ</param>
+        /// <returns>実データの部分バイト配列</returns>
         public (uint, byte[]) GetPartialBytes(long start, long length, int identifierLength = LEN)
         {
             uint len = 0;
@@ -159,7 +215,7 @@ namespace FileManagerLib.Dat
 			foreach (var item in srcFilenames.Select((value, index) => new { index, value }))
             {
 				var dest = filenames[item.index];
-				File.Move(item.value, dest);
+                System.IO.File.Move(item.value, dest);
             }
             var datFileManager = new DatFileManager(filenames[0]);
             return datFileManager;
@@ -180,7 +236,7 @@ namespace FileManagerLib.Dat
             return pos;
         }
 
-		public long Write(Stream stream, Action<Clusterable.IO.ClusterableFileStream> writeAction, int identifierLength = LEN)
+		public long Write(Stream stream, Action<IClusterableStream> writeAction, int identifierLength = LEN)
 		{
 			var len = stream.Length;
             var lenArray = BitConverter.GetBytes(len);
@@ -215,7 +271,7 @@ namespace FileManagerLib.Dat
 			return pos;
 		}
 
-		private static uint GetIntAndSeek(ClusterableFileStream stream, long start, long length)
+		private static uint GetIntAndSeek(IClusterableStream stream, long start, long length)
 		{
 			var idLenArray = new byte[length];
 			stream.Seek(start, SeekOrigin.Begin);
