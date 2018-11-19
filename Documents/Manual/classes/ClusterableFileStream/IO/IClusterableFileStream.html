@@ -1,0 +1,250 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="author" content="Aona Suzutsuki">
+    <title>IClusterableFileStream</title>
+    <link rel="stylesheet" href="../../../css/main.min.css" type="text/css" />
+    <link rel="stylesheet" href="../../../syntaxhighlighter/css/shCore.css" type="text/css" />
+    <link rel="stylesheet" href="../../../syntaxhighlighter/css/shThemeDefault.css" type="text/css" />
+    <script type="text/javascript" src="../../../js/main.js" charset="UTF-8"></script>
+    <script type="text/javascript" src="../../../js/menu.js" charset="UTF-8"></script>
+    <script type="text/javascript" src="../../../js/jquery-1.7.1.min.js"></script>
+    <script type="text/javascript" src="../../../syntaxhighlighter/js/shCore.js"></script>
+    <script type="text/javascript" src="../../../syntaxhighlighter/js/shBrushCSharp.js"></script>
+
+    <script type="text/javascript">
+        SyntaxHighlighter.defaults.toolbar = false;
+        SyntaxHighlighter.all();
+
+        $(function() {
+            $('#toc').append(createMenu());
+            $('#menu-toc').append(createSubMenu());
+        });
+
+    </script>
+    <style type="text/css">
+    </style>
+</head>
+<body onload="menus(3);">
+<div id="main-container">
+
+    <div id="menus" class="menu"></div>
+
+    <div id="body-container">
+        <h1>IClusterableFileStream Interface</h1>
+        <div id="namespaces">
+            Namespace:
+            <a href="../ClusterableFileStream.html">ClusterableFileStream</a>.<a href="IO.html">IO</a>
+        </div>
+
+        <div id="body">
+
+            <div id="menu-toc"></div>
+
+            <br />
+            <div id="toc"></div>
+
+            <br />
+            <div id="overview">
+                <h2>Overview</h2>
+
+                <br />
+                <div class="method-elem">
+                    
+                </div>
+            </div>
+
+            <br />
+            <div id="inheritance">
+                <h2>Inheritance</h2>
+
+                <div class="method-elem">
+                    <h3><a href="https://docs.microsoft.com/ja-jp/dotnet/api/system.idisposable">System.IDisposable</a></h3>
+                </div>
+            </div>
+ 
+            <br />
+            <div id="properties">
+                <h2>Properties</h2>
+
+                <div class="method-elem">
+                    <h3 id="file-path">long Position</h3>
+                    <pre class="brush: csharp">
+                        public long Position { get; }
+                    </pre>
+
+                    <div class="elem-content">
+                        分割ファイルを一つのファイルとみなした仮想的なストリームの現在位置を取得します。
+                    </div>
+                </div>
+
+                <br />
+                <div class="method-elem">
+                    <h3 id="split-size">long SplitSize</h3>
+                    <pre class="brush: csharp">
+                        public long SplitSize { get; }
+                    </pre>
+
+                    <div class="elem-content">
+                        分割するファイルサイズをバイト単位で取得します。
+                    </div>
+                </div>
+
+                <br />
+                <div class="method-elem">
+                    <h3 id="is-shift-json-position">string[] Filenames</h3>
+                    <pre class="brush: csharp">
+                        public string[] Filenames { get; }
+                    </pre>
+
+                    <div class="elem-content">
+                        
+                    </div>
+                </div>
+            </div>
+
+            <br />
+            <div id="methods">
+                <h2>Methods</h2>
+
+                <div class="method-elem">
+                    <h3 id="Write">Write(byte[], int, long)</h3>
+                    <pre class="brush: csharp">public void Write(byte[] data, int offset, long length);</pre>
+
+                    <table class="parameter">
+                        <caption>パラメータ</caption>
+                        <tr>
+                            <th>byte[]</th>
+                            <td class="name">data</td>
+                            <td>書き込むデータを指定します。</td>
+                        </tr>
+                        <tr>
+                            <th>int</th>
+                            <td class="name">offset</td>
+                            <td>書き込みを開始する現在地からの相対位置を指定します。</td>
+                        </tr>
+                        <tr>
+                            <th>long</th>
+                            <td class="name">length</td>
+                            <td>書き込むデータの長さを指定します。</td>
+                        </tr>
+                    </table>
+
+                    <div class="elem-content">
+                        ストリームにバイトのブロックを書き込みます。
+                    </div>
+                </div>
+
+                <br />
+                <div class="method-elem">
+                    <h3 id="Read">Read(byte[], int, int)</h3>
+                    <pre class="brush: csharp">public int Read(byte[] buffer, int offset, int length);</pre>
+
+                    <table class="parameter">
+                        <caption>パラメータ</caption>
+                        <tr>
+                            <th>byte[]</th>
+                            <td class="name">buffer</td>
+                            <td>データを書き込むバッファ領域を指定します。</td>
+                        </tr>
+                        <tr>
+                            <th>int</th>
+                            <td class="name">offset</td>
+                            <td>読み込みを開始する現在地からの相対位置を指定します。</td>
+                        </tr>
+                        <tr>
+                            <th>long</th>
+                            <td class="name">length</td>
+                            <td>読み込む長さを指定します。</td>
+                        </tr>
+                    </table>
+
+                    <table class="parameter">
+                        <caption>戻り値</caption>
+                        <tr>
+                            <th>int</th>
+                            <td>実際に読み込んだバイトサイズ</td>
+                        </tr>
+                    </table>
+
+                    <div class="elem-content">
+                        ストリームからバイトのブロックを読み込みます。
+                    </div>
+                </div>
+
+                <br />
+                <div class="method-elem">
+                    <h3 id="Seek">Seek(long, SeekOrigin)</h3>
+                    <pre class="brush: csharp">public void Seek(long offset, SeekOrigin seekOrigin);</pre>
+
+                    <table class="parameter">
+                        <caption>パラメータ</caption>
+                        <tr>
+                            <th>long</th>
+                            <td class="name">offset</td>
+                            <td>SeekOriginに基づいた相対的なストリームの位置を指定します。</td>
+                        </tr>
+                        <tr>
+                            <th><a href="https://docs.microsoft.com/ja-jp/dotnet/api/system.io.seekorigin">SeekOrigin</a></th>
+                            <td class="name">seekOrigin</td>
+                            <td>オフセットをどこから開始するかを指定します。</td>
+                        </tr>
+                    </table>
+
+                    <div class="elem-content">
+                        ストリームの現在地を指定します。
+                    </div>
+                </div>
+
+                <br />
+                <div class="method-elem">
+                    <h3 id="Delete">Delete(Func&lt;string, string&gt;)</h3>
+                    <pre class="brush: csharp">public string[] Delete(Func&lt;string, string&gt; func);</pre>
+
+                    <table class="parameter">
+                        <caption>パラメータ</caption>
+                        <tr>
+                            <th>Func&lt;string, string&gt;</th>
+                            <td class="name">func</td>
+                            <td>分割ファイルを削除する度に実行する処理を指定します。</td>
+                        </tr>
+                    </table>
+
+                    <table class="parameter">
+                        <caption>戻り値</caption>
+                        <tr>
+                            <th>string[]</th>
+                            <td>削除したファイルの名前群</td>
+                        </tr>
+                    </table>
+
+                    <div class="elem-content">
+                        ストリームに関連するファイル群を削除します。
+                    </div>
+                </div>
+
+            </div>
+
+            <br />
+            <div id="inherited">
+                <h2>Inherited Methods</h2>
+
+                <div class="method-elem">
+                    <h3 id="Write">IDisposable.Dispose()</h3>
+                    <pre class="brush: csharp">public void Dispose();</pre>
+
+                    <div class="elem-content">
+                        内部で保持しているストリームの使用権を解放します。
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+</body>
+</html>

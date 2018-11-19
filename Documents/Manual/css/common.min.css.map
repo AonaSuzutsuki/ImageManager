@@ -1,7 +1,7 @@
 {
 "version": 3,
-"mappings": "",
-"sources": [],
+"mappings": "AAMA,EAAG,CACD,OAAO,CAAE,KAAK,CACd,SAAS,CAAE,GAAG,CACd,MAAM,CAAE,CAAC,CACT,OAAO,CAAE,CAAC,CACV,WAAW,CAAE,IAAI,CACjB,UAAU,CAAE,IAAI,CAGlB,EAAG,CACD,aAAa,CAAE,SAAS,CACxB,MAAM,CAAE,CAAC,CAGX,CAAE,CACA,KAAK,CAnBM,OAAe,CAoB1B,eAAe,CAAE,IAAI,CAIrB,OAAQ,CACN,KAAK,CAvBU,OAAO",
+"sources": ["../sass/common.scss"],
 "names": [],
 "file": "common.min.css"
 }

@@ -3,7 +3,7 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta name="author" content="Aona Suzutsuki">
-    <title>FileManagerLib.Dat.DatFileManager</title>
+    <title>DatFileManager Class</title>
     <link rel="stylesheet" href="../../../css/main.min.css" type="text/css" />
     <link rel="stylesheet" href="../../../syntaxhighlighter/css/shCore.css" type="text/css" />
     <link rel="stylesheet" href="../../../syntaxhighlighter/css/shThemeDefault.css" type="text/css" />
@@ -50,7 +50,7 @@
                 <h2>Inheritance</h2>
 
                 <div class="method-elem">
-                    <h3>IDisposable</h3>
+                    <h3><a href="https://docs.microsoft.com/ja-jp/dotnet/api/system.idisposable">System.IDisposable</a></h3>
                 </div>
             </div>
 
@@ -111,7 +111,7 @@
                 <h2>Constractors</h2>
 
                 <div class="method-elem">
-                    <h3 id="DatFileManager-1">DatFileManager(string filePath)</h3>
+                    <h3 id="DatFileManager">DatFileManager(string)</h3>
                     <pre class="brush: csharp">public DatFileManager(string filePath);</pre>
 
                     <table class="parameter">
@@ -132,6 +132,224 @@
                     </div>
                 </div>
 
+            </div>
+
+            <br />
+            <div id="methods">
+                <h2>Methods</h2>
+
+                <div class="method-elem">
+                    <h3 id="GetBytes">GetBytes(long, int)</h3>
+                    <pre class="brush: csharp">public byte[] GetBytes(long start, int identifierLength = LEN);</pre>
+
+                    <table class="parameter">
+                        <caption>パラメータ</caption>
+                        <tr>
+                            <th>long</th>
+                            <td class="name">start</td>
+                            <td>データの開始位置を指定します。</td>
+                        </tr>
+                        <tr>
+                            <th>int</th>
+                            <td class="name">identifierLength</td>
+                            <td>データの長さを格納するバイトサイズを指定します。</td>
+                            <td class="omission">省略可</td>
+                        </tr>
+                    </table>
+
+                    <table class="parameter">
+                        <caption>戻り値</caption>
+                        <tr>
+                            <th>byte[]</th>
+                            <td></td>
+                        </tr>
+                    </table>
+
+                    <div class="elem-content">
+                        指定された位置からデータの長さを除いたデータをバイト配列で返します。
+                    </div>
+                </div>
+
+                <br />
+                <div class="method-elem">
+                    <h3 id="ActionBytes">ActionBytes(long, int, Action&lt;byte[], int&gt;, int)</h3>
+                    <pre class="brush: csharp">public void ActionBytes(long start, int size, Action&lt;byte[], int&gt; action, int identifierLength = LEN);</pre>
+
+                    <table class="parameter">
+                        <caption>パラメータ</caption>
+                        <tr>
+                            <th>long</th>
+                            <td class="name">start</td>
+                            <td>データの開始位置を指定します。</td>
+                        </tr>
+                        <tr>
+                            <th>int</th>
+                            <td class="name">size</td>
+                            <td>少しずつ読み込む際の毎回読み込む最大サイズを指定します。</td>
+                        </tr>
+                        <tr>
+                            <th>Action&lt;byte[], int&gt;</th>
+                            <td class="name">action</td>
+                            <td>
+                                少しずつ読み込む際の実処理をデリゲートで指定します。デリゲートの第一引数は少しずつ読み込んだ際の実データで、第二引数は実際に読み込んだサイズが渡されます。
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>int</th>
+                            <td class="name">identifierLength</td>
+                            <td>データの長さを格納するバイトサイズを指定します。</td>
+                            <td class="omission">省略可</td>
+                        </tr>
+                    </table>
+
+                    <div class="elem-content">
+                        データを少しずつ読み込み、指定されたデリゲートの処理をデータ読み込み毎に実行します。
+                    </div>
+                </div>
+
+                <br />
+                <div class="method-elem">
+                    <h3 id="GetBytesFromEnd">GetBytesFromEnd(int)</h3>
+                    <pre class="brush: csharp">public byte[] GetBytesFromEnd(int identifierLength = LEN);</pre>
+
+                    <table class="parameter">
+                        <caption>パラメータ</caption>
+                        <tr>
+                            <th>int</th>
+                            <td class="name">identifierLength</td>
+                            <td>データの長さを格納するバイトサイズを指定します。</td>
+                            <td class="omission">省略可</td>
+                        </tr>
+                    </table>
+
+                    <table class="parameter">
+                        <caption>戻り値</caption>
+                        <tr>
+                            <th>byte[]</th>
+                            <td>読み込んだデータ</td>
+                        </tr>
+                    </table>
+
+                    <div class="elem-content">
+                        指定された位置からデータの長さ分のデータを末尾からバイト配列で返します。
+                    </div>
+
+                    <div class="more">
+                        <a href="#GetBytes">GetBytesメソッド</a>とは異なり、末尾専用で書き込んだデータだけを取得できるメソッドです。通常モードで書き込んだデータは読み込むことはできません。
+                    </div>
+                </div>
+
+                <br />
+                <div class="method-elem">
+                    <h3 id="GetPartialBytes">GetPartialBytes(long, long, int)</h3>
+                    <pre class="brush: csharp">public (uint, byte[]) GetPartialBytes(long start, long length, int identifierLength = LEN);</pre>
+
+                    <table class="parameter">
+                        <caption>パラメータ</caption>
+                        <tr>
+                            <th>long</th>
+                            <td class="name">start</td>
+                            <td>データの開始位置を指定します。</td>
+                        </tr>
+                        <tr>
+                            <th>long</th>
+                            <td class="name">length</td>
+                            <td>取得したいデータの長さを指定します。</td>
+                        </tr>
+                        <tr>
+                            <th>int</th>
+                            <td class="name">identifierLength</td>
+                            <td>データの長さを格納するバイトサイズを指定します。</td>
+                            <td class="omission">省略可</td>
+                        </tr>
+                    </table>
+
+                    <table class="parameter">
+                        <caption>戻り値</caption>
+                        <tr>
+                            <th>uint</th>
+                            <td>読み込んだデータの実サイズ</td>
+                        </tr>
+                        <tr>
+                            <th>byte[]</th>
+                            <td>読み込んだデータ</td>
+                        </tr>
+                    </table>
+
+                    <div class="elem-content">
+                        指定された位置から指定されたデータの長さ分のデータをバイト配列で返します。
+                    </div>
+
+                    <div class="more">
+                        実際に全てのデータを読み込むのではなく、指定された分だけのデータを取得するため、<a href="#GetBytes">GetBytesメソッド</a>よりも比較的高効率にデータの取得ができます。
+                    </div>
+                </div>
+
+                <br />
+                <div class="method-elem">
+                    <h3 id="GetPartialBytes">WriteToFile(long, string, string, int)</h3>
+                    <pre class="brush: csharp">public bool WriteToFile(long start, string outFilePath, string expHash, int identifierLength = LEN);</pre>
+
+                    <table class="parameter">
+                        <caption>パラメータ</caption>
+                        <tr>
+                            <th>long</th>
+                            <td class="name">start</td>
+                            <td>データの開始位置を指定します。</td>
+                        </tr>
+                        <tr>
+                            <th>string</th>
+                            <td class="name">outFilePath</td>
+                            <td>書き出すファイルパスを指定します。</td>
+                        </tr>
+                        <tr>
+                            <th>string</th>
+                            <td class="name">expHash</td>
+                            <td>ハッシュチェックする際の書き出し元データのハッシュ値を指定します。</td>
+                        </tr>
+                        <tr>
+                            <th>int</th>
+                            <td class="name">identifierLength</td>
+                            <td>データの長さを格納するバイトサイズを指定します。</td>
+                            <td class="omission">省略可</td>
+                        </tr>
+                    </table>
+
+                    <table class="parameter">
+                        <caption>戻り値</caption>
+                        <tr>
+                            <th>bool</th>
+                            <td>正しく書き出すことができたかどうか</td>
+                        </tr>
+                    </table>
+
+                    <div class="elem-content">
+                        指定された位置にあるデータを直接ファイルシステム上へ書き出します。
+                    </div>
+
+                    <div class="more">
+                        なお、ファイルの存在チェックは行わずに書き出すため、すでに存在するかどうかが重要なプログラムではチェック機構をプログラム側で実装してください。
+                    </div>
+                </div>
+
+            </div>
+
+            <br />
+            <div id="implementations">
+                <h2>Interface Implementations</h2>
+
+                <div class="method-elem">
+                    <h3 id="Dispose">IDisposable.Dispose()</h3>
+                    <pre class="brush: csharp">public void Dispose();</pre>
+
+                    <div class="elem-content">
+                        内部で保持しているファイルストリームの使用権を解放します。
+                    </div>
+
+                    <div>
+                        明示的な解放が行われない場合、プロセスが終了されるまで最悪の場合ファイルにアクセスできなくなる可能性があります。
+                    </div>
+                </div>
             </div>
 
             <br />

@@ -8,6 +8,8 @@ function createMenu() {
     insertContentsMenu(inbase, '#constractors');
     insertContentsMenu(inbase, '#statics');
     insertContentsMenu(inbase, '#methods');
+    insertContentsMenu(inbase, '#implementations');
+    insertContentsMenu(inbase, '#inherited');
     base.append(inbase);
 
     return base;

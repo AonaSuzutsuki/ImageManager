@@ -1,5 +1,9 @@
 @charset "utf-8";
 
+$link-color: rgb(0, 95, 150);
+$link-visited-color: rgb(0, 15, 48);
+$link-hover-color: #ff7cd0;
+
 h1 {
   display: block;
   font-size: 2em;
@@ -14,5 +18,13 @@ h2 {
   margin: 0;
 }
 
-h3 {
+a {
+  color: $link-color;
+  text-decoration: none;
+  // &:visited {
+  //   color: $link-visited-color;
+  // }
+  &:hover {
+    color: $link-hover-color;
+  }
 }
