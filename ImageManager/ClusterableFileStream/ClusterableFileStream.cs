@@ -146,9 +146,9 @@ namespace Clusterable.IO
         /// <summary>
         /// ストリームにバイトのブロックを書き込みます。
         /// </summary>
-        /// <param name="data">書き込むデータ</param>
-        /// <param name="offset">書き込みを開始する現在地からの相対位置</param>
-        /// <param name="length">書き込むデータの長さ</param>
+        /// <param name="data">書き込むデータを指定します。</param>
+        /// <param name="offset">書き込みを開始する現在地からの相対位置を指定します。</param>
+        /// <param name="length">書き込むデータの長さを指定します。</param>
         public void Write(byte[] data, int offset, long length)
 		{
 			var startIndex = (int)Math.Floor((double)position / (double)SplitSize);
@@ -179,10 +179,10 @@ namespace Clusterable.IO
         /// <summary>
         /// ストリームからバイトのブロックを読み込みます。
         /// </summary>
-        /// <param name="buffer">データを書き込むバッファ領域</param>
-        /// <param name="offset">読み込みを開始する現在地からの相対位置</param>
-        /// <param name="length">読み込む長さ</param>
-        /// <returns></returns>
+        /// <param name="buffer">データを書き込むバッファ領域を指定します。</param>
+        /// <param name="offset">読み込みを開始する現在地からの相対位置を指定します。</param>
+        /// <param name="length">読み込む長さを指定します。</param>
+        /// <returns>実際に読み込んだバイトサイズ</returns>
 		public int Read(byte[] buffer, int offset, int length)
 		{
             var prestreams = new List<Stream>();
@@ -248,8 +248,8 @@ namespace Clusterable.IO
         /// <summary>
         /// ストリームの現在地を指定します。
         /// </summary>
-        /// <param name="offset">SeekOriginに基づいた相対的なストリームの位置</param>
-        /// <param name="seekOrigin">オフセットをどこから開始するか</param>
+        /// <param name="offset">SeekOriginに基づいた相対的なストリームの位置を指定します。</param>
+        /// <param name="seekOrigin">オフセットをどこから開始するかを指定します。</param>
 		public void Seek(long offset, SeekOrigin seekOrigin)
 		{
 			if (seekOrigin == SeekOrigin.Begin)
@@ -270,7 +270,7 @@ namespace Clusterable.IO
         /// ストリームに関連するファイル群を削除します。
         /// </summary>
         /// <returns>削除したファイルの名前</returns>
-        /// <param name="func">分割ファイルを削除する度に実行する処理</param>
+        /// <param name="func">分割ファイルを削除する度に実行する処理を指定します。</param>
         public string[] Delete(Func<string, string> func = null)
         {
             var filenames = new List<string>(streams.Count);

@@ -60,8 +60,8 @@ namespace FileManagerLib.Dat
         /// <summary>
         /// 指定された位置からデータの長さを除いたデータをバイト配列で返します。
         /// </summary>
-        /// <param name="start">データの開始位置</param>
-        /// <param name="identifierLength">データの長さを格納するバイトサイズ</param>
+        /// <param name="start">データの開始位置を指定します。</param>
+        /// <param name="identifierLength">データの長さを格納するバイトサイズを指定します。</param>
         /// <returns>実データのバイト配列</returns>
 		public byte[] GetBytes(long start, int identifierLength = LEN)
 		{
@@ -130,9 +130,9 @@ namespace FileManagerLib.Dat
         /// <summary>
         /// 指定された位置からデータの長さを除いたデータの部分をバイト配列で返します。
         /// </summary>
-        /// <param name="start">データの開始位置</param>
-        /// <param name="length">取得したいデータの長さ</param>
-        /// <param name="identifierLength">データの長さを格納するバイトサイズ</param>
+        /// <param name="start">データの開始位置を指定します。</param>
+        /// <param name="length">取得したいデータの長さを指定します。</param>
+        /// <param name="identifierLength">データの長さを格納するバイトサイズを指定します。</param>
         /// <returns>実データの部分バイト配列</returns>
         public (uint, byte[]) GetPartialBytes(long start, long length, int identifierLength = LEN)
         {
