@@ -5,6 +5,9 @@ using System.Text;
 
 namespace FileManagerLib.Crypto
 {
+    /// <summary>
+    /// Sha256を計算するクラスを提供します。
+    /// </summary>
     public class Sha256
     {
         /// <summary>

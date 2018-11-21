@@ -67,6 +67,9 @@ namespace Clusterable.IO
         /// <value>分割するファイルサイズ</value>
 		public long SplitSize { get; } //1073741824:1gb 10485760:10mb
 
+        /// <summary>
+        /// 内部で使用するファイル群のパスを取得します。
+        /// </summary>
         public string[] Filenames
         {
             get
@@ -291,6 +294,10 @@ namespace Clusterable.IO
 		#region IDisposable Support
 		private bool disposedValue = false; // To detect redundant calls
 
+        /// <summary>
+        /// 解放を実際に行う処理です。
+        /// </summary>
+        /// <param name="disposing">マネージリソースの解放を行うかどうかを指定します。</param>
 		protected virtual void Dispose(bool disposing)
 		{
 			if (!disposedValue)
@@ -308,19 +315,12 @@ namespace Clusterable.IO
 			}
 		}
 
-		// TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.
-		// ~ClusterableFileStream() {
-		//   // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-		//   Dispose(false);
-		// }
-
-		// This code added to correctly implement the disposable pattern.
+        /// <summary>
+        /// 内部で保持しているファイルの使用権を解放します。
+        /// </summary>
 		public void Dispose()
 		{
-			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
 			Dispose(true);
-			// TODO: uncomment the following line if the finalizer is overridden above.
-			// GC.SuppressFinalize(this);
 		}
 		#endregion
 

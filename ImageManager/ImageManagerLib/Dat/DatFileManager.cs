@@ -7,7 +7,7 @@ using System.Text;
 namespace FileManagerLib.Dat
 {
 	/// <summary>
-    /// データファイルの管理方法を提供します。
+    /// データファイルの管理を提供します。
     /// </summary>
     public class DatFileManager : IDisposable
     {
@@ -32,7 +32,7 @@ namespace FileManagerLib.Dat
 		public int SplitSize { get; } = 134217728; //536870912
 
         /// <summary>
-        /// 既に書き込まれているJSONをスキップして書き込むか上書きするかどうか
+        /// 既に書き込まれているJSONをスキップして書き込むか上書きするかどうかを設定または取得します。
         /// </summary>
         public bool IsShiftJsonPosition { get; set; } = false;
 
