@@ -275,7 +275,7 @@ namespace FileManagerLib.File.Json
             if (!jsonStructureManager.ExistedFile(rootId, fileName))
             {
                 var nextId = jsonStructureManager.NextFileId;
-                var hash = Crypto.Sha256.GetSha256(bytes);
+                var hash = CommonCoreLib.Crypto.Sha256.GetSha256(bytes);
 
                 var start = fManager.Write(bytes, LEN);
                 jsonStructureManager.CreateFile(nextId, rootId, fileName, start, hash);
@@ -286,7 +286,7 @@ namespace FileManagerLib.File.Json
         {
             var (parent, fileName) = fullPath.GetFilenameAndParent();
             //var (nextId, rootId) = ResolveTermParameters(fileName, parent.ToString());
-            var hash = Crypto.Sha256.GetSha256(data);
+            var hash = CommonCoreLib.Crypto.Sha256.GetSha256(data);
             WriteBytes(fileName, parent.ToString(), data, hash);
             //if (!jsonStructureManager.ExistedFile(rootId, fileName))
             //{

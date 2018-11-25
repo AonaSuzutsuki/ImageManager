@@ -186,7 +186,7 @@ namespace FileManagerLib.Dat
                 {
                     using (var stream = new FileStream(outFilePath, FileMode.Open, FileAccess.Read, FileShare.Read))
                     {
-                        var hash = Crypto.Sha256.GetSha256(stream);
+                        var hash = CommonCoreLib.Crypto.Sha256.GetSha256(stream);
                         if (expHash.Equals(hash))
                             isOk = true;
                         else

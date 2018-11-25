@@ -3,17 +3,18 @@ using System.Collections.Generic;
 
 namespace FileManagerLib.Extensions.Collections
 {
+    /// <summary>
+    /// Dictionary関連の拡張メソッドを提供します。
+    /// </summary>
 	public static class DictionaryExtension
     {
-		public static (TKey, TValue) GetLast<TKey, TValue>(this Dictionary<TKey, TValue> dic)
-		{
-			var keys = new List<TKey>(dic.Keys);
-			var values = new List<TValue>(dic.Values);
-			var key = keys[keys.Count - 1];
-			var val = values[values.Count - 1];
-			return (key, val);
-		}
-        
+        /// <summary>
+        /// SortedDictionaryのValue値を配列に変換します。
+        /// </summary>
+        /// <typeparam name="TKey">SortedDictionaryのキーの型</typeparam>
+        /// <typeparam name="TValue">SortedDictionaryの値の型</typeparam>
+        /// <param name="values">変換したいSortedDictionaryのValue</param>
+        /// <returns>変換された配列</returns>
 		public static TValue[] ToArray<TKey, TValue>(this SortedDictionary<TKey, TValue>.ValueCollection values)
 		{
 			var array = new TValue[values.Count];

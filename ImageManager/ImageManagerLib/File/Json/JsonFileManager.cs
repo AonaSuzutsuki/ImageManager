@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using CommonCoreLib.File;
 using CommonExtensionLib.Extensions;
 using FileManagerLib.Dat;
 using FileManagerLib.Extensions.Path;
@@ -44,7 +45,7 @@ namespace FileManagerLib.File.Json
 			{
                 string hash = string.Empty;
                 if (jsonStructureManager.IsCheckHash)
-                    hash = Crypto.Sha256.GetSha256(stream);
+                    hash = CommonCoreLib.Crypto.Sha256.GetSha256(stream);
 
                 if (stream.Length > fManager.SplitSize)
                 {

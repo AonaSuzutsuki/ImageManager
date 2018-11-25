@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace FileManagerLib.MimeType
 {
+    /// <summary>
+    /// MimeTypeの変換系を提供します。
+    /// </summary>
     public class MimeTypeMap
     {
         private static Dictionary<string, string> mimeTypeTable;
@@ -595,6 +598,11 @@ namespace FileManagerLib.MimeType
             return imageHashSet;
         }
 
+        /// <summary>
+        /// 拡張子からMimeTypeを判別します。
+        /// </summary>
+        /// <param name="extension">対象の拡張子</param>
+        /// <returns>MimeType</returns>
         public static string GetMimeTypeFromExtension(string extension)
         {
             var table = InitializeTable();
@@ -604,12 +612,22 @@ namespace FileManagerLib.MimeType
             return NoneType;
         }
 
+        /// <summary>
+        /// ファイルパスからMimeTypeを判別します。
+        /// </summary>
+        /// <param name="filepath">対象のファイルパス</param>
+        /// <returns>MimeType</returns>
         public static string GetMimeType(string filepath)
         {
             var extension = System.IO.Path.GetExtension(filepath);
             return GetMimeTypeFromExtension(extension);
         }
 
+        /// <summary>
+        /// MimeTypeが画像系かどうかを判定します。
+        /// </summary>
+        /// <param name="mimeType">MimeTypeの文字列</param>
+        /// <returns>画像系かどうか</returns>
         public static bool IsImage(string mimeType)
         {
             var hashSet = InitializeHashSet();

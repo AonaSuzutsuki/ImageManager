@@ -110,8 +110,6 @@
     <Compile Include="File\Json\Structures.cs" />
     <Compile Include="Extensions\Collections\DictionaryExtension.cs" />
     <Compile Include="Extensions\Collections\ArrayExtension.cs" />
-    <Compile Include="File\DirectorySearcher.cs" />
-    <Compile Include="Crypto\Sha256.cs" />
     <Compile Include="File\Json\AbstractJsonResourceManager.cs" />
   </ItemGroup>
   <ItemGroup>
