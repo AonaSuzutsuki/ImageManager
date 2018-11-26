@@ -8,6 +8,7 @@ using System.Diagnostics;
 using FileManagerLib.File.Json;
 using FileManagerLib.Extensions.Path;
 using System.Text;
+using System.Collections.Generic;
 
 namespace ImageManagerCUI
 {
@@ -96,67 +97,56 @@ namespace ImageManagerCUI
 	{
 		JsonFileManager fileManager;
 
+		private Dictionary<string, Tuple<Action<CmdParser>, string>> actionMap;
+		private Dictionary<string, Tuple<Func<CmdParser, bool>, string>> funcMap;
+
+		public JsonProgram()
+		{
+			funcMap = new Dictionary<string, Tuple<Func<CmdParser, bool>, string>>()
+			{
+				{ "exit", new Tuple<Func<CmdParser, bool>, string>((parser) => {
+					fileManager?.Dispose();
+					return false;
+				}, "Exit this program.") },
+			};
+			actionMap = new Dictionary<string, Tuple<Action<CmdParser>, string>>()
+			{
+				{ "gc", new Tuple<Action<CmdParser>, string>(parser => GC.Collect(), "Run GC.Collect.") },
+				{ "help", new Tuple<Action<CmdParser>, string>(parser => ShowHelp(), "Show the help.") },
+				{ "close", new Tuple<Action<CmdParser>, string>(parser => fileManager?.Dispose(), "Close and release file manager.") },
+				{ "make", new Tuple<Action<CmdParser>, string>(MakeDatabase, "Close and release file manager.") },
+				{ "open", new Tuple<Action<CmdParser>, string>(LoadDatabase, "Close and release file manager.") },
+				{ "mkdir", new Tuple<Action<CmdParser>, string>(CreateDirectory, "Close and release file manager.") },
+				{ "deldir", new Tuple<Action<CmdParser>, string>(DeleteDirectory, "Close and release file manager.") },
+				{ "addfile", new Tuple<Action<CmdParser>, string>(AddFile, "Close and release file manager.") },
+				{ "addfiles", new Tuple<Action<CmdParser>, string>(AddFiles, "Close and release file manager.") },
+				{ "delfile", new Tuple<Action<CmdParser>, string>(Parser => {  }, "Close and release file manager.") },
+				{ "getfiles", new Tuple<Action<CmdParser>, string>(GetFiles, "Close and release file manager.") },
+				{ "getdirs", new Tuple<Action<CmdParser>, string>(GetDirs, "Close and release file manager.") },
+				{ "writetofile", new Tuple<Action<CmdParser>, string>(WriteTo, "Close and release file manager.") },
+				{ "writetodir", new Tuple<Action<CmdParser>, string>(WriteToDir, "Close and release file manager.") },
+				{ "vacuum", new Tuple<Action<CmdParser>, string>(parser => fileManager.DataVacuum(), "Close and release file manager.") },
+				{ "save", new Tuple<Action<CmdParser>, string>(parser => fileManager.Save(), "Close and release file manager.") },
+				{ "trace", new Tuple<Action<CmdParser>, string>(Trace, "Close and release file manager.") },
+			};
+		}
+
 		public bool Parse(string cmd)
 		{
 			var parser = new CmdParser(cmd);
-            switch (parser.Command)
-            {
-				case "exit":
-					fileManager?.Dispose();
-                    return false;
-                case "gc":
-                    GC.Collect();
-                    break;
-                case "close":
-					fileManager?.Dispose();
-                    break;
-                case "make":
-                    MakeDatabase(parser);
-                    break;
-                case "open":
-                    LoadDatabase(parser);
-                    break;
-                case "mkdir":
-                    CreateDirectory(parser);
-                    break;
-                case "deldir":
-                    DeleteDirectory(parser);
-                    break;
-                case "addfile":
-                    AddFile(parser);
-                    break;
-                case "addfiles":
-                    AddFiles(parser);
-                    break;
-                case "delfile":
-                    //DeleteFile(parser);
-                    break;
-				case "getfiles":
-					GetFiles(parser);
-					break;
-				case "getdirs":
-					GetDirs(parser);
-                    break;
-                case "writetofile":
-                    WriteTo(parser);
-                    break;
-                case "writetodir":
-                    WriteToDir(parser);
-                    break;
-                case "vacuum":
-					fileManager.DataVacuum();
-                    break;
-				case "save":
-					fileManager.Save();
-					break;
-                case "trace":
-                    Trace(parser);
-                    break;
-            }
-            return true;
+			var command = parser.Command;
+			if (funcMap.ContainsKey(command))
+				return funcMap[command].Item1(parser);
+			if (actionMap.ContainsKey(command))
+				actionMap[command].Item1(parser);
+			return true;
 		}
 
 
+		public void ShowHelp()
+		{
+			var sb = new StringBuilder();
+		}
 
 		public void MakeDatabase(CmdParser parser)
         {
