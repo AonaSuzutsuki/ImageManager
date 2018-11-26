@@ -7,9 +7,9 @@ using System.Text;
 namespace FileManagerLib.Dat
 {
 	/// <summary>
-    /// データファイルの管理を提供します。
+	/// Provides a method of managing data files.
     /// </summary>
-    public class DatFileManager : IDisposable
+	public class DatFileManager : IDisposable
     {
 
         private const int LEN = 4;
@@ -20,6 +20,10 @@ namespace FileManagerLib.Dat
         #endregion
 
         #region Properties
+        /// <summary>
+        /// Gets the file path.
+        /// </summary>
+        /// <value>The file path.</value>
         public string FilePath
         {
             get;
@@ -27,18 +31,13 @@ namespace FileManagerLib.Dat
         }
 
         /// <summary>
-        /// ファイルへの書き込みの際に分割読み込みをするしきい値
+		/// Threshold for split reading when reading or writing files.
         /// </summary>
 		public int SplitSize { get; } = 134217728; //536870912
 
-        /// <summary>
-        /// 既に書き込まれているJSONをスキップして書き込むか上書きするかどうかを設定または取得します。
-        /// </summary>
+        
         public bool IsShiftJsonPosition { get; set; } = false;
-
-        /// <summary>
-        /// 取り除くべき既に書き込まれているJSONのサイズを負数ベースで返します。
-        /// </summary>
+  
 		private long LastPositionWithoutJson
 		{
 			get => lastPositionWithoutJson > 0 ? 0 : lastPositionWithoutJson;
@@ -46,11 +45,15 @@ namespace FileManagerLib.Dat
 		}
 
         /// <summary>
-        /// ハッシュ計算によるデータの整合性を確認するかどうかを設定あるいは取得します。
+		/// Set or get whether to check the consistency of data by hash calculation.
         /// </summary>
         public bool IsCheckHash { get; set; } = true;
         #endregion
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="T:FileManagerLib.Dat.DatFileManager"/> class.
+        /// </summary>
+        /// <param name="filePath">File path.</param>
         public DatFileManager(string filePath)
         {
 			FilePath = filePath;
@@ -58,11 +61,11 @@ namespace FileManagerLib.Dat
         }
 
         /// <summary>
-        /// 指定された位置からデータの長さを除いたデータをバイト配列で返します。
+		/// Returns the actual data excluding the data length from the specified position as a byte array.
         /// </summary>
-        /// <param name="start">データの開始位置を指定します。</param>
-        /// <param name="identifierLength">データの長さを格納するバイトサイズを指定します。</param>
-        /// <returns>実データのバイト配列</returns>
+		/// <param name="start">Start position of data.</param>
+		/// <param name="identifierLength">Byte size of the data length.</param>
+        /// <returns>Byte array of actual data.</returns>
 		public byte[] GetBytes(long start, int identifierLength = LEN)
 		{
 			byte[] data = null;
@@ -79,6 +82,13 @@ namespace FileManagerLib.Dat
 			return data;
 		}
         
+        /// <summary>
+		/// Reads the actual data little by little the data length from the specified position and executes the designated delegate every time it reads it.
+        /// </summary>
+        /// <param name="start">Start position.</param>
+		/// <param name="size">Threshold value for division and reading.</param>
+		/// <param name="action">Delegate for execution.</param>
+		/// <param name="identifierLength">Byte size of the data length.</param>
         public void ActionBytes(long start, int size, Action<byte[], int> action, int identifierLength = LEN)
         {
             if (fileStream != null)
@@ -103,10 +113,10 @@ namespace FileManagerLib.Dat
         }
 
         /// <summary>
-        /// 末尾から実データの長さを除いたデータをバイト配列で返します。
+		/// Returns the data excluding the actual data length from the end as a byte array.
         /// </summary>
-        /// <param name="identifierLength">データの長さを格納するバイトサイズ</param>
-        /// <returns>実データのバイト配列</returns>
+		/// <param name="identifierLength">Byte size of the data length.</param>
+        /// <returns>Byte array of actual data.</returns>
         public byte[] GetBytesFromEnd(int identifierLength = LEN)
 		{
 			byte[] data = null;
@@ -128,12 +138,12 @@ namespace FileManagerLib.Dat
 		}
 
         /// <summary>
-        /// 指定された位置からデータの長さを除いたデータの部分をバイト配列で返します。
+		/// Returns the part of the data from the specified position as a byte array.
         /// </summary>
-        /// <param name="start">データの開始位置を指定します。</param>
-        /// <param name="length">取得したいデータの長さを指定します。</param>
-        /// <param name="identifierLength">データの長さを格納するバイトサイズを指定します。</param>
-        /// <returns>実データの部分バイト配列</returns>
+        /// <param name="start">Start position.</param>
+		/// <param name="length">The length of the data.</param>
+		/// <param name="identifierLength">Byte size of the data length.</param>
+        /// <returns>Byte array of actual data.</returns>
         public (uint, byte[]) GetPartialBytes(long start, long length, int identifierLength = LEN)
         {
             uint len = 0;
@@ -150,6 +160,14 @@ namespace FileManagerLib.Dat
             return (len, data);
         }
         
+        /// <summary>
+        /// Write to the file system.
+        /// </summary>
+        /// <returns><c>true</c>, if to file was writed, <c>false</c> otherwise.</returns>
+        /// <param name="start">Start position.</param>
+        /// <param name="outFilePath">Output file path.</param>
+		/// <param name="expHash">Expected hash.</param>
+		/// <param name="identifierLength">Byte size of the data length.</param>
 		public bool WriteToFile(long start, string outFilePath, string expHash, int identifierLength = LEN)
 		{
             bool isOk = false;
@@ -197,10 +215,19 @@ namespace FileManagerLib.Dat
             return IsCheckHash ? isOk : true;
         }
 
+        /// <summary>
+        /// Releases all resource used by the <see cref="T:FileManagerLib.Dat.DatFileManager"/> object.
+        /// </summary>
+        /// <remarks>Call <see cref="Dispose"/> when you are finished using the
+        /// <see cref="T:FileManagerLib.Dat.DatFileManager"/>. The <see cref="Dispose"/> method leaves the
+        /// <see cref="T:FileManagerLib.Dat.DatFileManager"/> in an unusable state. After calling <see cref="Dispose"/>,
+        /// you must release all references to the <see cref="T:FileManagerLib.Dat.DatFileManager"/> so the garbage
+        /// collector can reclaim the memory that the <see cref="T:FileManagerLib.Dat.DatFileManager"/> was occupying.</remarks>
 		public void Dispose()
 		{
             fileStream.Dispose();
 		}
+
 
         public DatFileManager Rename(string suffix)
         {
@@ -222,6 +249,12 @@ namespace FileManagerLib.Dat
             //fileStream = new ClusterableFileStream(filenames[0], FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read);
         }
 
+        /// <summary>
+        /// Write the specified <paramref name="data"/>.
+        /// </summary>
+        /// <returns>The write.</returns>
+        /// <param name="data">Byte array of data.</param>
+		/// <param name="identifierLength">Byte size of the data length.</param>
         public long Write(byte[] data, int identifierLength = LEN)
         {
             var len = data.Length;
@@ -236,6 +269,13 @@ namespace FileManagerLib.Dat
             return pos;
         }
 
+        /// <summary>
+		/// Write to the specified stream with the writer delegate.
+        /// </summary>
+        /// <returns>Start position of writen data.</returns>
+        /// <param name="stream">Written stream.</param>
+        /// <param name="writeAction">Write action delegate.</param>
+		/// <param name="identifierLength">Byte size of the data length.</param>
 		public long Write(Stream stream, Action<IClusterableStream> writeAction, int identifierLength = LEN)
 		{
 			var len = stream.Length;
@@ -252,6 +292,12 @@ namespace FileManagerLib.Dat
             return pos;
 		}
 
+        /// <summary>
+        /// Writes to end.
+        /// </summary>
+        /// <returns>Start position.</returns>
+        /// <param name="data">Written data.</param>
+		/// <param name="identifierLength">Byte size of the data length.</param>
 		public long WriteToEnd(byte[] data, int identifierLength = LEN)
 		{
 			var len = data.LongLength;

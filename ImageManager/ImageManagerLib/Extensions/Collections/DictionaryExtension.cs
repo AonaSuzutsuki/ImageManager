@@ -4,17 +4,17 @@ using System.Collections.Generic;
 namespace FileManagerLib.Extensions.Collections
 {
     /// <summary>
-    /// Dictionary関連の拡張メソッドを提供します。
+	/// Provides <c>Dictionary</c> related extension methods.
     /// </summary>
 	public static class DictionaryExtension
     {
         /// <summary>
-        /// SortedDictionaryのValue値を配列に変換します。
+        /// Convert value of <c>SortedDictionary</c> to array.
         /// </summary>
-        /// <typeparam name="TKey">SortedDictionaryのキーの型</typeparam>
-        /// <typeparam name="TValue">SortedDictionaryの値の型</typeparam>
-        /// <param name="values">変換したいSortedDictionaryのValue</param>
-        /// <returns>変換された配列</returns>
+		/// <typeparam name="TKey">Type of <c>SortedDictionary</c> key</typeparam>
+		/// <typeparam name="TValue">Type of <c>SortedDictionary</c> value</typeparam>
+        /// <param name="values">Target SortedDictionary.Value</param>
+        /// <returns>Converted array.</returns>
 		public static TValue[] ToArray<TKey, TValue>(this SortedDictionary<TKey, TValue>.ValueCollection values)
 		{
 			var array = new TValue[values.Count];

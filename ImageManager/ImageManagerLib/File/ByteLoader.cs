@@ -8,15 +8,15 @@ using System.Threading.Tasks;
 namespace FileManagerLib.File
 {
     /// <summary>
-    /// バイト関連の読み込み機能を提供します。
+	/// Provides byte related reading function.
     /// </summary>
     public class ByteLoader
     {
         /// <summary>
-        /// ストリームから全てのバイト配列を読み込みます。
+		/// Read all byte array of <c>Stream</c>.
         /// </summary>
-        /// <param name="stream">読み込む対象のストリーム</param>
-        /// <returns>読み込んだバイト配列</returns>
+        /// <param name="stream">Target <c>Stream</c>.</param>
+        /// <returns>Read byte array.</returns>
 		public static byte[] FromStream(Stream stream)
         {
 			if (stream == null)

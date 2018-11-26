@@ -2,16 +2,16 @@
 namespace FileManagerLib.Extensions.Collections
 {
     /// <summary>
-    /// 配列関連の拡張メソッドを提供します。
+	/// Provides array related extension methods.
     /// </summary>
 	public static class ArrayExtension
 	{
         /// <summary>
-        /// 配列の各要素に対して、指定されたデリゲートの処理を実行します。
+		/// Performs the processing of the specified delegate for each element of the array.
         /// </summary>
-        /// <typeparam name="T">配列の総称型</typeparam>
-        /// <param name="array">対象の配列</param>
-        /// <param name="action">実行するデリゲート</param>
+        /// <typeparam name="T">Generics type of Array.</typeparam>
+        /// <param name="array">Target array.</param>
+		/// <param name="action">Delegate to execute.</param>
 		public static void ForEach<T>(this T[] array, Action<T> action)
 		{
 			foreach (var val in array)

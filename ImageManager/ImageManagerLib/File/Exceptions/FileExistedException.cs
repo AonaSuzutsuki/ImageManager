@@ -8,14 +8,14 @@ using System.Threading.Tasks;
 namespace FileManagerLib.File.Exceptions
 {
     /// <summary>
-    /// ファイルまたはディレクトリが存在する時に発生する例外です。
+	/// Exception raised when a file or directory exists.
     /// </summary>
     public class FileDirectoryExistedException : IOException
     {
         /// <summary>
-        /// 独自のメッセージを受けて例外を初期化します。
+        /// Initialize exception with original message.
         /// </summary>
-        /// <param name="message"></param>
+		/// <param name="message">Message to initialize.</param>
         public FileDirectoryExistedException(string message) : base(message) { }
     }
 }

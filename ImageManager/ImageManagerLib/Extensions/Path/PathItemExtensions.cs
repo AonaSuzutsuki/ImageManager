@@ -8,15 +8,15 @@ using System.Threading.Tasks;
 namespace FileManagerLib.Extensions.Path
 {
     /// <summary>
-    /// PathItemの拡張メソッドを提供します。
+	/// Provides <c>PathItem</c> related extension methods.
     /// </summary>
     public static class PathItemExtensions
     {
         /// <summary>
-        /// 文字列をファイル名と親ディレクトリに分解してタプルで返します。
+		/// It decomposes a character string into a file name and parent directory and returns it as a tuple.
         /// </summary>
-        /// <param name="fullPath">対象のパス文字列</param>
-        /// <returns>親ディレクトリのPathItemとファイル名文字列のタプル</returns>
+		/// <param name="fullPath">Target string of full path.</param>
+		/// <returns>Tuple of parent directory <c>PathItem</c> and file name string.</returns>
         public static (PathItem parent, string fileName) GetFilenameAndParent(this string fullPath)
         {
             var pathItem = PathSplitter.SplitPath(fullPath);

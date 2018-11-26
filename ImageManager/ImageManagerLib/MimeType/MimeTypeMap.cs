@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace FileManagerLib.MimeType
 {
     /// <summary>
-    /// MimeTypeの変換系を提供します。
+	/// Provides MimeType conversion system.
     /// </summary>
     public class MimeTypeMap
     {
@@ -599,10 +599,10 @@ namespace FileManagerLib.MimeType
         }
 
         /// <summary>
-        /// 拡張子からMimeTypeを判別します。
+		/// Determine the MimeType from the extension.
         /// </summary>
-        /// <param name="extension">対象の拡張子</param>
-        /// <returns>MimeType</returns>
+        /// <param name="extension">Target extension.</param>
+        /// <returns>MimeType.</returns>
         public static string GetMimeTypeFromExtension(string extension)
         {
             var table = InitializeTable();
@@ -613,10 +613,10 @@ namespace FileManagerLib.MimeType
         }
 
         /// <summary>
-        /// ファイルパスからMimeTypeを判別します。
+		/// Determine the MimeType from the filepath.
         /// </summary>
-        /// <param name="filepath">対象のファイルパス</param>
-        /// <returns>MimeType</returns>
+        /// <param name="filepath">Target file path.</param>
+        /// <returns>MimeType.</returns>
         public static string GetMimeType(string filepath)
         {
             var extension = System.IO.Path.GetExtension(filepath);
@@ -624,10 +624,10 @@ namespace FileManagerLib.MimeType
         }
 
         /// <summary>
-        /// MimeTypeが画像系かどうかを判定します。
+		/// Determine whether MimeType is an image system or not.
         /// </summary>
-        /// <param name="mimeType">MimeTypeの文字列</param>
-        /// <returns>画像系かどうか</returns>
+        /// <param name="mimeType">String of mime-type</param>
+		/// <returns>Whether it is an image or not</returns>
         public static bool IsImage(string mimeType)
         {
             var hashSet = InitializeHashSet();
