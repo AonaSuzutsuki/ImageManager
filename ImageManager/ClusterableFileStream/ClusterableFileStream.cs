@@ -113,7 +113,7 @@ namespace Clusterable.IO
             {
                 if (assemblyDirPath == null)
                     assemblyDirPath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
-                var absolutePath = CommonCoreLib.Path.PathConverter.ToAbsolutePath(path, () => assemblyDirPath);
+                var absolutePath = CommonCoreLib.CommonPath.PathConverter.ToAbsolutePath(path, () => assemblyDirPath);
                 var root = Path.GetDirectoryName(absolutePath);
                 var fname = Path.GetFileName(path).Replace(".", @"\.");
                 var files = Directory.GetFiles(root);
