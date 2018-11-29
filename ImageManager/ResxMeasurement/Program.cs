@@ -21,12 +21,12 @@ namespace ResxMeasurement
 
             //Console.WriteLine("Write.");
             long start = Environment.WorkingSet;
-            //var (times, memory) = program.WriteImageManagerMeasure();
-            //program.WriteTimes("ImageManagerMeasure", times);
-            //program.ShowMemories(start, memory);
-            var (times, memory) = program.WriteResXMeasure();
-            program.WriteTimes("ResXMeasure", times);
+            var (times, memory) = program.WriteImageManagerMeasure();
+            program.WriteTimes("ImageManagerMeasure", times);
             program.ShowMemories(start, memory);
+            var (times2, memory2) = program.WriteResXMeasure();
+            program.WriteTimes("ResXMeasure", times2);
+            program.ShowMemories(start, memory2);
 
 
             //Console.WriteLine("Read.");
@@ -78,7 +78,7 @@ namespace ResxMeasurement
 				File.Delete(fileName);
 
 			var manager = new ResXResourceWriter(fileName);
-            var files = Directory.GetFiles("TestData/Images");
+            var files = Directory.GetFiles("TestData/Zip");
             var timeList = new List<long>();
             var memory = new List<long>();
 
@@ -109,7 +109,7 @@ namespace ResxMeasurement
         public (long[], long[]) WriteImageManagerMeasure()
         {
             var manager = new FileManagerLib.File.Json.JsonFileManager("test.dat", true, true);
-            var files = Directory.GetFiles("TestData/Images");
+            var files = Directory.GetFiles("TestData/Zip");
             var timeList = new List<long>();
             var memory = new List<long>();
 
