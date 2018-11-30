@@ -12,20 +12,41 @@ using FileManagerLib.Path;
 
 namespace FileManagerLib.File.Json
 {
+	/// <summary>
+    /// Resource manager by JSON.
+    /// </summary>
 	public class JsonResourceManager : IDisposable
 	{
 
 		#region Constants
+        /// <summary>
+		/// The identifier length.
+        /// </summary>
 		protected const int LEN = 4;
+
+        /// <summary>
+		/// The identifier length of the json.
+        /// </summary>
 		protected const int JSON_LEN = 8;
 		#endregion
 
 		#region Fields
+        /// <summary>
+        /// The json structure manager.
+        /// </summary>
 		protected JsonStructureManager jsonStructureManager;
+        
+        /// <summary>
+        /// The dat file manager.
+        /// </summary>
 		protected DatFileManager fManager;
         #endregion
 
         #region Properties
+        /// <summary>
+        /// Gets the file path.
+        /// </summary>
+        /// <value>The file path.</value>
         public string FilePath
         {
             get;
@@ -33,11 +54,30 @@ namespace FileManagerLib.File.Json
         #endregion
 
         #region Events
+        /// <summary>
+        /// Read write progress event arguments.
+        /// </summary>
         public class ReadWriteProgressEventArgs : EventArgs
 		{
+			/// <summary>
+            /// Gets the completed number.
+            /// </summary>
+            /// <value>The completed number.</value>
 			public int CompletedNumber { get; }
+
+            /// <summary>
+            /// Gets the full number.
+            /// </summary>
+            /// <value>The full number.</value>
 			public int FullNumber { get; }
+
+            
 			public bool IsCompleted { get; }
+
+            /// <summary>
+            /// Gets the percentage.
+            /// </summary>
+            /// <value>The percentage.</value>
 			public double Percentage
 			{
 				get
@@ -47,8 +87,21 @@ namespace FileManagerLib.File.Json
 					return 0;
 				}
 			}
+
+            /// <summary>
+            /// Gets the current filepath.
+            /// </summary>
+            /// <value>The current filepath.</value>
 			public string CurrentFilepath { get; }
 
+            /// <summary>
+            /// Initializes a new instance of the
+            /// <see cref="T:FileManagerLib.File.Json.JsonResourceManager.ReadWriteProgressEventArgs"/> class.
+            /// </summary>
+            /// <param name="completedNumber">Completed number.</param>
+            /// <param name="fullNumber">Full number.</param>
+            /// <param name="currentFilePath">Current file path.</param>
+            /// <param name="isCompleted">If set to <c>true</c> is completed.</param>
 			public ReadWriteProgressEventArgs(int completedNumber, int fullNumber, string currentFilePath, bool isCompleted)
 			{
 				CompletedNumber = completedNumber;
@@ -57,12 +110,26 @@ namespace FileManagerLib.File.Json
 				IsCompleted = isCompleted;
 			}
 		}
+
+        /// <summary>
+        /// Read write progress event handler.
+        /// </summary>
 		public delegate void ReadWriteProgressEventHandler(object sender, ReadWriteProgressEventArgs eventArgs);
+
+        /// <summary>
+        /// Occurs when vacuum progress.
+        /// </summary>
 		public event ReadWriteProgressEventHandler VacuumProgress;
 		#endregion
 
 
-		protected JsonResourceManager(string filePath, bool newFile = false, bool isCheckHash = true)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="T:FileManagerLib.File.Json.JsonResourceManager"/> class.
+        /// </summary>
+        /// <param name="filePath">File path.</param>
+        /// <param name="newFile">If set to <c>true</c> new file.</param>
+        /// <param name="isCheckHash">If set to <c>true</c> is check hash.</param>
+		public JsonResourceManager(string filePath, bool newFile = false, bool isCheckHash = true)
         {
             if (newFile)
             {
@@ -77,7 +144,12 @@ namespace FileManagerLib.File.Json
             FilePath = filePath;
         }    
 
-
+        /// <summary>
+        /// Resolves the term parameters.
+        /// </summary>
+        /// <returns>The term parameters.</returns>
+        /// <param name="fileName">File name.</param>
+        /// <param name="parent">Parent.</param>
 		protected (int nextId, int parentId) ResolveTermParameters(string fileName, string parent)
 		{
 			var pathItem = PathSplitter.SplitPath(parent);
@@ -96,6 +168,10 @@ namespace FileManagerLib.File.Json
 		}
 
         #region Directory
+        /// <summary>
+        /// Creates the directory.
+        /// </summary>
+        /// <param name="fullPath">Full path.</param>
         public void CreateDirectory(string fullPath)
 		{
 			var (parent, dirName) = fullPath.GetFilenameAndParent();
@@ -119,6 +195,10 @@ namespace FileManagerLib.File.Json
 			//return (true, parent.ToString());
 		}
 
+        /// <summary>
+        /// Deletes the directory.
+        /// </summary>
+        /// <param name="fullPath">Full path.</param>
 		public void DeleteDirectory(string fullPath)
 		{
 			var (parent, dirName) = fullPath.GetFilenameAndParent();
@@ -129,11 +209,20 @@ namespace FileManagerLib.File.Json
 			jsonStructureManager.DeleteDirectory(dirId);
 		}
 
+        /// <summary>
+        /// Deletes the directory.
+        /// </summary>
+        /// <param name="id">Identifier.</param>
 		public void DeleteDirectory(int id)
 		{
 			jsonStructureManager.DeleteDirectory(id);
 		}
 
+        /// <summary>
+        /// Exists the directory.
+        /// </summary>
+        /// <returns><c>true</c>, if directory was existed, <c>false</c> otherwise.</returns>
+        /// <param name="fullPath">Full path.</param>
         public bool ExistDirectory(string fullPath)
         {
             var (parent, fileName) = fullPath.GetFilenameAndParent();
@@ -141,6 +230,12 @@ namespace FileManagerLib.File.Json
             return jsonStructureManager.ExistedDirectory(rootId, fileName);
         }
 
+        /// <summary>
+        /// Gets the directory identifier.
+        /// </summary>
+        /// <returns>The directory identifier.</returns>
+        /// <param name="dirName">Dir name.</param>
+        /// <param name="rootId">Root identifier.</param>
         public int GetDirectoryId(string dirName, int rootId)
         {
             if (string.IsNullOrEmpty(dirName) && rootId == 0)
@@ -164,6 +259,12 @@ namespace FileManagerLib.File.Json
 
             return dirId;
         }
+
+        /// <summary>
+        /// Gets the directory identifier.
+        /// </summary>
+        /// <returns>The directory identifier.</returns>
+        /// <param name="pathItem">Path item.</param>
         public int GetDirectoryId(PathItem pathItem)
         {
             int dirId = 0;
@@ -173,11 +274,22 @@ namespace FileManagerLib.File.Json
             return dirId;
         }
 
+        /// <summary>
+        /// Gets the directories.
+        /// </summary>
+        /// <returns>The directories.</returns>
+        /// <param name="dirId">Dir identifier.</param>
         public DirectoryStructure[] GetDirectories(int dirId)
         {
             var dirs = jsonStructureManager.GetDirectoryStructuresFromParent(dirId);
             return dirs;
         }
+
+        /// <summary>
+        /// Gets the directories.
+        /// </summary>
+        /// <returns>The directories.</returns>
+        /// <param name="fullPath">Full path.</param>
         public DirectoryStructure[] GetDirectories(string fullPath)
         {
             var (parent, dirName) = fullPath.GetFilenameAndParent();
@@ -190,6 +302,10 @@ namespace FileManagerLib.File.Json
         #endregion
 
         #region File
+        /// <summary>
+        /// Deletes the resource.
+        /// </summary>
+        /// <param name="fullPath">Full path.</param>
         public void DeleteResource(string fullPath)
 		{
             var (parent, fileName) = fullPath.GetFilenameAndParent();
@@ -198,11 +314,21 @@ namespace FileManagerLib.File.Json
 
             jsonStructureManager.DeleteFile(fileStructure.Id);
         }
+
+        /// <summary>
+        /// Deletes the resource.
+        /// </summary>
+        /// <param name="id">Identifier.</param>
 		public void DeleteResource(int id)
 		{
             jsonStructureManager.DeleteFile(id);
 		}
 
+        /// <summary>
+        /// Exists the resource.
+        /// </summary>
+        /// <returns><c>true</c>, if resource was existed, <c>false</c> otherwise.</returns>
+        /// <param name="fullPath">Full path.</param>
         public bool ExistResource(string fullPath)
         {
             var (parent, fileName) = fullPath.GetFilenameAndParent();
@@ -210,6 +336,11 @@ namespace FileManagerLib.File.Json
             return jsonStructureManager.ExistedFile(rootId, fileName);
         }
 
+        /// <summary>
+        /// Gets the resources.
+        /// </summary>
+        /// <returns>The resources.</returns>
+        /// <param name="fullPath">Full path.</param>
         public FileStructure[] GetResources(string fullPath)
         {
             var (parent, dirName) = fullPath.GetFilenameAndParent();
@@ -219,6 +350,12 @@ namespace FileManagerLib.File.Json
 
             return jsonStructureManager.GetFileStructuresFromParent(dirId);
         }
+
+        /// <summary>
+        /// Gets the resources.
+        /// </summary>
+        /// <returns>The resources.</returns>
+        /// <param name="dirId">Dir identifier.</param>
         public FileStructure[] GetResources(int dirId)
         {
             var files = jsonStructureManager.GetFileStructuresFromParent(dirId);
@@ -227,6 +364,11 @@ namespace FileManagerLib.File.Json
         #endregion
         
         #region Byte Read
+        /// <summary>
+        /// Gets the bytes.
+        /// </summary>
+        /// <returns>The bytes.</returns>
+        /// <param name="fullPath">Full path.</param>
         public byte[] GetBytes(string fullPath)
         {
             var (parent, fileName) = fullPath.GetFilenameAndParent();
@@ -239,6 +381,12 @@ namespace FileManagerLib.File.Json
             return null;
         }
 
+        /// <summary>
+		/// Reads the actual data little by little the data and executes the designated delegate every time it reads it.
+        /// </summary>
+        /// <param name="fullPath">Full path.</param>
+        /// <param name="size">Size.</param>
+        /// <param name="action">Action.</param>
         public void ActionBytes(string fullPath, int size, Action<byte[], int> action)
         {
             var (parent, fileName) = fullPath.GetFilenameAndParent();
@@ -250,6 +398,11 @@ namespace FileManagerLib.File.Json
             }
         }
 
+        /// <summary>
+        /// Gets the bytes.
+        /// </summary>
+        /// <returns>The bytes.</returns>
+        /// <param name="id">Identifier.</param>
         public byte[] GetBytes(int id)
         {
             if (jsonStructureManager.ExistedFile(id))
@@ -260,6 +413,11 @@ namespace FileManagerLib.File.Json
             return null;
         }
 
+        /// <summary>
+        /// Gets the string.
+        /// </summary>
+        /// <returns>The string.</returns>
+        /// <param name="fullPath">Full path.</param>
         public string GetString(string fullPath)
         {
             var bytes = GetBytes(fullPath);
@@ -268,6 +426,11 @@ namespace FileManagerLib.File.Json
         #endregion
 
         #region Byte Write
+        /// <summary>
+        /// Writes the bytes without exception.
+        /// </summary>
+        /// <param name="fullPath">Full path.</param>
+        /// <param name="bytes">Bytes.</param>
         public void WriteBytesWithoutException(string fullPath, byte[] bytes)
         {
             var (parent, fileName) = fullPath.GetFilenameAndParent();
@@ -282,6 +445,11 @@ namespace FileManagerLib.File.Json
             }
         }
 
+        /// <summary>
+        /// Writes the bytes.
+        /// </summary>
+        /// <param name="fullPath">Full path.</param>
+        /// <param name="data">Data.</param>
         public void WriteBytes(string fullPath, byte[] data)
         {
             var (parent, fileName) = fullPath.GetFilenameAndParent();
@@ -296,6 +464,14 @@ namespace FileManagerLib.File.Json
             //}
         }
 
+        /// <summary>
+        /// Writes the bytes.
+        /// </summary>
+        /// <param name="fileName">File name.</param>
+        /// <param name="parent">Parent.</param>
+        /// <param name="data">Data.</param>
+        /// <param name="hash">Hash.</param>
+        /// <param name="options">Options.</param>
         public void WriteBytes(string fileName, string parent, byte[] data, string hash, Dictionary<string, string> options = null)
         {
             var (nextId, rootId) = ResolveTermParameters(fileName, parent);
@@ -306,6 +482,14 @@ namespace FileManagerLib.File.Json
             }
         }
 
+        /// <summary>
+        /// Writes the bytes.
+        /// </summary>
+        /// <param name="fileName">File name.</param>
+        /// <param name="parent">Parent.</param>
+        /// <param name="hash">Hash.</param>
+        /// <param name="func">Func.</param>
+        /// <param name="options">Options.</param>
         public void WriteBytes(string fileName, string parent, string hash, Func<long> func, Dictionary<string, string> options = null)
         {
             var (nextId, rootId) = ResolveTermParameters(fileName, parent);
@@ -316,7 +500,11 @@ namespace FileManagerLib.File.Json
             }
         }
 
-
+        /// <summary>
+        /// Writes the string.
+        /// </summary>
+        /// <param name="fullPath">Full path.</param>
+        /// <param name="text">Text.</param>
         public void WriteString(string fullPath, string text)
         {
             var bytes = Encoding.UTF8.GetBytes(text);
@@ -325,6 +513,12 @@ namespace FileManagerLib.File.Json
         #endregion
 
         #region Trace
+        /// <summary>
+        /// Gets the directory path.
+        /// </summary>
+        /// <returns>The directory path.</returns>
+        /// <param name="jsonStructureManager">Json structure manager.</param>
+        /// <param name="id">Identifier.</param>
         public static string GetDirectoryPath(JsonStructureManager jsonStructureManager, int id)
 		{
 			var pathList = new List<string>();
@@ -354,6 +548,13 @@ namespace FileManagerLib.File.Json
 				return "/";
 			}
 		}
+
+        /// <summary>
+        /// Gets the file path.
+        /// </summary>
+        /// <returns>The file path.</returns>
+        /// <param name="jsonStructureManager">Json structure manager.</param>
+        /// <param name="id">Identifier.</param>
 		public static string GetFilePath(JsonStructureManager jsonStructureManager, int id)
 		{
 			var file = jsonStructureManager.GetFileStructure(id);
@@ -366,6 +567,10 @@ namespace FileManagerLib.File.Json
 			return "/{0}".FormatString(fileName);
 		}
 
+        /// <summary>
+        /// Traces the dirs.
+        /// </summary>
+        /// <returns>The dirs.</returns>
 		public string TraceDirs()
 		{
 			var dArray = jsonStructureManager.GetDirectoryStructures();
@@ -388,6 +593,10 @@ namespace FileManagerLib.File.Json
 			return sb.ToString();
 		}
 
+        /// <summary>
+        /// Traces the files.
+        /// </summary>
+        /// <returns>The files.</returns>
 		public string TraceFiles()
 		{
 			var fArray = jsonStructureManager.GetFileStructures();
@@ -428,6 +637,10 @@ namespace FileManagerLib.File.Json
 			return sb.ToString();
 		}
 
+        /// <summary>
+        /// Returns a <see cref="T:System.String"/> that represents the current <see cref="T:FileManagerLib.File.Json.JsonResourceManager"/>.
+        /// </summary>
+        /// <returns>A <see cref="T:System.String"/> that represents the current <see cref="T:FileManagerLib.File.Json.JsonResourceManager"/>.</returns>
 		public override string ToString()
 		{
 			var sb = new StringBuilder();
@@ -440,6 +653,9 @@ namespace FileManagerLib.File.Json
 
 
 		#region Vacuum
+        /// <summary>
+        /// Datas the vacuum.
+        /// </summary>
 		public void DataVacuum()
 		{
 			DatFileManager makeDatFileManager(string f) => new DatFileManager(f) { IsCheckHash = fManager.IsCheckHash };
@@ -459,6 +675,9 @@ namespace FileManagerLib.File.Json
 		#endregion
 
 		#region Save
+        /// <summary>
+        /// Save this instance.
+        /// </summary>
 		public void Save()
 		{
 			if (jsonStructureManager != null && jsonStructureManager.IsChenged)
@@ -467,6 +686,15 @@ namespace FileManagerLib.File.Json
 		#endregion
 
 		#region Dispose
+        /// <summary>
+        /// Releases all resource used by the <see cref="T:FileManagerLib.File.Json.JsonResourceManager"/> object.
+        /// </summary>
+        /// <remarks>Call <see cref="Dispose"/> when you are finished using the
+        /// <see cref="T:FileManagerLib.File.Json.JsonResourceManager"/>. The <see cref="Dispose"/> method leaves the
+        /// <see cref="T:FileManagerLib.File.Json.JsonResourceManager"/> in an unusable state. After calling
+        /// <see cref="Dispose"/>, you must release all references to the
+        /// <see cref="T:FileManagerLib.File.Json.JsonResourceManager"/> so the garbage collector can reclaim the memory
+        /// that the <see cref="T:FileManagerLib.File.Json.JsonResourceManager"/> was occupying.</remarks>
 		public void Dispose()
         {
 			Save();

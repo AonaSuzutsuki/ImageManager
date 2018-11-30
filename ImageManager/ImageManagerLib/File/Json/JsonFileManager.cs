@@ -11,6 +11,9 @@ using FileManagerLib.Path;
 
 namespace FileManagerLib.File.Json
 {
+	/// <summary>
+    /// Json file manager.
+    /// </summary>
 	public class JsonFileManager : JsonResourceManager
     {
 
@@ -20,17 +23,37 @@ namespace FileManagerLib.File.Json
 		#region Fields
 		#endregion
 
-		#region Events      
+		#region Events
+        /// <summary>
+        /// Occurs when write to files progress.
+        /// </summary>
         public event ReadWriteProgressEventHandler WriteToFilesProgress;
+
+        /// <summary>
+        /// Occurs when write into resource progress.
+        /// </summary>
         public event ReadWriteProgressEventHandler WriteIntoResourceProgress;
 		#endregion
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="T:FileManagerLib.File.Json.JsonFileManager"/> class.
+        /// </summary>
+        /// <param name="filePath">File path.</param>
+        /// <param name="newFile">If set to <c>true</c> new file.</param>
+        /// <param name="isCheckHash">If set to <c>true</c> checking hash.</param>
 		public JsonFileManager(string filePath, bool newFile = false, bool isCheckHash = true) : base(filePath, newFile, isCheckHash)
 		{
 		}
 
 
         #region File
+        /// <summary>
+        /// Creates the file.
+        /// </summary>
+        /// <param name="fileName">File name.</param>
+        /// <param name="parent">Parent.</param>
+        /// <param name="inFilePath">In file path.</param>
+        /// <param name="action">Action.</param>
         public void CreateFile(string fileName, string parent, string inFilePath, Action<string> action = null)
 		{
 			if (!System.IO.File.Exists(inFilePath))
@@ -79,12 +102,22 @@ namespace FileManagerLib.File.Json
             }         
 		}
 
+        /// <summary>
+        /// Creates the file.
+        /// </summary>
+        /// <param name="fullPath">Full path.</param>
+        /// <param name="inFilePath">In file path.</param>
 		public void CreateFile(string fullPath, string inFilePath)
 		{
 			var (parent, fileName) = fullPath.GetFilenameAndParent();
 			CreateFile(fileName, parent.ToString(), inFilePath);
 		}
 
+        /// <summary>
+        /// Creates the files.
+        /// </summary>
+        /// <param name="parent">Parent.</param>
+        /// <param name="filePaths">File paths.</param>
         public void CreateFiles(string parent, string[] filePaths)
         {
             foreach (var tuple in filePaths.Select((v, i) => new { v, i }))
@@ -99,6 +132,12 @@ namespace FileManagerLib.File.Json
             }
         }
 
+        /// <summary>
+        /// Creates the files.
+        /// </summary>
+        /// <param name="parent">Parent.</param>
+        /// <param name="dirPath">Dir path.</param>
+        /// <param name="action">Action.</param>
         public void CreateFiles(string parent, string dirPath, Action<int, string, bool> action = null)
 		{
 			var filePathArray = DirectorySearcher.GetAllFiles(dirPath);
@@ -122,6 +161,11 @@ namespace FileManagerLib.File.Json
             }
 		}
 
+        /// <summary>
+        /// Creates the files on directories.
+        /// </summary>
+        /// <param name="fullPath">Full path.</param>
+        /// <param name="inDirPaths">In dir paths.</param>
         public void CreateFilesOnDirectories(string fullPath, string[] inDirPaths)
         {
             var count = DirectorySearcher.CountFiles(inDirPaths);
@@ -140,24 +184,49 @@ namespace FileManagerLib.File.Json
             }
         }
 
+        /// <summary>
+        /// Deletes the file.
+        /// </summary>
+        /// <param name="fullPath">Full path.</param>
         public void DeleteFile(string fullPath)
         {
             base.DeleteResource(fullPath);
         }
+
+        /// <summary>
+        /// Deletes the file.
+        /// </summary>
+        /// <param name="id">Identifier.</param>
         public void DeleteFile(int id)
         {
             base.DeleteResource(id);
         }
 
+        /// <summary>
+        /// Exists the file.
+        /// </summary>
+        /// <returns><c>true</c>, if file was existed, <c>false</c> otherwise.</returns>
+        /// <param name="fullPath">Full path.</param>
         public bool ExistFile(string fullPath)
         {
             return base.ExistResource(fullPath);
         }
 
+        /// <summary>
+        /// Gets the files.
+        /// </summary>
+        /// <returns>The files.</returns>
+        /// <param name="fullPath">Full path.</param>
         public FileStructure[] GetFiles(string fullPath)
         {
             return base.GetResources(fullPath);
         }
+
+        /// <summary>
+        /// Gets the files.
+        /// </summary>
+        /// <returns>The files.</returns>
+        /// <param name="dirId">Dir identifier.</param>
         public FileStructure[] GetFiles(int dirId)
         {
             return base.GetResources(dirId);
@@ -188,6 +257,13 @@ namespace FileManagerLib.File.Json
 		}
 
 		#region File Writer
+        /// <summary>
+        /// Writes to file on file system.
+        /// </summary>
+        /// <returns><c>true</c>, if to file was writed, <c>false</c> otherwise.</returns>
+        /// <param name="filePath">File path.</param>
+        /// <param name="outFilePath">Out file path.</param>
+        /// <param name="action">Action.</param>
 		public bool WriteToFile(string filePath, string outFilePath, Action<string, bool> action = null)
 		{
             var (parent, fileName) = filePath.GetFilenameAndParent();
@@ -202,6 +278,12 @@ namespace FileManagerLib.File.Json
             return isComp;
         }
 
+        /// <summary>
+        /// Writes to dir on file system.
+        /// </summary>
+        /// <param name="filePath">File path.</param>
+        /// <param name="outFilePath">Out file path.</param>
+        /// <param name="action">Action.</param>
 		public void WriteToDir(string filePath, string outFilePath, Action<string, bool> action = null)
         {
             var (parent, fileName) = filePath.GetFilenameAndParent();
@@ -244,18 +326,35 @@ namespace FileManagerLib.File.Json
             }
         }
         
+        /// <summary>
+        /// Writes to file.
+        /// </summary>
+        /// <returns><c>true</c>, if to file was writed, <c>false</c> otherwise.</returns>
+        /// <param name="id">Identifier.</param>
+        /// <param name="outFilePath">Out file path.</param>
 		public bool WriteToFile(int id, string outFilePath)
 		{
             var filepath = GetFilePath(jsonStructureManager, id);
             return WriteToFile(filepath, outFilePath);
         }
 
+        /// <summary>
+        /// Writes to dir.
+        /// </summary>
+        /// <param name="id">Identifier.</param>
+        /// <param name="outFilePath">Out file path.</param>
 		public void WriteToDir(int id, string outFilePath)
         {
             var filepath = GetDirectoryPath(jsonStructureManager, id);
 			WriteToDir(filepath, outFilePath);
         }
 
+        /// <summary>
+        /// Writes to file.
+        /// </summary>
+        /// <returns><c>true</c>, if to file was writed, <c>false</c> otherwise.</returns>
+        /// <param name="structure">Structure.</param>
+        /// <param name="outFilePath">Out file path.</param>
         public bool WriteToFile(FileStructure structure, string outFilePath)
         {
             if (structure != null)
@@ -267,6 +366,12 @@ namespace FileManagerLib.File.Json
         }
         #endregion
 
+
+        /// <summary>
+        /// Gets all files count.
+        /// </summary>
+        /// <returns>The all files count.</returns>
+        /// <param name="dirPath">Dir path.</param>
         public int GetAllFilesCount(string dirPath)
         {
             var (parent, fileName) = dirPath.GetFilenameAndParent();
@@ -280,9 +385,13 @@ namespace FileManagerLib.File.Json
             return 0;
         }
         
+        /// <summary>
+        /// Returns a <see cref="T:System.String"/> that represents the current <see cref="T:FileManagerLib.File.Json.JsonFileManager"/>.
+        /// </summary>
+        /// <returns>A <see cref="T:System.String"/> that represents the current <see cref="T:FileManagerLib.File.Json.JsonFileManager"/>.</returns>
         public override string ToString()
 		{
 			return base.ToString();
-		}      
+		}    
 	}
 }

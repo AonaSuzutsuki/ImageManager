@@ -11,31 +11,56 @@ using Newtonsoft.Json;
 
 namespace FileManagerLib.File.Json
 {
+	/// <summary>
+    /// Structure manager for JSON.
+    /// </summary>
 	public class JsonStructureManager
 	{
 		private readonly SortedDictionary<int, DirectoryStructure> directories = new SortedDictionary<int, DirectoryStructure>();
 		private readonly SortedDictionary<int, FileStructure> files = new SortedDictionary<int, FileStructure>();
 
+        /// <summary>
+        /// Gets the next directory identifier.
+        /// </summary>
+        /// <value>The next directory identifier.</value>
 		public int NextDirectoryId
 		{
 			get;
 			private set;
 		}
 
+        /// <summary>
+        /// Gets the next file identifier.
+        /// </summary>
+        /// <value>The next file identifier.</value>
 		public int NextFileId
 		{
 			get;
 			private set;
 		}
 
+        /// <summary>
+        /// Gets a value indicating whether this <see cref="T:FileManagerLib.File.Json.JsonStructureManager"/> is chenged.
+        /// </summary>
+        /// <value><c>true</c> if is chenged; otherwise, <c>false</c>.</value>
 		public bool IsChenged
 		{
 			get;
 			private set;
 		}
 
+        /// <summary>
+        /// Gets a value indicating whether this <see cref="T:FileManagerLib.File.Json.JsonStructureManager"/> is check hash.
+        /// </summary>
+        /// <value><c>true</c> if is check hash; otherwise, <c>false</c>.</value>
         public bool IsCheckHash { get; }
 
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="T:FileManagerLib.File.Json.JsonStructureManager"/> class.
+        /// </summary>
+        /// <param name="text">Text.</param>
+        /// <param name="isCheckhHash">If set to <c>true</c> is checkh hash.</param>
 		public JsonStructureManager(string text, bool isCheckhHash)
 		{
 			var table = JsonConvert.DeserializeObject<TableStructure>(text);
@@ -51,6 +76,10 @@ namespace FileManagerLib.File.Json
 
 
 		#region Directory
+        /// <summary>
+        /// Creates the directory.
+        /// </summary>
+        /// <param name="directoryStructure">Directory structure.</param>
 		public void CreateDirectory(DirectoryStructure directoryStructure)
 		{
 			directories.Add(directoryStructure.Id, directoryStructure);
@@ -58,6 +87,12 @@ namespace FileManagerLib.File.Json
 			IsChenged = true;
 		}
 
+        /// <summary>
+        /// Creates the directory.
+        /// </summary>
+        /// <param name="id">Identifier.</param>
+        /// <param name="parent">Parent.</param>
+        /// <param name="name">Name.</param>
 		public void CreateDirectory(int id, int parent, string name)
 		{
 			var directoryStructure = new DirectoryStructure
@@ -69,6 +104,11 @@ namespace FileManagerLib.File.Json
 			CreateDirectory(directoryStructure);
 		}
 
+        /// <summary>
+        /// Gets the directory structure.
+        /// </summary>
+        /// <returns>The directory structure.</returns>
+        /// <param name="id">Identifier.</param>
 		public DirectoryStructure GetDirectoryStructure(int id)
 		{
 			if (directories.ContainsKey(id))
@@ -85,6 +125,11 @@ namespace FileManagerLib.File.Json
 			return dList.ToArray();
 		}
 
+        /// <summary>
+        /// Gets the directory all structures from parent.
+        /// </summary>
+        /// <returns>The directory all structures from parent.</returns>
+        /// <param name="parentId">Parent identifier.</param>
         public DirectoryStructure[] GetDirectoryAllStructuresFromParent(int parentId)
         {
             var dirs = GetDirectoryStructuresFromParent(parentId);
@@ -97,12 +142,21 @@ namespace FileManagerLib.File.Json
             return dList.ToArray();
         }
 
+        /// <summary>
+        /// Gets the directory structures.
+        /// </summary>
+        /// <returns>The directory structures.</returns>
         public DirectoryStructure[] GetDirectoryStructures()
 		{
 			var array = directories.Values.ToArray();
 			return array;
 		}
 
+        /// <summary>
+        /// Changes the directory.
+        /// </summary>
+        /// <param name="id">Identifier.</param>
+        /// <param name="directoryStructure">Directory structure.</param>
 		public void ChangeDirectory(int id, DirectoryStructure directoryStructure)
 		{
 			if (GetDirectoryStructure(id) == null)
@@ -112,6 +166,10 @@ namespace FileManagerLib.File.Json
             IsChenged = true;
 		}
 
+        /// <summary>
+        /// Deletes the directory.
+        /// </summary>
+        /// <param name="id">Identifier.</param>
         public void DeleteDirectory(int id)
 		{
 			var dirs = GetDirectoryStructuresFromParent(id);
@@ -125,6 +183,10 @@ namespace FileManagerLib.File.Json
             IsChenged = true;
 		}
 
+        /// <summary>
+        /// Deletes the directory from parent.
+        /// </summary>
+        /// <param name="parentId">Parent identifier.</param>
 		public void DeleteDirectoryFromParent(int parentId)
 		{
 			var removeList = new List<DirectoryStructure>(directories.Values);
@@ -143,6 +205,12 @@ namespace FileManagerLib.File.Json
 			}
 		}
 
+        /// <summary>
+        /// Existeds the directory.
+        /// </summary>
+        /// <returns><c>true</c>, if directory was existeded, <c>false</c> otherwise.</returns>
+        /// <param name="parentId">Parent identifier.</param>
+        /// <param name="name">Name.</param>
         public bool ExistedDirectory(int parentId, string name)
         {
             if (parentId == 0 && name.Equals(""))
@@ -160,6 +228,10 @@ namespace FileManagerLib.File.Json
 
 
 		#region File
+        /// <summary>
+        /// Creates the file.
+        /// </summary>
+        /// <param name="fileStructure">File structure.</param>
 		public void CreateFile(FileStructure fileStructure)
 		{
 			files.Add(fileStructure.Id, fileStructure);
@@ -167,6 +239,15 @@ namespace FileManagerLib.File.Json
             IsChenged = true;
 		}
 
+        /// <summary>
+        /// Creates the file.
+        /// </summary>
+        /// <param name="id">Identifier.</param>
+        /// <param name="parent">Parent.</param>
+        /// <param name="name">Name.</param>
+        /// <param name="location">Location.</param>
+        /// <param name="hash">Hash.</param>
+        /// <param name="additionals">Additionals.</param>
 		public void CreateFile(int id, int parent, string name, long location, string hash, Dictionary<string, string> additionals = null)
 		{
 			var fileStructure = new FileStructure
@@ -190,6 +271,11 @@ namespace FileManagerLib.File.Json
             CreateFile(fileStructure);
 		}
 
+        /// <summary>
+        /// Gets the file structure.
+        /// </summary>
+        /// <returns>The file structure.</returns>
+        /// <param name="id">Identifier.</param>
 		public FileStructure GetFileStructure(int id)
 		{
 			if (files.ContainsKey(id))
@@ -197,12 +283,22 @@ namespace FileManagerLib.File.Json
 			return null;
 		}
 
+        /// <summary>
+        /// Gets the file structures.
+        /// </summary>
+        /// <returns>The file structures.</returns>
 		public FileStructure[] GetFileStructures()
         {
             var array = files.Values.ToArray();
             return array;
         }
 
+        /// <summary>
+        /// Gets the file structure from parent.
+        /// </summary>
+        /// <returns>The file structure from parent.</returns>
+        /// <param name="parentId">Parent identifier.</param>
+        /// <param name="name">Name.</param>
 		public FileStructure GetFileStructureFromParent(int parentId, string name)
 		{
 			foreach (var file in files.Values)
@@ -215,6 +311,11 @@ namespace FileManagerLib.File.Json
 			return null;
 		}
 
+        /// <summary>
+        /// Gets the file structures from parent.
+        /// </summary>
+        /// <returns>The file structures from parent.</returns>
+        /// <param name="parentId">Parent identifier.</param>
         public FileStructure[] GetFileStructuresFromParent(int parentId)
         {
             var list = new List<FileStructure>();
@@ -228,6 +329,11 @@ namespace FileManagerLib.File.Json
             return list.ToArray();
         }
 
+        /// <summary>
+        /// Gets the file all structures from parent.
+        /// </summary>
+        /// <returns>The file all structures from parent.</returns>
+        /// <param name="parentId">Parent identifier.</param>
         public FileStructure[] GetFileAllStructuresFromParent(int parentId)
         {
             var files = GetFileStructuresFromParent(parentId);
@@ -241,6 +347,11 @@ namespace FileManagerLib.File.Json
             return dList.ToArray();
         }
 
+        /// <summary>
+        /// Changes the file.
+        /// </summary>
+        /// <param name="id">Identifier.</param>
+        /// <param name="fileStructure">File structure.</param>
         public void ChangeFile(int id, FileStructure fileStructure)
 		{
 			if (GetFileStructure(id) == null)
@@ -250,12 +361,20 @@ namespace FileManagerLib.File.Json
             IsChenged = true;
 		}
 
+        /// <summary>
+        /// Deletes the file.
+        /// </summary>
+        /// <param name="id">Identifier.</param>
         public void DeleteFile(int id)
 		{
 			files.Remove(id);
             IsChenged = true;
 		}
 
+        /// <summary>
+        /// Deletes the file from parent.
+        /// </summary>
+        /// <param name="parentId">Parent identifier.</param>
 		public void DeleteFileFromParent(int parentId)
 		{
 			var removeList = new List<FileStructure>(files.Values);
@@ -272,6 +391,12 @@ namespace FileManagerLib.File.Json
             }
 		}
 
+        /// <summary>
+        /// Existeds the file.
+        /// </summary>
+        /// <returns><c>true</c>, if file was existeded, <c>false</c> otherwise.</returns>
+        /// <param name="parentId">Parent identifier.</param>
+        /// <param name="name">Name.</param>
         public bool ExistedFile(int parentId, string name)
         {
 			foreach (var file in GetFileStructuresFromParent(parentId))
@@ -282,6 +407,11 @@ namespace FileManagerLib.File.Json
             return false;
         }
 
+        /// <summary>
+        /// Existeds the file.
+        /// </summary>
+        /// <returns><c>true</c>, if file was existeded, <c>false</c> otherwise.</returns>
+        /// <param name="id">Identifier.</param>
         public bool ExistedFile(int id)
         {
             return files.ContainsKey(id);
@@ -289,6 +419,13 @@ namespace FileManagerLib.File.Json
         #endregion
 
         #region Vacuum
+        /// <summary>
+        /// Vacuum the specified srcfileManager, destfileManager, identifierLength and action.
+        /// </summary>
+        /// <param name="srcfileManager">Srcfile manager.</param>
+        /// <param name="destfileManager">Destfile manager.</param>
+        /// <param name="identifierLength">Identifier length.</param>
+        /// <param name="action">Action.</param>
         public void Vacuum(DatFileManager srcfileManager, DatFileManager destfileManager, int identifierLength, Action<int, int, string> action)
         {
             var files = GetFileStructures();
@@ -315,6 +452,10 @@ namespace FileManagerLib.File.Json
 
 
         #region Common
+        /// <summary>
+        /// Returns a <see cref="T:System.String"/> that represents the current <see cref="T:FileManagerLib.File.Json.JsonStructureManager"/>.
+        /// </summary>
+        /// <returns>A <see cref="T:System.String"/> that represents the current <see cref="T:FileManagerLib.File.Json.JsonStructureManager"/>.</returns>
         public override string ToString()
 		{
 			var tableStructure = new TableStructure
@@ -327,6 +468,10 @@ namespace FileManagerLib.File.Json
 			return json;
 		}
 
+        /// <summary>
+        /// Writes to file.
+        /// </summary>
+        /// <param name="filePath">File path.</param>
 		public void WriteToFile(string filePath)
 		{
 			using (var fs = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None))
@@ -335,7 +480,11 @@ namespace FileManagerLib.File.Json
 		}
 		#endregion
 
-        
+        /// <summary>
+        /// Writes the json.
+        /// </summary>
+        /// <param name="fileManager">File manager.</param>
+        /// <param name="len">Length.</param>
 		public void WriteJson(DatFileManager fileManager, int len)
 		{
 			var json = ToString();

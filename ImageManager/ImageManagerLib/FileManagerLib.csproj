@@ -111,7 +111,7 @@
     <Compile Include="File\Json\Structures.cs" />
     <Compile Include="Extensions\Collections\DictionaryExtension.cs" />
     <Compile Include="Extensions\Collections\ArrayExtension.cs" />
-    <Compile Include="File\Json\AbstractJsonResourceManager.cs" />
+    <Compile Include="File\Json\JsonResourceManager.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
