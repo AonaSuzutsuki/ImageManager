@@ -97,37 +97,37 @@ namespace ImageManagerCUI
 	{
 		JsonFileManager fileManager;
 
-		private Dictionary<string, Tuple<Action<CmdParser>, string>> actionMap;
-		private Dictionary<string, Tuple<Func<CmdParser, bool>, string>> funcMap;
+		private Dictionary<string, Tuple<Action<CmdParser>, string, string>> actionMap;
+		private Dictionary<string, Tuple<Func<CmdParser, bool>, string, string>> funcMap;
 
 		public JsonProgram()
 		{
-			funcMap = new Dictionary<string, Tuple<Func<CmdParser, bool>, string>>()
+			funcMap = new Dictionary<string, Tuple<Func<CmdParser, bool>, string, string>>()
 			{
-				{ "exit", new Tuple<Func<CmdParser, bool>, string>((parser) => {
+				{ "exit", new Tuple<Func<CmdParser, bool>, string, string>((parser) => {
 					fileManager?.Dispose();
 					return false;
-				}, "Exit this program.") },
+				}, "", "Exit this program.") },
 			};
-			actionMap = new Dictionary<string, Tuple<Action<CmdParser>, string>>()
+			actionMap = new Dictionary<string, Tuple<Action<CmdParser>, string, string>>()
 			{
-				{ "gc", new Tuple<Action<CmdParser>, string>(parser => GC.Collect(), "Run GC.Collect.") },
-				{ "help", new Tuple<Action<CmdParser>, string>(parser => ShowHelp(), "Show the help.") },
-				{ "close", new Tuple<Action<CmdParser>, string>(parser => fileManager?.Dispose(), "Close and release file manager.") },
-				{ "make", new Tuple<Action<CmdParser>, string>(MakeDatabase, "Close and release file manager.") },
-				{ "open", new Tuple<Action<CmdParser>, string>(LoadDatabase, "Close and release file manager.") },
-				{ "mkdir", new Tuple<Action<CmdParser>, string>(CreateDirectory, "Close and release file manager.") },
-				{ "deldir", new Tuple<Action<CmdParser>, string>(DeleteDirectory, "Close and release file manager.") },
-				{ "addfile", new Tuple<Action<CmdParser>, string>(AddFile, "Close and release file manager.") },
-				{ "addfiles", new Tuple<Action<CmdParser>, string>(AddFiles, "Close and release file manager.") },
-				{ "delfile", new Tuple<Action<CmdParser>, string>(Parser => {  }, "Close and release file manager.") },
-				{ "getfiles", new Tuple<Action<CmdParser>, string>(GetFiles, "Close and release file manager.") },
-				{ "getdirs", new Tuple<Action<CmdParser>, string>(GetDirs, "Close and release file manager.") },
-				{ "writetofile", new Tuple<Action<CmdParser>, string>(WriteTo, "Close and release file manager.") },
-				{ "writetodir", new Tuple<Action<CmdParser>, string>(WriteToDir, "Close and release file manager.") },
-				{ "vacuum", new Tuple<Action<CmdParser>, string>(parser => fileManager.DataVacuum(), "Close and release file manager.") },
-				{ "save", new Tuple<Action<CmdParser>, string>(parser => fileManager.Save(), "Close and release file manager.") },
-				{ "trace", new Tuple<Action<CmdParser>, string>(Trace, "Close and release file manager.") },
+				{ "gc", new Tuple<Action<CmdParser>, string, string>(parser => GC.Collect(), "", "Run GC.Collect.") },
+				{ "help", new Tuple<Action<CmdParser>, string, string>(ShowHelp, "[comamnd]", "Show the help.") },
+				{ "close", new Tuple<Action<CmdParser>, string, string>(parser => fileManager?.Dispose(), "", "Close and release file manager.") },
+				{ "make", new Tuple<Action<CmdParser>, string, string>(MakeDatabase, "", "Create new resource database.") },
+				{ "open", new Tuple<Action<CmdParser>, string, string>(LoadDatabase, "", "Open existed resource database.") },
+				{ "mkdir", new Tuple<Action<CmdParser>, string, string>(CreateDirectory, "", "Create new directory into database.") },
+				{ "deldir", new Tuple<Action<CmdParser>, string, string>(DeleteDirectory, "", "") },
+				{ "addfile", new Tuple<Action<CmdParser>, string, string>(AddFile, "", "") },
+				{ "addfiles", new Tuple<Action<CmdParser>, string, string>(AddFiles, "", "") },
+				{ "delfile", new Tuple<Action<CmdParser>, string, string>(DeleteFile, "", "") },
+				{ "getfiles", new Tuple<Action<CmdParser>, string, string>(GetFiles, "", "") },
+				{ "getdirs", new Tuple<Action<CmdParser>, string, string>(GetDirs, "", "") },
+				{ "writetofile", new Tuple<Action<CmdParser>, string, string>(WriteTo, "", "") },
+				{ "writetodir", new Tuple<Action<CmdParser>, string, string>(WriteToDir, "", "") },
+				{ "vacuum", new Tuple<Action<CmdParser>, string, string>(parser => fileManager.DataVacuum(), "", "") },
+				{ "save", new Tuple<Action<CmdParser>, string, string>(parser => fileManager.Save(), "", "") },
+				{ "trace", new Tuple<Action<CmdParser>, string, string>(Trace, "", "") },
 			};
 		}
 
@@ -143,9 +143,28 @@ namespace ImageManagerCUI
 		}
 
 
-		public void ShowHelp()
+		public void ShowHelp(CmdParser parser)
 		{
 			var sb = new StringBuilder();
+			var command = parser.GetAttribute("command") ?? parser.GetAttribute(0);
+			if (command != null)
+			{
+				
+			}
+			else
+			{
+				foreach (var tuple in funcMap)
+                {
+					sb.AppendFormat("\t{0}\t\t{1}\n", tuple.Key, tuple.Value.Item2, tuple.Value.Item3);
+                }
+
+				foreach (var tuple in actionMap)
+                {
+					sb.AppendFormat("\t{0}\t\t{1}\n", tuple.Key, tuple.Value.Item2, tuple.Value.Item3);
+                }
+			}
+
+			Console.WriteLine(sb);
 		}
 
 		public void MakeDatabase(CmdParser parser)
