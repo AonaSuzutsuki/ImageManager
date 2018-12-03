@@ -35,7 +35,7 @@ namespace FileManagerLib.Extensions.Collections
         /// <param name="key">The key you want to search</param>
         /// <param name="defaultValue">Default value/</param>
         /// <returns></returns>
-        public static V Get<K, V>(this Dictionary<K, V> dict, K key, V defaultValue = default)
+        public static V Get<K, V>(this Dictionary<K, V> dict, K key, V defaultValue)
         {
             if (dict.ContainsKey(key))
                 return dict[key];

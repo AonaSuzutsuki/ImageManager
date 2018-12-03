@@ -162,25 +162,44 @@ namespace FileManagerLib.File.Json
 		}
 
         /// <summary>
-        /// Creates the files on directories.
+        /// Creates multiple files and directories.
         /// </summary>
         /// <param name="fullPath">Full path.</param>
         /// <param name="inDirPaths">In dir paths.</param>
-        public void CreateFilesOnDirectories(string fullPath, string[] inDirPaths)
+        public void CreateMultipleFilesAndDirectories(string fullPath, string[] inDirPaths)
         {
-            var count = DirectorySearcher.CountFiles(inDirPaths);
+			var count = 0;
+			foreach (var dir in inDirPaths)
+			{
+				if (Directory.Exists(dir))
+					count += DirectorySearcher.CountFiles(inDirPaths);
+				else if (System.IO.File.Exists(dir))
+					count++;
+			}
+   
             var dindex = 0;
             foreach (var target in inDirPaths)
             {
                 string dirPath = "{0}/{1}".FormatString(fullPath, System.IO.Path.GetFileName(target));
-                try
-                {
-                    CreateDirectory(dirPath);
-                }
-                catch { }
-                CreateFiles(dirPath, target, (index, currentFilePath, isComplete) =>
-                    WriteIntoResourceProgress?.Invoke(this, new ReadWriteProgressEventArgs(++dindex, count, currentFilePath, isComplete))
-                );
+
+				if (Directory.Exists(target))
+				{
+					try
+                    {
+                        CreateDirectory(dirPath);
+                    }
+                    catch { }
+
+					CreateFiles(dirPath, target, (index, currentFilePath, isComplete) =>
+                        WriteIntoResourceProgress?.Invoke(this, new ReadWriteProgressEventArgs(++dindex, count, currentFilePath, isComplete))
+                    );
+				}
+                else if (System.IO.File.Exists(target))
+				{
+					CreateFile(dirPath, target, "", (index, currentFilePath, isComplete) =>
+					           WriteIntoResourceProgress?.Invoke(this, new ReadWriteProgressEventArgs(++dindex, count, currentFilePath, isComplete))
+					          );
+				}
             }
         }
 

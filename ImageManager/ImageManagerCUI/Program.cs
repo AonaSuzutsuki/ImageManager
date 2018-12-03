@@ -106,7 +106,7 @@ namespace ImageManagerCUI
             var fileManager = new JsonFileManager(outFilename, true);
             fileManager.WriteIntoResourceProgress += FileManager_WriteIntoResourceProgress;
 
-            fileManager.CreateFilesOnDirectories("/", targetFiles);
+            fileManager.CreateMultipleFilesAndDirectories("", targetFiles);
 
             fileManager.Dispose();
         }
