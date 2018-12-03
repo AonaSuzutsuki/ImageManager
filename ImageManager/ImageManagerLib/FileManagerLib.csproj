@@ -101,6 +101,7 @@
     <Compile Include="Dat\DatFileManager.cs" />
     <Compile Include="Extensions\Imager\ImageExtension.cs" />
     <Compile Include="Extensions\Path\PathItemExtensions.cs" />
+    <Compile Include="Extensions\StringExtension.cs" />
     <Compile Include="File\ByteLoader.cs" />
     <Compile Include="File\Exceptions\FileExistedException.cs" />
     <Compile Include="MimeType\MimeTypeMap.cs" />

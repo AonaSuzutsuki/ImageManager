@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FileManagerLib.Extensions.Collections;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,20 +9,44 @@ namespace ImageManagerCUI.Parser
 {
     public class EnvArgumentParser
     {
+        private readonly string[] arguments;
 
         protected readonly Dictionary<string, string> parameters = new Dictionary<string, string>();
 
         protected readonly List<string> values = new List<string>();
 
+        public Dictionary<string, int> optionCountMap = new Dictionary<string, int>();
+
         public EnvArgumentParser(string[] args)
         {
-            for (int i = 0; i < args.Length; i++)
+            arguments = args;
+        }
+
+        public void AddOptionCount(string key, int count)
+        {
+            optionCountMap.Put(key, count);
+        }
+
+        public void Analyze()
+        {
+            for (int i = 0; i < arguments.Length; i++)
             {
-                var arg = args[i];
+                var arg = arguments[i];
                 if (arg.StartsWith("-"))
                 {
-                    var value = args[++i];
-                    parameters.Add(arg, value);
+                    var count = optionCountMap.Get(arg, 1);
+                    if (count > 0)
+                    {
+                        if (arguments.Length > i + 1)
+                        {
+                            var value = arguments[++i];
+                            parameters.Add(arg, value);
+                        }
+                    }
+                    else
+                    {
+                        parameters.Add(arg, "");
+                    }
                 }
                 else
                 {
