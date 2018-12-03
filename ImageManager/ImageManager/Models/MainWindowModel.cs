@@ -98,7 +98,7 @@ namespace ImageManager.Models
 
         public void MakeNewArchive()
         {
-            var fileName = FileSelector.GetFilePath(CommonStyleLib.AppInfo.GetAppPath(), "DATファイル (*.dat)|*.dat|すべてのファイル(*.*)|*.*", "", FileSelector.FileSelectorType.Write);
+            var fileName = FileSelector.GetFilePath(CommonCoreLib.AppInfo.GetAppPath(), "DATファイル (*.dat)|*.dat|すべてのファイル(*.*)|*.*", "", FileSelector.FileSelectorType.Write);
             if (fileName != null)
             {
                 fileManager = new JsonFileManager(fileName, true, true);
@@ -110,7 +110,7 @@ namespace ImageManager.Models
 
         public void OpenArchive()
         {
-            var fileName = FileSelector.GetFilePath(CommonStyleLib.AppInfo.GetAppPath(), "DATファイル (*.dat)|*.dat|すべてのファイル(*.*)|*.*", "", FileSelector.FileSelectorType.Read);
+            var fileName = FileSelector.GetFilePath(CommonCoreLib.AppInfo.GetAppPath(), "DATファイル (*.dat)|*.dat|すべてのファイル(*.*)|*.*", "", FileSelector.FileSelectorType.Read);
             if (fileName != null)
             {
                 fileManager = new JsonFileManager(fileName, false, true);
@@ -306,7 +306,7 @@ namespace ImageManager.Models
 
         public void AddFile()
         {
-            var files = FileSelector.GetFilePaths(CommonStyleLib.AppInfo.GetAppPath(), "すべてのファイル(*.*)|*.*", "");
+            var files = FileSelector.GetFilePaths(CommonCoreLib.AppInfo.GetAppPath(), "すべてのファイル(*.*)|*.*", "");
             if (files != null)
             {
                 IsBusy = true;

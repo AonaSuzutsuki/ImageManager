@@ -18,7 +18,7 @@ namespace FileManagerLib.File.Json.Tests
             if (json == "")
             {
                 jsonManager.CreateDirectory(jsonManager.NextDirectoryId, 0, "test");
-                jsonManager.CreateFile(jsonManager.NextFileId, 0, "test.txt", 0, Crypto.Sha256.GetSha256(new byte[] { 0 }), new Dictionary<string, string>()
+                jsonManager.CreateFile(jsonManager.NextFileId, 0, "test.txt", 0, CommonCoreLib.Crypto.Sha256.GetSha256(new byte[] { 0 }), new Dictionary<string, string>()
                 {
                     { "MimeType", "text/plain" }
                 });

@@ -21,7 +21,7 @@ namespace ImageManager.Thumbnail
 
         public ThumbnailManager()
         {
-            var thumbPath = "{0}/{1}".FormatString(CommonStyleLib.AppInfo.GetAppPath(), ThumbnailChachePath);
+            var thumbPath = "{0}/{1}".FormatString(CommonCoreLib.AppInfo.GetAppPath(), ThumbnailChachePath);
 
             if (File.Exists(thumbPath))
                 fileManager = new JsonFileManager(thumbPath);
