@@ -189,16 +189,17 @@ namespace FileManagerLib.File.Json
                         CreateDirectory(dirPath);
                     }
                     catch { }
-
+     
 					CreateFiles(dirPath, target, (index, currentFilePath, isComplete) =>
                         WriteIntoResourceProgress?.Invoke(this, new ReadWriteProgressEventArgs(++dindex, count, currentFilePath, isComplete))
                     );
 				}
                 else if (System.IO.File.Exists(target))
 				{
-					CreateFile(dirPath, target, "", (index, currentFilePath, isComplete) =>
-					           WriteIntoResourceProgress?.Invoke(this, new ReadWriteProgressEventArgs(++dindex, count, currentFilePath, isComplete))
-					          );
+					var (parent, fileName) = dirPath.GetFilenameAndParent();
+					CreateFile(fileName, parent.ToString(), target, (currentFilePath) =>
+					    WriteIntoResourceProgress?.Invoke(this, new ReadWriteProgressEventArgs(++dindex, count, currentFilePath, true)
+					));
 				}
             }
         }
@@ -266,7 +267,7 @@ namespace FileManagerLib.File.Json
 				//var fileUri = new Uri(path);
 				//var referenceUri = new Uri(referencePath);
 				//return parent + referenceUri.MakeRelativeUri(fileUri).ToString();
-                return (parent.Remove(0, 1) + path.Replace(referencePath, "")).Replace("/", "\\");
+				return PathUtils.ResolvePathSeparator((parent + path.Replace(referencePath, "")));
 			}
 
 			var list = new List<string>();
