@@ -34,9 +34,6 @@ namespace FileManagerLib.Dat
 		/// Threshold for split reading when reading or writing files.
         /// </summary>
 		public int SplitSize { get; } = 134217728; //536870912
-
-        
-        public bool IsShiftJsonPosition { get; set; } = false;
   
 		private long LastPositionWithoutJson
 		{
@@ -304,7 +301,7 @@ namespace FileManagerLib.Dat
             var lenArray = BitConverter.GetBytes(len);
 			var pos = fileStream.Position;
 
-			if (IsShiftJsonPosition && len > -LastPositionWithoutJson)
+			if (len > -LastPositionWithoutJson)
 				fileStream.Seek(LastPositionWithoutJson, SeekOrigin.End);
             else
                 fileStream.Seek(0, SeekOrigin.End);

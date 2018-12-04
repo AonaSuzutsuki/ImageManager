@@ -137,7 +137,7 @@ namespace FileManagerLib.File.Json
                     System.IO.File.Delete(filePath);
             }
 
-            fManager = new DatFileManager(filePath) { IsShiftJsonPosition = true };
+			fManager = new DatFileManager(filePath);
             var json = newFile ? string.Empty : Encoding.UTF8.GetString(fManager.GetBytesFromEnd(JSON_LEN));
             jsonStructureManager = new JsonStructureManager(json, isCheckHash);
             fManager.IsCheckHash = jsonStructureManager.IsCheckHash;
