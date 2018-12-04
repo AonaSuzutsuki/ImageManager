@@ -32,6 +32,7 @@ namespace FileManagerLib.Dat
 
         /// <summary>
 		/// Threshold for split reading when reading or writing files.
+		/// Consume large memory if this value is large.
         /// </summary>
 		public int SplitSize { get; } = 134217728; //536870912
   
