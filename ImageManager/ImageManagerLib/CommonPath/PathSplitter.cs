@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FileManagerLib.Path
+namespace FileManagerLib.CommonPath
 {
 	/// <summary>
 	/// It provides path division system function.

@@ -1,12 +1,12 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FileManagerLib.Path;
+using FileManagerLib.CommonPath;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FileManagerLib.Path.Tests
+namespace FileManagerLib.CommonPath.Tests
 {
     [TestClass()]
     public class PathItemTests

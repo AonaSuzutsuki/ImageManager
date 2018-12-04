@@ -8,7 +8,7 @@ using FileManagerLib.Dat;
 using FileManagerLib.Extensions.Path;
 using FileManagerLib.File.Exceptions;
 using FileManagerLib.MimeType;
-using FileManagerLib.Path;
+using FileManagerLib.CommonPath;
 
 namespace FileManagerLib.File.Json
 {

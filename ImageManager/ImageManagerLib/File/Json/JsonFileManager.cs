@@ -7,7 +7,7 @@ using CommonCoreLib.File;
 using CommonExtensionLib.Extensions;
 using FileManagerLib.Dat;
 using FileManagerLib.Extensions.Path;
-using FileManagerLib.Path;
+using FileManagerLib.CommonPath;
 
 namespace FileManagerLib.File.Json
 {

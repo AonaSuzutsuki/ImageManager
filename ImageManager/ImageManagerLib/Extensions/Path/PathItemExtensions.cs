@@ -1,4 +1,4 @@
-﻿using FileManagerLib.Path;
+﻿using FileManagerLib.CommonPath;
 using System;
 using System.Collections.Generic;
 using System.Linq;

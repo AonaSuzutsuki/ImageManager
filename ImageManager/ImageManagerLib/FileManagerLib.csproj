@@ -105,8 +105,8 @@
     <Compile Include="File\ByteLoader.cs" />
     <Compile Include="File\Exceptions\FileExistedException.cs" />
     <Compile Include="MimeType\MimeTypeMap.cs" />
-    <Compile Include="Path\PathItem.cs" />
-    <Compile Include="Path\PathSplitter.cs" />
+    <Compile Include="CommonPath\PathItem.cs" />
+    <Compile Include="CommonPath\PathSplitter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="File\Json\JsonFileManager.cs" />
     <Compile Include="File\Json\JsonStructureManager.cs" />
