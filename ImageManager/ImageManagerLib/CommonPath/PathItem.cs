@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,7 +10,7 @@ namespace FileManagerLib.CommonPath
 	/// <summary>
 	/// Provide the function to manage the path.
     /// </summary>
-    public class PathItem
+    public class PathItem : IEnumerable<string>
     {
         private readonly List<string> pathList = new List<string>();
 
@@ -191,6 +192,16 @@ namespace FileManagerLib.CommonPath
                     sb.AppendFormat("{0}", array[i]);
             }
             return sb.ToString();
+        }
+
+        public IEnumerator<string> GetEnumerator()
+        {
+            return ((IEnumerable<string>)pathList).GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return ((IEnumerable<string>)pathList).GetEnumerator();
         }
     }
 }
